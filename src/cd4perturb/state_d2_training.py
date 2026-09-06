@@ -70,6 +70,49 @@ def set_mmd(prediction, target):
     return result
 
 
+def build_official_state_adapter(checkpoint: str | Path, n_genes: int,
+                                 n_perturbations: int, cell_set_len: int = 32):
+    """Instantiate the pinned official STATE architecture for full training.
+
+    The pilot uses the lightweight 128-hidden 4/4/8 contract.  Full
+    Scratch/Transfer runs use the checkpoint's hidden size and transformer
+    shape so compatible attention/FFN/LayerNorm weights can actually be
+    transferred; the set length is reduced to 32 for the D2 pilot-scale data.
+    """
+    torch = __import__("torch")
+    from state.tx.models.state_transition import StateTransitionPerturbationModel
+    payload = torch.load(str(checkpoint), map_location="cpu", weights_only=False)
+    hparams = dict(payload["hyper_parameters"])
+    source_hidden = int(hparams["hidden_dim"])
+    kwargs = {key: value for key, value in hparams.items()
+              if key not in {"input_dim", "hidden_dim", "output_dim", "pert_dim", "batch_dim",
+                             "gene_names", "gene_dim", "hvg_dim"}}
+    kwargs["cell_set_len"] = int(cell_set_len)
+    kwargs["batch_encoder"] = False
+    kwargs["batch_predictor"] = False
+    base = StateTransitionPerturbationModel(input_dim=int(n_genes), hidden_dim=source_hidden,
+                                            output_dim=int(n_genes), pert_dim=int(n_perturbations),
+                                            batch_dim=None, gene_dim=int(n_genes), **kwargs)
+
+    class _Adapter(torch.nn.Module):
+        def __init__(self, wrapped):
+            super().__init__()
+            self.wrapped = wrapped
+
+        def forward(self, expression, perturbation):
+            batch = {"ctrl_cell_emb": expression, "pert_emb": perturbation,
+                     "batch": torch.zeros(expression.shape[:2], dtype=torch.long,
+                                           device=expression.device)}
+            output = self.wrapped(batch)
+            if output.ndim == 2:
+                output = output.unsqueeze(0)
+            if not torch.isfinite(output).all():
+                raise FloatingPointError("official STATE adapter produced NaN/Inf")
+            return output
+
+    return _Adapter(base), payload
+
+
 def _set_phase(model, phase: int):
     for name, parameter in model.named_parameters():
         if "transformer" in name:
@@ -160,4 +203,3 @@ def train_two_phase(model, train_batches: Iterable[Mapping], validation_batches:
               "d2_responses_used": True}
     (target_dir / "training_result.json").write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     return result
-
