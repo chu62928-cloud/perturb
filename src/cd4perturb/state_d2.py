@@ -54,6 +54,21 @@ def _bool_value(value) -> bool:
     return _text(value).lower() in {"1", "true", "t", "yes", "y"}
 
 
+def _obs_equals(series, value: str) -> np.ndarray:
+    if hasattr(series.dtype, "categories"):
+        categories = np.asarray([_text(x) for x in series.cat.categories])
+        hits = np.flatnonzero(categories == str(value))
+        return np.isin(series.cat.codes.to_numpy(), hits)
+    return np.asarray([_text(value_) == str(value) for value_ in series.to_numpy()])
+
+
+def _obs_category_values(series) -> tuple[np.ndarray, np.ndarray] | tuple[None, np.ndarray]:
+    if hasattr(series.dtype, "categories"):
+        return (np.asarray([_text(x) for x in series.cat.categories]),
+                series.cat.codes.to_numpy())
+    return None, np.asarray([_text(x) for x in series.to_numpy()])
+
+
 def _condition(path: str | Path) -> str:
     match = re.search(r"_(Rest|Stim8hr|Stim48hr)(?:\.|$)", Path(path).name)
     if not match:
@@ -443,16 +458,25 @@ def compute_d2_hvg_panel(paths: Iterable[str | Path], output: str | Path | None 
                 required.update({"perturbed_gene_name", "perturbed_gene_id"})
             if not required.issubset(obj.obs.columns):
                 raise ValueError("D2 HVG requires guide_group and low_quality columns")
-            groups = np.asarray([_text(value) for value in obj.obs["guide_group"].to_numpy()])
-            quality = np.asarray([_bool_value(value) for value in obj.obs["low_quality"].to_numpy()])
-            mask = (groups == SINGLE_GUIDE_GROUP) & (~quality)
+            mask = _obs_equals(obj.obs["guide_group"], SINGLE_GUIDE_GROUP)
+            quality_values = obj.obs["low_quality"].to_numpy()
+            quality = quality_values if quality_values.dtype == bool else np.asarray([_bool_value(value) for value in quality_values])
+            mask &= ~quality
             if heldout_pairs:
-                raw_names = np.asarray([_text(value) for value in obj.obs["perturbed_gene_name"].to_numpy()])
-                raw_ids = np.asarray([_text(value) for value in obj.obs["perturbed_gene_id"].to_numpy()])
                 condition = _condition(path)
-                heldout = np.fromiter(((name, condition) in heldout_pairs or (gene_id, condition) in heldout_pairs
-                                       for name, gene_id in zip(raw_names, raw_ids)),
-                                      dtype=bool, count=len(raw_names))
+                name_categories, name_codes = _obs_category_values(obj.obs["perturbed_gene_name"])
+                id_categories, id_codes = _obs_category_values(obj.obs["perturbed_gene_id"])
+                heldout = np.zeros(len(mask), dtype=bool)
+                if name_categories is not None:
+                    name_hits = {i for i, value in enumerate(name_categories) if (value, condition) in heldout_pairs}
+                    heldout |= np.isin(name_codes, list(name_hits))
+                else:
+                    heldout |= np.asarray([(value, condition) in heldout_pairs for value in name_codes])
+                if id_categories is not None:
+                    id_hits = {i for i, value in enumerate(id_categories) if (value, condition) in heldout_pairs}
+                    heldout |= np.isin(id_codes, list(id_hits))
+                else:
+                    heldout |= np.asarray([(value, condition) in heldout_pairs for value in id_codes])
                 # NTC rows have no held-out pair and remain in the background.
                 mask &= ~heldout
             indices = np.flatnonzero(mask)

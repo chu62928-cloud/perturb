@@ -16,7 +16,7 @@ from .guide_correction import load_guide_library
 
 def _parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="cd4perturb", description="CD4 Perturb-seq auditable pipeline")
-    p.add_argument("command", choices=["preflight", "audit", "audit-csr", "activate-roles", "audit-public", "prepare-pilot", "guide-qc", "gene-order", "ntc-latent", "freeze-data", "effect-matrix", "state-regions", "freeze-splits", "release-d2", "release-confirmation", "fit-baselines", "state-adaptation", "evaluate", "match-composition", "score-composition", "proxy-composition", "plan", "report", "program-validate", "d2-audit", "d2-vocab", "d2-splits", "d2-hvg", "d2-gene-panel", "d2-pilot"])
+    p.add_argument("command", choices=["preflight", "audit", "audit-csr", "activate-roles", "audit-public", "prepare-pilot", "guide-qc", "gene-order", "ntc-latent", "freeze-data", "effect-matrix", "state-regions", "freeze-splits", "release-d2", "release-confirmation", "fit-baselines", "state-adaptation", "evaluate", "match-composition", "score-composition", "proxy-composition", "plan", "report", "program-validate", "d2-audit", "d2-vocab", "d2-splits", "d2-hvg", "d2-gene-panel", "d2-pilot", "d2-contract"])
     p.add_argument("--config", default="config/config.json")
     p.add_argument("--audit", default=None)
     p.add_argument("--candidate-table", default=None)
@@ -290,6 +290,28 @@ def main(argv: list[str] | None = None) -> int:
         target.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
         print(json.dumps({"output": str(target), "output_shape": result["output_shape"],
                           "loss": result["loss"]}, ensure_ascii=False, indent=2))
+        return 0
+    if args.command == "d2-contract":
+        if not args.gene_panel or not args.input or not args.manifest:
+            raise SystemExit("d2-contract requires --gene-panel, --input vocabulary and --manifest splits")
+        from .state_d2_model import D2StateConfig
+        from .state_d2_training import freeze_training_contract
+        panel = json.loads(Path(args.gene_panel).read_text(encoding="utf-8"))
+        vocab = json.loads(Path(args.input).read_text(encoding="utf-8"))
+        splits = json.loads(Path(args.manifest).read_text(encoding="utf-8"))
+        model_config = D2StateConfig(n_genes=len(panel.get("gene_order", [])),
+                                     n_perturbations=len(vocab.get("perturbation_names", [])))
+        contracts = []
+        for mode in ("Scratch", "Transfer"):
+            for seed in (20260901, 20260902, 20260903):
+                contracts.append(freeze_training_contract(panel, vocab, splits,
+                                                          {"config_hash": model_config.hash()}, mode, seed).as_dict())
+        result = {"version": "d2_state_fair_training_contracts.v1", "contracts": contracts,
+                  "same_data_and_budget_assertion": True, "d2_responses_used": True}
+        target = out_root / "research" / "state_d2" / "training_contracts.json"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(json.dumps({"output": str(target), "contracts": len(contracts)}, ensure_ascii=False, indent=2))
         return 0
     if args.command == "activate-roles":
         if not args.audit_summary:
