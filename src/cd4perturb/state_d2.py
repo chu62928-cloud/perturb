@@ -439,6 +439,7 @@ def compute_d2_hvg_panel(paths: Iterable[str | Path], output: str | Path | None 
     selected: dict[Path, np.ndarray] = {}
     axis_ids: list[str] | None = None
     columns_by_path: dict[Path, list[int]] = {}
+    active_columns_by_path: dict[Path, list[int]] = {}
     original_n_vars: dict[Path, int] = {}
     symbols_by_id: dict[str, str] = {}
     for path in paths:
@@ -492,6 +493,8 @@ def compute_d2_hvg_panel(paths: Iterable[str | Path], output: str | Path | None 
     active_ids = [axis_ids[i] for i in active_positions]
     symbols = [symbols[i] for i in active_positions]
     n_vars = len(symbols)
+    for path in paths:
+        active_columns_by_path[path] = [columns_by_path[path][i] for i in active_positions]
     sums = np.zeros(n_vars, dtype=np.float64)
     squares = np.zeros(n_vars, dtype=np.float64)
     detected = np.zeros(n_vars, dtype=np.int64)
@@ -531,7 +534,7 @@ def compute_d2_hvg_panel(paths: Iterable[str | Path], output: str | Path | None 
                 # quality-passing rows.  This is the critical memory-bound
                 # path: at most ``block_rows × n_vars`` is materialised.
                 full = _read_csr_block_columns_h5(handle, window_start, window_stop,
-                                                  [columns_by_path[path][i] for i in active_positions],
+                                                  active_columns_by_path[path],
                                                   original_n_vars[path])
                 block = full[local_rows]
                 totals = block.sum(axis=1)
