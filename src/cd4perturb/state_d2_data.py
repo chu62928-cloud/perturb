@@ -25,6 +25,23 @@ def _condition(path: str | Path) -> str:
     return match.group(1)
 
 
+def _equals(series, value: str) -> np.ndarray:
+    """Compare a categorical obs column without decoding millions of strings."""
+    if hasattr(series.dtype, "categories"):
+        categories = np.asarray([_text(x) for x in series.cat.categories])
+        hits = np.flatnonzero(categories == str(value))
+        return np.isin(series.cat.codes.to_numpy(), hits)
+    return np.asarray([_text(x) == str(value) for x in series.to_numpy()])
+
+
+def _regex_categories(series, pattern: str) -> np.ndarray:
+    if hasattr(series.dtype, "categories"):
+        categories = np.asarray([_text(x) for x in series.cat.categories])
+        hits = np.flatnonzero([bool(re.search(pattern, x, re.I)) for x in categories])
+        return np.isin(series.cat.codes.to_numpy(), hits)
+    return np.asarray([bool(re.search(pattern, _text(x), re.I)) for x in series.to_numpy()])
+
+
 def _panel_columns(path: Path, panel: Sequence[str]) -> list[int]:
     import anndata as ad
     obj = ad.read_h5ad(path, backed="r")
@@ -52,18 +69,18 @@ def eligible_rows_by_gene(path: str | Path, genes: Iterable[str], *, max_rows: i
         missing = sorted(set(columns).difference(obj.obs.columns))
         if missing:
             raise ValueError(f"{path.name} missing pilot columns: {missing}")
-        groups = np.asarray([_text(x) for x in obj.obs["guide_group"].to_numpy()])
-        quality = np.asarray([_bool(x) for x in obj.obs["low_quality"].to_numpy()])
-        names = np.asarray([_text(x) for x in obj.obs["perturbed_gene_name"].to_numpy()])
-        ids = np.asarray([_text(x) for x in obj.obs["perturbed_gene_id"].to_numpy()])
-        types = np.asarray([_text(x) for x in obj.obs["guide_type"].to_numpy()])
         out = {}
-        base = (groups == SINGLE_GUIDE_GROUP) & (~quality)
-        ntc = base & np.asarray([bool(re.search(r"ntc|non[-_ ]?target|control|negative", x, re.I)) for x in types])
+        base = _equals(obj.obs["guide_group"], SINGLE_GUIDE_GROUP)
+        low_quality = obj.obs["low_quality"].to_numpy()
+        if low_quality.dtype != bool:
+            low_quality = np.asarray([_bool(x) for x in low_quality])
+        base &= ~low_quality
+        ntc = base & _regex_categories(obj.obs["guide_type"], r"ntc|non[-_ ]?target|control|negative")
         if "NTC" in wanted:
             out["NTC"] = np.flatnonzero(ntc)[:max_rows]
         for gene in sorted(wanted - {"NTC"}):
-            mask = base & ((names == gene) | (ids == gene))
+            mask = base & (_equals(obj.obs["perturbed_gene_name"], gene) |
+                           _equals(obj.obs["perturbed_gene_id"], gene))
             out[gene] = np.flatnonzero(mask)[:max_rows]
         return out
     finally:
@@ -87,17 +104,26 @@ def read_log_expression(path: str | Path, rows: Sequence[int], panel: Sequence[s
             obj.file.close()
     import h5py
     pieces = []
+    sorted_values = []
     with h5py.File(path, "r") as handle:
         order = np.argsort(rows)
         sorted_rows = rows[order]
-        for start in range(0, len(sorted_rows), 512):
-            chunk = sorted_rows[start:start + 512]
+        cursor = 0
+        while cursor < len(sorted_rows):
+            end = cursor + 1
+            while (end < len(sorted_rows) and end - cursor < 512 and
+                   int(sorted_rows[end] - sorted_rows[end - 1]) <= 64):
+                end += 1
+            chunk = sorted_rows[cursor:end]
             first, last = int(chunk[0]), int(chunk[-1])
             block = _read_csr_block_columns_h5(handle, first, last + 1, columns, n_vars)
-            pieces.append(block[chunk - first])
-    values = np.vstack(pieces).astype(np.float32, copy=False)
+            pieces.append((order[cursor:end], block[chunk - first]))
+            sorted_values.append(block[chunk - first])
+            cursor = end
+    values = np.vstack(sorted_values).astype(np.float32, copy=False)
     restored = np.empty_like(values)
-    restored[order] = values
+    for positions, piece in pieces:
+        restored[positions] = piece
     totals = restored.sum(axis=1)
     totals = np.where(totals > 0, totals, 1.0)
     return np.log1p(restored / totals[:, None] * 10000.0).astype(np.float32)
@@ -127,4 +153,3 @@ def make_pilot_batch(paths: Iterable[str | Path], panel: Sequence[str], perturba
             "target_rows": target_rows.tolist(), "control_rows": control_rows.tolist(),
             "target_expression": target[None, :, :], "control_expression": control[None, :, :],
             "perturbation_names": list(perturbations), "d2_responses_used": True}
-
