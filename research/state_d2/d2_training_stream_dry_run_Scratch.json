@@ -1,0 +1,18 @@
+{
+  "version": "d2_state_training_stream_dry_run.v1",
+  "mode": "Scratch",
+  "dry_run": true,
+  "batch_size": 64,
+  "set_len": 32,
+  "n_genes": 2000,
+  "n_perturbations": 12171,
+  "device": "cuda",
+  "records_train": 23609,
+  "records_validation": 1822,
+  "transfer_applied": false,
+  "gene_order_hash": "810bed53174adcb51c80b39f00f28a4ac9031ae0e0b1ef7a47a4f7c33b7b1e99",
+  "perturbation_vocab_hash": "5c2c29e7f512f0cdf9fdf2ef31a3afeee8b286c76385f622bfe5e6f9065e7cc5",
+  "split_hash": "6debd4dbad36bccc22e47041a1c8461710ecfe5d715d0599740be4f8b809e84b",
+  "finite_batches": true,
+  "d2_responses_used": true
+}

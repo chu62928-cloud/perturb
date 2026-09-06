@@ -18,6 +18,7 @@
 - PENDING: 尚未启动Scratch/Transfer的全量40,000步训练、简单基线对比和D2响应评价；当前结果不能给出Transfer或Scratch模型结论。`train_two_phase`与`D2BatchStream`已提供公平两阶段训练接口，不能把试点损失当作性能指标。
 - VERIFIED: 2026-09-06补齐正式HVG检测率审计。训练部分可用细胞数为Rest 1,727,344、Stim8hr 1,843,234、Stim48hr 1,813,531，总数与正式HVG的5,384,109一致；每个HVG统计含Ensembl ID和三条件检测率。最终面板的身份覆盖为Naive 5/5、Th1 3/3、Th2 2/3（缺GATA3，原始名次2073）、Th17 2/3（缺IL23R，原始名次2835）；两者因原始名次未差于5000而不触发强制替换，面板强制数为0。
 - VERIFIED: 2026-09-06新增`D2BatchStream`和`d2-train`入口。流按冻结的基因×背景划分抽取同条件NTC群体背景和扰动响应集合，支持Scratch/Transfer相同批大小64及两阶段优化；Transfer在官方检查点缺少可核实扰动名称时保持扰动投影随机初始化。该入口已完成编译和命令帮助检查，尚未实际启动40,000步全量作业。
+- VERIFIED: 2026-09-06在RTX 4080 SUPER上分别完成Scratch与Transfer真实D2训练流干跑；两者均构建并检查64×32×2000表达/目标张量和64×32×12,171扰动张量，全部有限。训练记录为23,609个组合、验证记录1,822个，面板、词表和划分哈希与冻结合同一致；Transfer干跑确认语义迁移已应用。该干跑不更新权重，也不构成模型性能结论。
 - VERIFIED: 2026-09-06远端e3_pipeline测试为`37 passed, 4 warnings`，本地最小环境为`34 passed, 3 skipped`；本地回退近邻实现已消除对scikit-learn的硬依赖。`compileall`和`git diff --check`通过。
 
 - VERIFIED: Git仓库已安全初始化并推送；远端为 `https://github.com/chu62928-cloud/perturb.git`，基线提交 `3cf0df4`，当前唯一大目标分支为 `d2-state-single-step`。`connect_server.py`、`remote_config.json`、原始数据、模型权重、缓存和大型生成物已由 `.gitignore` 排除。

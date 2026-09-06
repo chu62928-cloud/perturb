@@ -58,6 +58,8 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("--transfer-report", default=None, help="audited semantic transfer report")
     p.add_argument("--phase1-steps", type=int, default=1000)
     p.add_argument("--validation-steps", type=int, default=32)
+    p.add_argument("--dry-run", action="store_true",
+                   help="only build and validate one real D2 train/validation batch")
     return p
 
 
@@ -393,6 +395,32 @@ def main(argv: list[str] | None = None) -> int:
                                           panel, names, splits_payload, split="validation",
                                           batch_size=contract.batch_size, set_len=32, device=device,
                                           seed=args.seed + 1)
+        if args.dry_run:
+            train_batch = next(iter(train_stream))
+            validation_batch = next(iter(validation_stream))
+            expected = (contract.batch_size, 32, len(panel))
+            for name, batch in (("train", train_batch), ("validation", validation_batch)):
+                if tuple(batch["expression"].shape) != expected or tuple(batch["target"].shape) != expected:
+                    raise SystemExit(f"D2 {name} batch shape mismatch")
+                if tuple(batch["perturbation"].shape) != (contract.batch_size, 32, len(names)):
+                    raise SystemExit(f"D2 {name} perturbation shape mismatch")
+                if not all(torch.isfinite(batch[key]).all() for key in ("expression", "perturbation", "target")):
+                    raise SystemExit(f"D2 {name} batch contains NaN/Inf")
+            dry_result = {"version": "d2_state_training_stream_dry_run.v1", "mode": args.mode,
+                          "dry_run": True, "batch_size": contract.batch_size, "set_len": 32,
+                          "n_genes": len(panel), "n_perturbations": len(names), "device": device,
+                          "records_train": len(train_stream.records),
+                          "records_validation": len(validation_stream.records),
+                          "transfer_applied": args.mode == "Transfer",
+                          "gene_order_hash": panel_payload.get("gene_order_hash"),
+                          "perturbation_vocab_hash": vocab_payload.get("vocab_hash"),
+                          "split_hash": splits_payload.get("split_hash"),
+                          "finite_batches": True, "d2_responses_used": True}
+            dry_target = out_root / "research" / "state_d2" / f"d2_training_stream_dry_run_{args.mode}.json"
+            dry_target.parent.mkdir(parents=True, exist_ok=True)
+            dry_target.write_text(json.dumps(dry_result, ensure_ascii=False, indent=2), encoding="utf-8")
+            print(json.dumps({"output": str(dry_target), **dry_result}, ensure_ascii=False, indent=2))
+            return 0
         target = out_root / "research" / "state_d2" / "training" / args.mode / f"seed_{args.seed}"
         result = train_two_phase(model, train_stream, validation_stream, contract, target,
                                  phase1_steps=args.phase1_steps,

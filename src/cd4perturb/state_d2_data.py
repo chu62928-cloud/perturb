@@ -90,14 +90,40 @@ def eligible_rows_by_gene(path: str | Path, genes: Iterable[str], *, max_rows: i
         name_values, name_codes = _values_and_codes(obj.obs["perturbed_gene_name"])
         id_values, id_codes = _values_and_codes(obj.obs["perturbed_gene_id"])
         buckets = {gene: [] for gene in wanted_targets}
-        for row in np.flatnonzero(base):
-            name_code = int(name_codes[row]) if name_values is not None else None
-            id_code = int(id_codes[row]) if id_values is not None else None
-            name = name_values[name_code] if name_values is not None and name_code >= 0 else (name_codes[row] if name_values is None else "")
-            gene_id = id_values[id_code] if id_values is not None and id_code >= 0 else (id_codes[row] if id_values is None else "")
-            target = name or gene_id
-            if target in buckets and len(buckets[target]) < max_rows:
-                buckets[target].append(int(row))
+        if name_values is not None and id_values is not None:
+            # D2 stores these columns categorically.  Resolve category codes
+            # in vectorized form, then take only the first bounded rows per
+            # target; this avoids an 8-million-row Python string loop.
+            code_to_gene = {int(code): str(gene) for code, gene in enumerate(name_values)
+                            if str(gene) in wanted_targets}
+            name_hits = np.flatnonzero(base & np.isin(name_codes, list(code_to_gene)))
+            target_codes = np.full(len(base), -1, dtype=np.int64)
+            if len(name_hits):
+                target_codes[name_hits] = name_codes[name_hits]
+            id_offset = len(name_values)
+            id_to_gene = {id_offset + int(code): str(gene) for code, gene in enumerate(id_values)
+                          if str(gene) in wanted_targets}
+            id_hits = np.flatnonzero(base & (target_codes < 0) &
+                                     np.isin(id_codes, [code - id_offset for code in id_to_gene]))
+            if len(id_hits):
+                target_codes[id_hits] = id_offset + id_codes[id_hits]
+                code_to_gene.update(id_to_gene)
+            eligible = np.flatnonzero(target_codes >= 0)
+            if len(eligible):
+                order = np.argsort(target_codes[eligible], kind="stable")
+                sorted_rows, sorted_codes = eligible[order], target_codes[eligible][order]
+                boundaries = np.r_[0, np.flatnonzero(np.diff(sorted_codes)) + 1, len(sorted_codes)]
+                for left, right in zip(boundaries[:-1], boundaries[1:]):
+                    gene = code_to_gene.get(int(sorted_codes[left]))
+                    if gene in buckets:
+                        buckets[gene] = sorted_rows[left:min(right, left + max_rows)].astype(np.int64).tolist()
+        else:
+            for row in np.flatnonzero(base):
+                name = _text(name_codes[row]) if name_values is None else ""
+                gene_id = _text(id_codes[row]) if id_values is None else ""
+                target = name or gene_id
+                if target in buckets and len(buckets[target]) < max_rows:
+                    buckets[target].append(int(row))
         out.update({gene: np.asarray(rows, dtype=np.int64) for gene, rows in buckets.items()})
         return out
     finally:
