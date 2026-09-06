@@ -1,0 +1,46 @@
+{
+  "version": "d2_state_pilot_contract.v2",
+  "config": {
+    "n_genes": 2000,
+    "n_perturbations": 12171,
+    "cell_set_len": 32,
+    "hidden_dim": 128,
+    "n_encoder_layers": 4,
+    "n_decoder_layers": 4,
+    "n_attention_heads": 8,
+    "dropout": 0.1,
+    "predict_residual": true,
+    "batch_encoder": false,
+    "max_steps": 40000,
+    "seeds": [
+      20260901,
+      20260902,
+      20260903
+    ]
+  },
+  "config_hash": "fcf4478111f8d3225e3452da63fec627b8ee6ebb7e3bf388306b7d91ef8e9689",
+  "output_shape": [
+    32,
+    2000
+  ],
+  "loss": 4.468990325927734,
+  "finite": true,
+  "checkpoint_reload": true,
+  "device": "cuda",
+  "batch_encoder": false,
+  "condition": "Rest",
+  "target_gene": "TBX21",
+  "pilot_targets": [
+    "TBX21",
+    "GATA3",
+    "RORC",
+    "STAT4",
+    "STAT6",
+    "STAT3",
+    "BATF",
+    "IRF4"
+  ],
+  "gene_order_hash": "810bed53174adcb51c80b39f00f28a4ac9031ae0e0b1ef7a47a4f7c33b7b1e99",
+  "perturbation_vocab_hash": "5c2c29e7f512f0cdf9fdf2ef31a3afeee8b286c76385f622bfe5e6f9065e7cc5",
+  "d2_responses_used": true
+}

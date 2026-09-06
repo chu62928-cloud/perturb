@@ -1,0 +1,13 @@
+{
+  "version": "d2_freeze_validation.v1",
+  "audit_version": "d2_data_audit.v1",
+  "gene_order_hash": "810bed53174adcb51c80b39f00f28a4ac9031ae0e0b1ef7a47a4f7c33b7b1e99",
+  "perturbation_vocab_hash": "5c2c29e7f512f0cdf9fdf2ef31a3afeee8b286c76385f622bfe5e6f9065e7cc5",
+  "split_hash": "6debd4dbad36bccc22e47041a1c8461710ecfe5d715d0599740be4f8b809e84b",
+  "n_genes": 2000,
+  "n_perturbations": 12171,
+  "n_split_records": 36513,
+  "pilot_checked": true,
+  "d2_responses_used": false,
+  "freeze_hash": "e11fbe4c2375878a1058868c4e4bb221495a51036eece81a9582a88a057f0e1c"
+}

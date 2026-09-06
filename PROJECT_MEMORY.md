@@ -11,6 +11,12 @@
 
 ## Current state
 
+- VERIFIED: 2026-09-06 D2正式2,000基因面板已在三条件允许训练组合和NTC细胞上完成全量流式计算；共5,384,109个细胞、18,129个非PuroR实测基因，采用CP10K→log1p、20个均值箱和Seurat兼容离散度排序。正式原始HVG与最终面板顺序哈希均为`810bed53174adcb51c80b39f00f28a4ac9031ae0e0b1ef7a47a4f7c33b7b1e99`，14个身份锚点均未触发强制替换；GATA3原始名次2073、IL23R原始名次2835，仍按已冻结资格规则不强制纳入。正式产物为`research/state_d2/d2_hvg_raw.json`和`research/state_d2/d2_gene_panel_2000.json`。
+- VERIFIED: 2026-09-06基于正式面板重跑真实D2 Rest试点。固定八个调控靶点（TBX21、GATA3、RORC、STAT4、STAT6、STAT3、BATF、IRF4），集合大小32，输出严格为32×2000，损失4.4689903259且有限，GPU前向、检查点保存和重载均通过；产物为`research/state_d2/d2_state_pilot_contract.json`。IFNG仍因每条件合格细胞过少不进入稳定试点。
+- VERIFIED: 2026-09-06官方Replogle检查点迁移审计已按参数语义完成。93/94个目标参数可按键和形状复制，正式面板与官方基因列表重叠220个；官方检查点没有可核实的有序扰动名称，因此扰动投影重叠为0并保持随机初始化，未按整数索引复制。`semantic_assertions_pass=true`，产物为`research/state_d2/transfer_report.json`。
+- VERIFIED: 2026-09-06 Scratch/Transfer三种种子的公平训练合同已按同一面板、词表、划分和40,000步预算冻结，批大小固定为64，验证指标为validation MMD；产物为`research/state_d2/training_contracts.json`。数据冻结交叉校验通过，冻结哈希为`e11fbe4c2375878a1058868c4e4bb221495a51036eece81a9582a88a057f0e1c`，产物为`research/state_d2/d2_freeze_validation.json`。
+- PENDING: 尚未启动Scratch/Transfer的全量40,000步训练、简单基线对比和D2响应评价；当前结果不能给出Transfer或Scratch模型结论。现有`train_two_phase`提供公平两阶段训练循环，但完整D2细胞批流和训练运行器仍需在下一阶段接入，不能把试点损失当作性能指标。
+
 - VERIFIED: Git仓库已安全初始化并推送；远端为 `https://github.com/chu62928-cloud/perturb.git`，基线提交 `3cf0df4`，当前唯一大目标分支为 `d2-state-single-step`。`connect_server.py`、`remote_config.json`、原始数据、模型权重、缓存和大型生成物已由 `.gitignore` 排除。
 - VERIFIED: 已在 `d2-state-single-step` 提交 `419821d` 冻结 D2 谱系评分器配置、评分函数、D2 元数据审计、固定 guide 校订词表、基因×背景划分和 STATE 模型契约；随后提交 `f4de8ed` 完成远端 D2 产物同步。远端 `e3_pipeline` 测试为 `33 passed, 4 warnings`。
 - VERIFIED: 2026-09-06 D2 元数据审计已完成并下载至 `research/state_d2/d2_data_audit.json`。三份文件均为 18,130 维 `_CSRDataset`，形状分别为 2,940,194×18,130、3,032,848×18,130、2,863,571×18,130；原始 X 抽样非负、有限且整数样，D2 完整 CSR 通过摘要作为外部证据。Stim48hr 的 PuroR 位于首列，其余条件位于末列；基因集合相同但列顺序不同，正式读取按 Ensembl ID 建立逐文件列映射，未修改 `.h5ad`。
