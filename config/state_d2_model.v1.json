@@ -1,0 +1,25 @@
+{
+  "version": "state_d2_model.v1",
+  "model": "STATE-D2-Scratch or STATE-D2-Transfer",
+  "cell_set_len": 32,
+  "n_genes": 2000,
+  "hidden_dim": 128,
+  "n_encoder_layers": 4,
+  "n_decoder_layers": 4,
+  "n_attention_heads": 8,
+  "batch_encoder": false,
+  "backgrounds": ["Rest", "Stim8hr", "Stim48hr"],
+  "seeds": [20260901, 20260902, 20260903],
+  "max_steps": 40000,
+  "validation_metric": "MMD",
+  "selection_rule": "best validation MMD",
+  "transfer": {
+    "backbone": "copy only key and shape compatible attention/FFN/LayerNorm tensors",
+    "gene_layers": "align by gene symbol, overlapping rows/columns only",
+    "perturbation_projection": "align by perturbation name, never integer index",
+    "new_features": "random initialization",
+    "phase_1": "freeze transformer backbone; train new gene and perturbation layers",
+    "phase_2": "unfreeze backbone with smaller learning rate"
+  },
+  "state_validity": "NOT_EVALUABLE until a non-destructive same-cell pre-state endpoint exists"
+}

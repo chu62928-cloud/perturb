@@ -11,6 +11,7 @@ from .config import load_config
 from .registry import build_registry, write_registry
 from .release import create_locked_release
 from .roles import role_payload, validate_role_manifest, write_role_manifest
+from .guide_correction import load_guide_library
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -216,7 +217,8 @@ def main(argv: list[str] | None = None) -> int:
             raise SystemExit("d2-hvg requires --paths JSON list")
         from .state_d2 import compute_d2_hvg_panel
         paths = json.loads(Path(args.paths).read_text(encoding="utf-8"))
-        target = out_root / "research" / "state_d2" / "d2_hvg_raw.json"
+        target_name = "d2_hvg_raw.json" if args.max_cells is None else "d2_hvg_precheck.json"
+        target = out_root / "research" / "state_d2" / target_name
         splits = json.loads(Path(args.input).read_text(encoding="utf-8")) if args.input else None
         result = compute_d2_hvg_panel(paths, output=target, block_rows=args.block_rows,
                                       max_cells=args.max_cells, seed=cfg.random_seed, splits=splits)
@@ -228,6 +230,8 @@ def main(argv: list[str] | None = None) -> int:
             raise SystemExit("d2-gene-panel requires --hvg-input raw HVG JSON")
         from .state_d2 import apply_identity_anchor_policy
         raw = json.loads(Path(args.hvg_input).read_text(encoding="utf-8"))
+        if raw.get("version") != "d2_gene_panel_2000.v1" or raw.get("max_cells_per_condition") is not None:
+            raise SystemExit("d2-gene-panel requires a formal all-eligible-cell d2-hvg artifact; prechecks are not accepted")
         programs = json.loads(Path(args.programs).read_text(encoding="utf-8"))
         result = apply_identity_anchor_policy(raw["raw_hvg"], raw["gene_statistics"], programs=programs)
         result["source_hvg_artifact"] = str(args.hvg_input)
@@ -321,7 +325,7 @@ def main(argv: list[str] | None = None) -> int:
         if not args.paths or not args.guide_library:
             raise SystemExit("guide-qc requires --paths JSON and --guide-library CSV")
         donor, role_manifest = _require_development_role(args, cfg, out_root)
-        from .guide_correction import audit_guides, load_guide_library
+        from .guide_correction import audit_guides
         paths = json.loads(Path(args.paths).read_text(encoding="utf-8"))
         report = audit_guides(paths, load_guide_library(args.guide_library), donor_id=donor)
         report["role_manifest_hash"] = role_manifest["role_manifest_hash"]

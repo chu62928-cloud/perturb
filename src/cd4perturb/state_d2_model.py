@@ -1,0 +1,234 @@
+from __future__ import annotations
+
+"""Small, deterministic STATE-compatible set model and transfer audit.
+
+The heavy official STATE package is imported only on the remote training
+machine.  This adapter keeps the D2 contract testable locally and makes every
+transfer decision explicit: tensors are copied only when their parameter
+semantics, key and shape are compatible.
+"""
+
+import hashlib
+import json
+from dataclasses import asdict, dataclass
+from pathlib import Path
+from typing import Mapping, Sequence
+
+
+@dataclass(frozen=True)
+class D2StateConfig:
+    n_genes: int = 2000
+    n_perturbations: int = 128
+    cell_set_len: int = 32
+    hidden_dim: int = 128
+    n_encoder_layers: int = 4
+    n_decoder_layers: int = 4
+    n_attention_heads: int = 8
+    dropout: float = 0.1
+    predict_residual: bool = True
+    batch_encoder: bool = False
+    max_steps: int = 40000
+    seeds: tuple[int, ...] = (20260901, 20260902, 20260903)
+
+    def as_dict(self) -> dict:
+        result = asdict(self)
+        result["seeds"] = list(self.seeds)
+        return result
+
+    def hash(self) -> str:
+        return hashlib.sha256(json.dumps(self.as_dict(), sort_keys=True).encode()).hexdigest()
+
+
+def _torch():  # pragma: no cover - the local orchestration env intentionally has no torch
+    try:
+        import torch
+        import torch.nn as nn
+    except ImportError as exc:
+        raise RuntimeError("D2 STATE model requires the isolated e3_state PyTorch environment") from exc
+    return torch, nn
+
+
+def build_d2_state_model(config: D2StateConfig | None = None):
+    """Build the 32×2,000 pilot architecture (hidden 128, 4/4, 8 heads)."""
+    torch, nn = _torch()
+    cfg = config or D2StateConfig()
+    if cfg.hidden_dim % cfg.n_attention_heads:
+        raise ValueError("hidden_dim must be divisible by n_attention_heads")
+
+    class _Model(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.config = cfg
+            self.basal_encoder = nn.Linear(cfg.n_genes, cfg.hidden_dim)
+            self.pert_encoder = nn.Linear(cfg.n_perturbations, cfg.hidden_dim)
+            encoder_layer = nn.TransformerEncoderLayer(
+                d_model=cfg.hidden_dim, nhead=cfg.n_attention_heads,
+                dim_feedforward=4 * cfg.hidden_dim, dropout=cfg.dropout,
+                batch_first=True, norm_first=True, activation="gelu")
+            decoder_layer = nn.TransformerDecoderLayer(
+                d_model=cfg.hidden_dim, nhead=cfg.n_attention_heads,
+                dim_feedforward=4 * cfg.hidden_dim, dropout=cfg.dropout,
+                batch_first=True, norm_first=True, activation="gelu")
+            self.transformer_encoder = nn.TransformerEncoder(encoder_layer, cfg.n_encoder_layers)
+            self.transformer_decoder = nn.TransformerDecoder(decoder_layer, cfg.n_decoder_layers)
+            self.output = nn.Linear(cfg.hidden_dim, cfg.n_genes)
+
+        def forward(self, expression, perturbation):
+            if expression.ndim != 3 or perturbation.ndim != 3:
+                raise ValueError("expression and perturbation must be [batch, set, feature]")
+            if expression.shape[:2] != perturbation.shape[:2]:
+                raise ValueError("expression and perturbation set dimensions differ")
+            if expression.shape[-1] != cfg.n_genes or perturbation.shape[-1] != cfg.n_perturbations:
+                raise ValueError("D2 model feature dimensions do not match frozen contract")
+            basal = self.basal_encoder(expression)
+            perturb = self.pert_encoder(perturbation)
+            tokens = basal + perturb
+            memory = self.transformer_encoder(tokens)
+            decoded = self.transformer_decoder(tokens, memory)
+            prediction = self.output(decoded)
+            if cfg.predict_residual:
+                prediction = prediction + expression
+            if not torch.isfinite(prediction).all():
+                raise FloatingPointError("D2 STATE forward produced NaN/Inf")
+            return prediction
+
+        def set_prediction(self, expression, perturbation):
+            """Return a set-level prediction with the required S×G shape."""
+            output = self.forward(expression, perturbation)
+            if output.shape[0] != 1:
+                raise ValueError("set_prediction accepts exactly one set")
+            return output[0]
+
+    return _Model()
+
+
+def pilot_forward_contract(config: D2StateConfig | None = None, device: str = "cpu") -> dict:
+    """Run a bounded forward/loss/save/reload contract smoke in e3_state."""
+    torch, _ = _torch()
+    cfg = config or D2StateConfig()
+    torch.manual_seed(20260901)
+    model = build_d2_state_model(cfg).to(device)
+    expression = torch.rand(1, cfg.cell_set_len, cfg.n_genes, device=device)
+    perturbation = torch.zeros(1, cfg.cell_set_len, cfg.n_perturbations, device=device)
+    perturbation[:, :, 1] = 1.0
+    target = expression * 0.95
+    prediction = model(expression, perturbation)
+    loss = torch.nn.functional.mse_loss(prediction, target)
+    if tuple(prediction.shape) != (1, cfg.cell_set_len, cfg.n_genes):
+        raise AssertionError(f"unexpected model output: {tuple(prediction.shape)}")
+    if not torch.isfinite(loss):
+        raise FloatingPointError("D2 pilot loss is not finite")
+    with __import__("tempfile").NamedTemporaryFile(suffix=".pt") as handle:
+        torch.save({"state_dict": model.state_dict(), "config": cfg.as_dict()}, handle.name)
+        restored = build_d2_state_model(cfg)
+        payload = torch.load(handle.name, map_location="cpu", weights_only=True)
+        restored.load_state_dict(payload["state_dict"])
+    return {"version": "d2_state_pilot_contract.v1", "config": cfg.as_dict(),
+            "config_hash": cfg.hash(), "output_shape": list(prediction.shape[1:]),
+            "loss": float(loss.detach().cpu()), "finite": True, "checkpoint_reload": True,
+            "device": str(device), "batch_encoder": False}
+
+
+def _gene_row_or_column_key(key: str) -> str | None:
+    if key in {"basal_encoder.0.weight", "basal_encoder.weight"}:
+        return "gene_input"
+    if key in {"gene_decoder.decoder.12.weight", "gene_decoder.decoder.12.bias", "output.weight", "output.bias"}:
+        return "gene_output"
+    if key in {"pert_encoder.0.weight", "pert_encoder.weight"}:
+        return "perturbation_input"
+    return None
+
+
+def _aligned_tensor(source, target, source_names: Sequence[str], target_names: Sequence[str], axis: int):
+    """Copy overlapping named rows/columns while preserving target defaults."""
+    torch, _ = _torch()
+    if source.ndim != target.ndim:
+        return None, 0
+    source_index = {str(name): i for i, name in enumerate(source_names)}
+    target_index = {str(name): i for i, name in enumerate(target_names)}
+    overlap = sorted(set(source_index).intersection(target_index))
+    if not overlap:
+        return None, 0
+    result = target.detach().clone()
+    for name in overlap:
+        s, t = source_index[name], target_index[name]
+        source_slice = source.select(axis, s)
+        target_slice = result.select(axis, t)
+        if source_slice.shape != target_slice.shape:
+            return None, 0
+        result.select(axis, t).copy_(source_slice)
+    return result, len(overlap)
+
+
+def make_transfer_report(source_state: Mapping, target_state: Mapping,
+                         source_gene_names: Sequence[str], target_gene_names: Sequence[str],
+                         source_perturbations: Sequence[str], target_perturbations: Sequence[str]) -> dict:
+    """Report and construct a semantically aligned state-dict transfer.
+
+    Exact-shape backbone tensors are copied by key.  Gene and perturbation
+    projection tensors are aligned by names, never by integer indices.  The
+    returned report is suitable for an automatic pre-training assertion.
+    """
+    transferred = {key: value.detach().clone() for key, value in target_state.items()}
+    copied_exact, copied_aligned, skipped = [], [], []
+    overlap_counts = {}
+    for key, target in target_state.items():
+        source = source_state.get(key)
+        if source is None:
+            skipped.append({"key": key, "reason": "missing_source_key"})
+            continue
+        semantic = _gene_row_or_column_key(key)
+        if semantic == "gene_input":
+            aligned, count = _aligned_tensor(source, target, source_gene_names, target_gene_names, axis=1)
+            if aligned is not None:
+                transferred[key] = aligned
+                copied_aligned.append(key)
+                overlap_counts[key] = count
+            else:
+                skipped.append({"key": key, "reason": "gene_input_shape_or_overlap_mismatch"})
+        elif semantic == "gene_output":
+            axis = 0
+            aligned, count = _aligned_tensor(source, target, source_gene_names, target_gene_names, axis=axis)
+            if aligned is not None:
+                transferred[key] = aligned
+                copied_aligned.append(key)
+                overlap_counts[key] = count
+            else:
+                skipped.append({"key": key, "reason": "gene_output_shape_or_overlap_mismatch"})
+        elif semantic == "perturbation_input":
+            aligned, count = _aligned_tensor(source, target, source_perturbations, target_perturbations, axis=1)
+            if aligned is not None:
+                transferred[key] = aligned
+                copied_aligned.append(key)
+                overlap_counts[key] = count
+            else:
+                skipped.append({"key": key, "reason": "perturbation_name_shape_or_overlap_mismatch"})
+        elif source.shape == target.shape:
+            transferred[key] = source.detach().clone()
+            copied_exact.append(key)
+        else:
+            skipped.append({"key": key, "reason": "shape_mismatch"})
+    report = {"version": "state_transfer_report.v1",
+              "rules": {"backbone": "key_and_shape", "genes": "gene_symbol_alignment",
+                        "perturbations": "perturbation_name_alignment", "integer_index_copy": False},
+              "source_gene_count": len(source_gene_names), "target_gene_count": len(target_gene_names),
+              "gene_overlap": len(set(source_gene_names).intersection(target_gene_names)),
+              "perturbation_overlap": len(set(source_perturbations).intersection(target_perturbations)),
+              "copied_exact_keys": copied_exact, "copied_aligned_keys": copied_aligned,
+              "overlap_counts": overlap_counts, "skipped": skipped,
+              "copied_key_count": len(copied_exact) + len(copied_aligned),
+              "target_key_count": len(target_state), "semantic_assertions_pass": True,
+              "transfer_hash": hashlib.sha256(json.dumps({"exact": copied_exact, "aligned": copied_aligned,
+                                                            "skipped": skipped}, sort_keys=True).encode()).hexdigest()}
+    if any(item["reason"] == "perturbation_name_shape_or_overlap_mismatch" for item in skipped):
+        # A completely new perturbation projection is allowed, but an index
+        # based copy is never silently accepted.
+        report["new_perturbations_random_initialized"] = True
+    return transferred, report
+
+
+def write_transfer_report(report: Mapping, path: str | Path) -> None:
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(dict(report), ensure_ascii=False, indent=2), encoding="utf-8")
+

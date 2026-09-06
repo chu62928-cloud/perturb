@@ -242,8 +242,10 @@ def audit_d2_data(paths: Iterable[str | Path], csr_summary: Mapping | None = Non
         finally:
             if getattr(obj, "file", None) is not None:
                 obj.file.close()
-    if any(axis != axes[0] for axis in axes[1:]):
-        raise ValueError("D2 files do not share an identical ordered gene axis")
+    if any(set(axis) != set(axes[0]) for axis in axes[1:]):
+        raise ValueError("D2 files do not share the same gene ID set")
+    canonical_ids = sorted(axes[0])
+    order_equal = all(axis == axes[0] for axis in axes[1:])
     required = {"guide_id", "guide_type", "guide_group", "low_quality",
                 "perturbed_gene_name", "perturbed_gene_id"}
     missing = sorted(required.difference(files[0]["obs_columns"]))
@@ -251,7 +253,9 @@ def audit_d2_data(paths: Iterable[str | Path], csr_summary: Mapping | None = Non
         raise ValueError(f"D2 obs contract missing columns: {missing}")
     return {"version": "d2_data_audit.v1", "donor_id": "D2",
             "conditions": list(REQUIRED_CONDITIONS), "files": files,
-            "common_n_vars": len(axes[0]), "common_gene_axis_hash": _hash_payload(axes[0]),
+            "common_n_vars": len(canonical_ids), "common_gene_axis_hash": _hash_payload(canonical_ids),
+            "gene_axis_order_equal": order_equal,
+            "canonical_gene_axis": "sorted Ensembl gene IDs; per-file column maps are applied at read time",
             "raw_count_semantics": "sampled_nonnegative_integer_like; full CSR validity is supplied by the external audit",
             "required_obs_columns": sorted(required),
             "csr_audit_summary": dict(csr_summary or {}),
@@ -418,15 +422,22 @@ def compute_d2_hvg_panel(paths: Iterable[str | Path], output: str | Path | None 
     # Metadata pass: common symbols and quality masks, with deterministic
     # reservoir sampling when max_cells is used for a pilot/pre-audit.
     selected: dict[Path, np.ndarray] = {}
-    symbols = None
+    axis_ids: list[str] | None = None
+    columns_by_path: dict[Path, list[int]] = {}
+    original_n_vars: dict[Path, int] = {}
+    symbols_by_id: dict[str, str] = {}
     for path in paths:
         obj = ad.read_h5ad(path, backed="r")
         try:
-            _, current_symbols = _var_gene_columns(obj.var)
-            if symbols is None:
-                symbols = current_symbols
-            elif symbols != current_symbols:
-                raise ValueError("D2 HVG files have different gene symbol order")
+            current_ids, current_symbols = _var_gene_columns(obj.var)
+            if axis_ids is None:
+                axis_ids = sorted(current_ids)
+                symbols_by_id = dict(zip(current_ids, current_symbols))
+            elif set(current_ids) != set(axis_ids):
+                raise ValueError("D2 HVG files have different gene ID sets")
+            current_index = {gene_id: index for index, gene_id in enumerate(current_ids)}
+            columns_by_path[path] = [current_index[gene_id] for gene_id in axis_ids]
+            original_n_vars[path] = len(current_ids)
             required = {"guide_group", "low_quality"}
             if heldout_pairs:
                 required.update({"perturbed_gene_name", "perturbed_gene_id"})
@@ -451,7 +462,11 @@ def compute_d2_hvg_panel(paths: Iterable[str | Path], output: str | Path | None 
         finally:
             if getattr(obj, "file", None) is not None:
                 obj.file.close()
-    assert symbols is not None
+    assert axis_ids is not None
+    symbols = [symbols_by_id[gene_id] for gene_id in axis_ids]
+    active_positions = [i for i, symbol in enumerate(symbols) if symbol != "PuroR"]
+    active_ids = [axis_ids[i] for i in active_positions]
+    symbols = [symbols[i] for i in active_positions]
     n_vars = len(symbols)
     sums = np.zeros(n_vars, dtype=np.float64)
     squares = np.zeros(n_vars, dtype=np.float64)
@@ -463,18 +478,37 @@ def compute_d2_hvg_panel(paths: Iterable[str | Path], output: str | Path | None 
         rows = selected[path]
         with h5py.File(path, "r") as handle:
             n_obs = int(handle["obs"]["_index"].shape[0])
-            for window_start in range(0, n_obs, block_rows):
-                window_stop = min(window_start + block_rows, n_obs)
+            if max_cells is not None:
+                # A capped pre-audit must not scan every row of a multi-million
+                # cell file.  Group nearby sampled rows into bounded windows.
+                windows = []
+                cursor = 0
+                while cursor < len(rows):
+                    end = cursor + 1
+                    while (end < len(rows) and end - cursor < block_rows and
+                           int(rows[end] - rows[end - 1]) <= 64):
+                        end += 1
+                    window_start = int(rows[cursor])
+                    window_stop = int(rows[end - 1]) + 1
+                    local_rows = (rows[cursor:end] - window_start).astype(np.int64, copy=False)
+                    windows.append((window_start, window_stop, local_rows))
+                    cursor = end
+            else:
+                windows = []
+                for window_start in range(0, n_obs, block_rows):
+                    window_stop = min(window_start + block_rows, n_obs)
+                    left = int(np.searchsorted(rows, window_start, side="left"))
+                    right = int(np.searchsorted(rows, window_stop, side="left"))
+                    local_rows = (rows[left:right] - window_start).astype(np.int64, copy=False)
+                    if len(local_rows):
+                        windows.append((window_start, window_stop, local_rows))
+            for window_start, window_stop, local_rows in windows:
                 # Read contiguous CSR windows once, then retain only the
                 # quality-passing rows.  This is the critical memory-bound
                 # path: at most ``block_rows × n_vars`` is materialised.
-                left = int(np.searchsorted(rows, window_start, side="left"))
-                right = int(np.searchsorted(rows, window_stop, side="left"))
-                local_rows = (rows[left:right] - window_start).astype(np.int64, copy=False)
-                if len(local_rows) == 0:
-                    continue
                 full = _read_csr_block_columns_h5(handle, window_start, window_stop,
-                                                  list(range(n_vars)), n_vars)
+                                                  [columns_by_path[path][i] for i in active_positions],
+                                                  original_n_vars[path])
                 block = full[local_rows]
                 totals = block.sum(axis=1)
                 totals = np.where(totals > 0, totals, 1.0)
@@ -508,7 +542,8 @@ def compute_d2_hvg_panel(paths: Iterable[str | Path], output: str | Path | None 
                           "detected_by_condition": {condition: int(detected_by_condition[condition][i])
                                                     for condition in REQUIRED_CONDITIONS},
                           "measured_in_all_conditions": True} for i in range(n_vars)}
-    result = {"version": "d2_gene_panel_2000.v1", "method": "streaming_scanpy_seurat_compatible",
+    result = {"version": "d2_gene_panel_2000.v1" if max_cells is None else "d2_hvg_precheck.v1",
+              "method": "streaming_scanpy_seurat_compatible",
               "scanpy_parameters": {"target_sum": 10000, "log1p": True, "flavor": "seurat", "n_bins": 20},
               "block_rows": int(block_rows), "max_cells_per_condition": max_cells,
               "n_cells": int(n_cells), "n_vars": int(n_vars), "conditions": list(REQUIRED_CONDITIONS),
