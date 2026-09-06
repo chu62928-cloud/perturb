@@ -2,7 +2,7 @@
 
 ## Last verified
 
-- 2026-09-06T15:51+08:00
+- 2026-09-06T18:10+08:00
 
 ## Objective
 
@@ -12,6 +12,10 @@
 ## Current state
 
 - VERIFIED: Git仓库已安全初始化并推送；远端为 `https://github.com/chu62928-cloud/perturb.git`，基线提交 `3cf0df4`，当前唯一大目标分支为 `d2-state-single-step`。`connect_server.py`、`remote_config.json`、原始数据、模型权重、缓存和大型生成物已由 `.gitignore` 排除。
+- VERIFIED: 已在 `d2-state-single-step` 提交 `419821d` 冻结 D2 谱系评分器配置、评分函数、D2 元数据审计、固定 guide 校订词表、基因×背景划分和 STATE 模型契约；随后提交 `f4de8ed` 完成远端 D2 产物同步。远端 `e3_pipeline` 测试为 `33 passed, 4 warnings`。
+- VERIFIED: 2026-09-06 D2 元数据审计已完成并下载至 `research/state_d2/d2_data_audit.json`。三份文件均为 18,130 维 `_CSRDataset`，形状分别为 2,940,194×18,130、3,032,848×18,130、2,863,571×18,130；原始 X 抽样非负、有限且整数样，D2 完整 CSR 通过摘要作为外部证据。Stim48hr 的 PuroR 位于首列，其余条件位于末列；基因集合相同但列顺序不同，正式读取按 Ensembl ID 建立逐文件列映射，未修改 `.h5ad`。
+- VERIFIED: 2026-09-06 使用固定提交 guide 库完成 D2 词表，`unique_observed_guides=24,259`、`eligible_target_count=12,170`，词表哈希 `5c2c29e7f512f0cdf9fdf2ef31a3afeee8b286c76385f622bfe5e6f9065e7cc5`；`NTC=0`，其余扰动按校订目标名称排序，绝不按整数 index 迁移参数。基因×背景划分哈希为 `6debd4dbad36bccc22e47041a1c8461710ecfe5d715d0599740be4f8b809e84b`。
+- PRECHECK ONLY: 已用每条件 10,000 个确定性抽样细胞完成流式 CP10K→log1p、20 个均值箱和 Seurat 兼容离散度排序，产物暂不作为正式 2,000 基因面板；正式面板必须在全体允许训练/NTC 细胞上重跑并通过身份锚点替换闸门。
 - VERIFIED: `config/programs.json` 中 Naive/Th1/Th2/Th17 及安全程序尚未冻结；当前 Th2、Th17 等列表为空，因此此前不能声称核心评分基因已经被2,000基因面板覆盖。
 - VERIFIED: 2026-09-06 只读核对确认，预注册审计用的36个 Naive/Th1/Th2/Th17 候选基因全部存在于 D2 三个条件相同的18,130维测量轴中。
 - VERIFIED: D2均匀分块抽样的HVG预审计纳入17,033个基础质控合格、单sgRNA细胞；按 CP10K、log1p、Scanpy 1.11.5 `seurat` top 2,000计算，Naive覆盖8/8、Th1覆盖5/6（缺STAT4）、Th2覆盖5/9（缺GATA3、CCR4、STAT6、IL4R）、Th17覆盖13/13。该结果仅用于风险预审计，不是冻结模型面板。

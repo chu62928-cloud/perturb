@@ -16,7 +16,7 @@ from .guide_correction import load_guide_library
 
 def _parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="cd4perturb", description="CD4 Perturb-seq auditable pipeline")
-    p.add_argument("command", choices=["preflight", "audit", "audit-csr", "activate-roles", "audit-public", "prepare-pilot", "guide-qc", "gene-order", "ntc-latent", "freeze-data", "effect-matrix", "state-regions", "freeze-splits", "release-d2", "release-confirmation", "fit-baselines", "state-adaptation", "evaluate", "match-composition", "score-composition", "proxy-composition", "plan", "report", "program-validate", "d2-audit", "d2-vocab", "d2-splits", "d2-hvg", "d2-gene-panel"])
+    p.add_argument("command", choices=["preflight", "audit", "audit-csr", "activate-roles", "audit-public", "prepare-pilot", "guide-qc", "gene-order", "ntc-latent", "freeze-data", "effect-matrix", "state-regions", "freeze-splits", "release-d2", "release-confirmation", "fit-baselines", "state-adaptation", "evaluate", "match-composition", "score-composition", "proxy-composition", "plan", "report", "program-validate", "d2-audit", "d2-vocab", "d2-splits", "d2-hvg", "d2-gene-panel", "d2-pilot"])
     p.add_argument("--config", default="config/config.json")
     p.add_argument("--audit", default=None)
     p.add_argument("--candidate-table", default=None)
@@ -240,6 +240,15 @@ def main(argv: list[str] | None = None) -> int:
         target.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
         print(json.dumps({"output": str(target), "gene_order_hash": result["gene_order_hash"],
                           "forced_count": result["forced_count"]}, ensure_ascii=False, indent=2))
+        return 0
+    if args.command == "d2-pilot":
+        from .state_d2_model import D2StateConfig, pilot_forward_contract
+        result = pilot_forward_contract(D2StateConfig(), device="cuda")
+        target = out_root / "research" / "state_d2" / "d2_state_pilot_contract.json"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(json.dumps({"output": str(target), "output_shape": result["output_shape"],
+                          "loss": result["loss"]}, ensure_ascii=False, indent=2))
         return 0
     if args.command == "activate-roles":
         if not args.audit_summary:
