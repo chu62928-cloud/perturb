@@ -1,0 +1,49 @@
+{
+  "programs": {
+    "Naive": {
+      "donor_auc": {
+        "BC120607": 1.0,
+        "BC120926": 1.0,
+        "BC121206": 1.0
+      },
+      "direction_consistent": true,
+      "macro_auc": 1.0
+    },
+    "Th1": {
+      "donor_auc": {
+        "BC120607": 1.0,
+        "BC120926": 1.0,
+        "BC121206": 1.0
+      },
+      "direction_consistent": true,
+      "macro_auc": 1.0
+    },
+    "Th2": {
+      "donor_auc": {
+        "BC120607": 1.0,
+        "BC120926": 1.0,
+        "BC121206": 1.0
+      },
+      "direction_consistent": true,
+      "macro_auc": 1.0
+    },
+    "Th17": {
+      "donor_auc": {
+        "BC120607": 1.0,
+        "BC120926": 1.0,
+        "BC121206": 1.0
+      },
+      "direction_consistent": true,
+      "macro_auc": 1.0
+    }
+  },
+  "macro_auc": 1.0,
+  "minimum_donor_direction_consistency": "2/3",
+  "version": "th_lineage_program_validation.v1",
+  "source_npz": "derived from GSE135390_norm_counts.csv.gz (not committed)",
+  "source_download": "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE135nnn/GSE135390/suppl/GSE135390_norm_counts.csv.gz",
+  "source_sha256": "014efb95ba8a810758291d0b5cb34ae0713889bff31287ed3c99327bc266f77d",
+  "external_only": true,
+  "macro_auc_minimum": 0.8,
+  "pass": true
+}
