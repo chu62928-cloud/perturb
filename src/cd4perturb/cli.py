@@ -46,6 +46,8 @@ def _parser() -> argparse.ArgumentParser:
                    help="frozen Naive/Th1/Th2/Th17 program definition")
     p.add_argument("--hvg-input", default=None,
                    help="raw D2 HVG artifact used by d2-gene-panel")
+    p.add_argument("--gene-panel", default=None,
+                   help="final D2 gene panel JSON used by the real pilot")
     p.add_argument("--max-cells", type=int, default=None,
                    help="optional deterministic per-condition cell cap for HVG pre-audit")
     return p
@@ -242,8 +244,47 @@ def main(argv: list[str] | None = None) -> int:
                           "forced_count": result["forced_count"]}, ensure_ascii=False, indent=2))
         return 0
     if args.command == "d2-pilot":
-        from .state_d2_model import D2StateConfig, pilot_forward_contract
-        result = pilot_forward_contract(D2StateConfig(), device="cuda")
+        from .state_d2_model import D2StateConfig, build_d2_state_model, pilot_forward_contract
+        if args.paths and args.gene_panel and args.input:
+            from .state_d2_data import make_pilot_batch
+            import numpy as np
+            import torch
+            paths = json.loads(Path(args.paths).read_text(encoding="utf-8"))
+            panel_payload = json.loads(Path(args.gene_panel).read_text(encoding="utf-8"))
+            vocab_payload = json.loads(Path(args.input).read_text(encoding="utf-8"))
+            panel = panel_payload.get("gene_order", [])
+            names = vocab_payload.get("perturbation_names", [])
+            pilot_targets = ["TBX21", "GATA3", "RORC", "STAT4", "STAT6", "STAT3", "BATF", "IRF4"]
+            missing = [gene for gene in pilot_targets if gene not in names]
+            if missing:
+                raise SystemExit(f"pilot perturbation mapping missing without fallback: {missing}")
+            batch = make_pilot_batch(paths, panel, pilot_targets, set_len=32, seed=cfg.random_seed)
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            model_cfg = D2StateConfig(n_genes=len(panel), n_perturbations=len(names))
+            model = build_d2_state_model(model_cfg).to(device)
+            pert = torch.zeros(1, 32, len(names), device=device)
+            pert[:, :, names.index(batch["target_gene"])] = 1.0
+            expression = torch.as_tensor(batch["control_expression"], device=device)
+            target = torch.as_tensor(batch["target_expression"], device=device)
+            prediction = model(expression, pert)
+            loss = torch.nn.functional.mse_loss(prediction, target)
+            if tuple(prediction.shape) != (1, 32, len(panel)) or not torch.isfinite(loss):
+                raise SystemExit("D2 pilot hard contract failed")
+            import tempfile
+            with tempfile.NamedTemporaryFile(suffix=".pt") as handle:
+                torch.save({"state_dict": model.state_dict(), "config": model_cfg.as_dict()}, handle.name)
+                restored = build_d2_state_model(model_cfg)
+                restored.load_state_dict(torch.load(handle.name, map_location="cpu", weights_only=True)["state_dict"])
+            result = {"version": "d2_state_pilot_contract.v2", "config": model_cfg.as_dict(),
+                      "config_hash": model_cfg.hash(), "output_shape": list(prediction.shape[1:]),
+                      "loss": float(loss.detach().cpu()), "finite": True, "checkpoint_reload": True,
+                      "device": device, "batch_encoder": False, "condition": batch["condition"],
+                      "target_gene": batch["target_gene"], "pilot_targets": pilot_targets,
+                      "gene_order_hash": panel_payload.get("gene_order_hash"),
+                      "perturbation_vocab_hash": vocab_payload.get("vocab_hash"),
+                      "d2_responses_used": True}
+        else:
+            result = pilot_forward_contract(D2StateConfig(), device="cuda")
         target = out_root / "research" / "state_d2" / "d2_state_pilot_contract.json"
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
