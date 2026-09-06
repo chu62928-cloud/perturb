@@ -1,0 +1,1 @@
+{"model": "pert2state-model", "version": "0.0.1", "input_shape": [6, 3], "prediction_shape": [6, 2], "prediction_file": "/root/autodl-tmp/CRISPR_perturb_runtime/smoke/pert2state_tiny_predictions.csv", "finite": true, "mean_prediction": 0.3223469327596231}

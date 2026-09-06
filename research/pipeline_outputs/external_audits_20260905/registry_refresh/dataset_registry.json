@@ -1,0 +1,420 @@
+[
+  {
+    "dataset_id": "D1_Rest",
+    "donor_id": "D1",
+    "condition": "Rest",
+    "path": "/root/autodl-tmp/CRISPR_perturb/D1_Rest.assigned_guide.h5ad",
+    "expected_size": 142828875662,
+    "observed_size": 142828875662,
+    "status": "complete",
+    "role": "development",
+    "mtime": 1788396556.0,
+    "fingerprint": "61733c640f7d46d9bf777f26bd3b18314edc8cdf5bfdf4ad6bebe0fdf2cdc78d",
+    "shape": [
+      3074496,
+      18130
+    ],
+    "obs_columns": [
+      "lane_id",
+      "n_genes_by_counts",
+      "total_counts",
+      "pct_counts_mt",
+      "top_guide_UMI_counts",
+      "guide_id",
+      "perturbed_gene_name",
+      "perturbed_gene_id",
+      "guide_type",
+      "PuroR",
+      "guide_group",
+      "low_quality"
+    ],
+    "var_columns": [
+      "gene_ids",
+      "feature_types",
+      "genome",
+      "gene_name",
+      "mt"
+    ],
+    "notes": ""
+  },
+  {
+    "dataset_id": "D1_Stim48hr",
+    "donor_id": "D1",
+    "condition": "Stim48hr",
+    "path": "/root/autodl-tmp/CRISPR_perturb/D1_Stim48hr.assigned_guide.h5ad",
+    "expected_size": 156246167022,
+    "observed_size": 156246167022,
+    "status": "complete",
+    "role": "development",
+    "mtime": 1785960343.0,
+    "fingerprint": "51687820734da943c6331cc30085038d5c954a7902474dcfffab4d8a0c6b7d26",
+    "shape": [
+      2805354,
+      18130
+    ],
+    "obs_columns": [
+      "lane_id",
+      "n_genes_by_counts",
+      "total_counts",
+      "pct_counts_mt",
+      "top_guide_UMI_counts",
+      "guide_id",
+      "perturbed_gene_name",
+      "perturbed_gene_id",
+      "guide_type",
+      "PuroR",
+      "guide_group",
+      "low_quality"
+    ],
+    "var_columns": [
+      "gene_ids",
+      "feature_types",
+      "genome",
+      "gene_name",
+      "mt"
+    ],
+    "notes": ""
+  },
+  {
+    "dataset_id": "D1_Stim8hr",
+    "donor_id": "D1",
+    "condition": "Stim8hr",
+    "path": "/root/autodl-tmp/CRISPR_perturb/D1_Stim8hr.assigned_guide.h5ad",
+    "expected_size": 154774003188,
+    "observed_size": 154774003188,
+    "status": "complete",
+    "role": "development",
+    "mtime": 1787526154.0,
+    "fingerprint": "14c81caf37eb85c93f33fb76da69477669ee1a8c194213e1c2d8f37d89e8d9b1",
+    "shape": [
+      2789727,
+      18130
+    ],
+    "obs_columns": [
+      "lane_id",
+      "n_genes_by_counts",
+      "total_counts",
+      "pct_counts_mt",
+      "top_guide_UMI_counts",
+      "guide_id",
+      "perturbed_gene_name",
+      "perturbed_gene_id",
+      "guide_type",
+      "PuroR",
+      "guide_group",
+      "low_quality"
+    ],
+    "var_columns": [
+      "gene_ids",
+      "feature_types",
+      "genome",
+      "gene_name",
+      "mt"
+    ],
+    "notes": ""
+  },
+  {
+    "dataset_id": "D2_Rest",
+    "donor_id": "D2",
+    "condition": "Rest",
+    "path": "/root/autodl-tmp/CRISPR_perturb/D2_Rest.assigned_guide.h5ad",
+    "expected_size": 140574804978,
+    "observed_size": 140574804978,
+    "status": "complete",
+    "role": "provisional_external",
+    "mtime": 1787610262.0,
+    "fingerprint": "ff39899f6b9e06c956c2fbf633c111bdeb0234441fd9dec804b195d7d935877a",
+    "shape": [
+      2940194,
+      18130
+    ],
+    "obs_columns": [
+      "lane_id",
+      "n_genes_by_counts",
+      "total_counts",
+      "pct_counts_mt",
+      "top_guide_UMI_counts",
+      "guide_id",
+      "perturbed_gene_name",
+      "perturbed_gene_id",
+      "guide_type",
+      "PuroR",
+      "guide_group",
+      "low_quality"
+    ],
+    "var_columns": [
+      "gene_ids",
+      "feature_types",
+      "genome",
+      "gene_name",
+      "mt"
+    ],
+    "notes": "D2 formal evaluation is locked after first release"
+  },
+  {
+    "dataset_id": "D2_Stim48hr",
+    "donor_id": "D2",
+    "condition": "Stim48hr",
+    "path": "/root/autodl-tmp/CRISPR_perturb/D2_Stim48hr.assigned_guide.h5ad",
+    "expected_size": 137554355000,
+    "observed_size": 137554355000,
+    "status": "complete",
+    "role": "provisional_external",
+    "mtime": 1787669540.0,
+    "fingerprint": "90ce870870e64c40fdc942dc73bfede8de6b3bc2d05fd2cab4282bc2497991da",
+    "shape": [
+      2863571,
+      18130
+    ],
+    "obs_columns": [
+      "lane_id",
+      "n_genes_by_counts",
+      "total_counts",
+      "pct_counts_mt",
+      "top_guide_UMI_counts",
+      "guide_id",
+      "perturbed_gene_name",
+      "perturbed_gene_id",
+      "guide_type",
+      "PuroR",
+      "guide_group",
+      "low_quality"
+    ],
+    "var_columns": [
+      "gene_ids",
+      "feature_types",
+      "genome",
+      "gene_name",
+      "mt"
+    ],
+    "notes": "D2 formal evaluation is locked after first release"
+  },
+  {
+    "dataset_id": "D2_Stim8hr",
+    "donor_id": "D2",
+    "condition": "Stim8hr",
+    "path": "/root/autodl-tmp/CRISPR_perturb/D2_Stim8hr.assigned_guide.h5ad",
+    "expected_size": 172796432870,
+    "observed_size": 172796432870,
+    "status": "complete",
+    "role": "provisional_external",
+    "mtime": 1788403190.0,
+    "fingerprint": "65ba2670072e625d80d8c5f1c789b8a7af44db3f100af3a27375285079682dff",
+    "shape": [
+      3032848,
+      18130
+    ],
+    "obs_columns": [
+      "lane_id",
+      "n_genes_by_counts",
+      "total_counts",
+      "pct_counts_mt",
+      "top_guide_UMI_counts",
+      "guide_id",
+      "perturbed_gene_name",
+      "perturbed_gene_id",
+      "guide_type",
+      "PuroR",
+      "guide_group",
+      "low_quality"
+    ],
+    "var_columns": [
+      "gene_ids",
+      "feature_types",
+      "genome",
+      "gene_name",
+      "mt"
+    ],
+    "notes": "D2 formal evaluation is locked after first release"
+  },
+  {
+    "dataset_id": "D3_Stim48hr",
+    "donor_id": "D3",
+    "condition": "Stim48hr",
+    "path": "/root/autodl-tmp/CRISPR_perturb/D3_Stim48hr.assigned_guide.h5ad",
+    "expected_size": 137830572362,
+    "observed_size": 137830572362,
+    "status": "complete",
+    "role": "external_test",
+    "mtime": 1788213198.0,
+    "fingerprint": "371d6d923418d505caf108462e4e18d3b4ab389c68111942aaa620607b1cc15a",
+    "shape": [
+      2607532,
+      18130
+    ],
+    "obs_columns": [
+      "lane_id",
+      "n_genes_by_counts",
+      "total_counts",
+      "pct_counts_mt",
+      "top_guide_UMI_counts",
+      "guide_id",
+      "perturbed_gene_name",
+      "perturbed_gene_id",
+      "guide_type",
+      "PuroR",
+      "guide_group",
+      "low_quality"
+    ],
+    "var_columns": [
+      "gene_ids",
+      "feature_types",
+      "genome",
+      "gene_name",
+      "mt"
+    ],
+    "notes": ""
+  },
+  {
+    "dataset_id": "D3_Stim8hr",
+    "donor_id": "D3",
+    "condition": "Stim8hr",
+    "path": "/root/autodl-tmp/CRISPR_perturb/D3_Stim8hr.assigned_guide.h5ad",
+    "expected_size": 142656069026,
+    "observed_size": 142656069026,
+    "status": "complete",
+    "role": "external_test",
+    "mtime": 1787691792.0,
+    "fingerprint": "be4f20beb1e6bfeb04b993e5ea540531c2393ea7e01e0a27a7738a536f1156ee",
+    "shape": [
+      2481284,
+      18130
+    ],
+    "obs_columns": [
+      "lane_id",
+      "n_genes_by_counts",
+      "total_counts",
+      "pct_counts_mt",
+      "top_guide_UMI_counts",
+      "guide_id",
+      "perturbed_gene_name",
+      "perturbed_gene_id",
+      "guide_type",
+      "PuroR",
+      "guide_group",
+      "low_quality"
+    ],
+    "var_columns": [
+      "gene_ids",
+      "feature_types",
+      "genome",
+      "gene_name",
+      "mt"
+    ],
+    "notes": ""
+  },
+  {
+    "dataset_id": "D4_Rest",
+    "donor_id": "D4",
+    "condition": "Rest",
+    "path": "/root/autodl-tmp/CRISPR_perturb/D4_Rest.assigned_guide.h5ad",
+    "expected_size": 118609904492,
+    "observed_size": 118609904492,
+    "status": "complete",
+    "role": "external_test",
+    "mtime": 1788300094.0,
+    "fingerprint": "77f45b9886e58b6ebb4d7f9d2fc649d042f13245afaa496872255b43d94ceb48",
+    "shape": [
+      2693903,
+      18130
+    ],
+    "obs_columns": [
+      "lane_id",
+      "n_genes_by_counts",
+      "total_counts",
+      "pct_counts_mt",
+      "top_guide_UMI_counts",
+      "guide_id",
+      "perturbed_gene_name",
+      "perturbed_gene_id",
+      "guide_type",
+      "PuroR",
+      "guide_group",
+      "low_quality"
+    ],
+    "var_columns": [
+      "gene_ids",
+      "feature_types",
+      "genome",
+      "gene_name",
+      "mt"
+    ],
+    "notes": ""
+  },
+  {
+    "dataset_id": "D4_Stim48hr",
+    "donor_id": "D4",
+    "condition": "Stim48hr",
+    "path": "/root/autodl-tmp/CRISPR_perturb/D4_Stim48hr.assigned_guide.h5ad",
+    "expected_size": 159231588926,
+    "observed_size": 159231588926,
+    "status": "complete",
+    "role": "external_test",
+    "mtime": 1788442018.0,
+    "fingerprint": "ecc8f244d43773535faad406816eb9327cb1cbcfc0bdc1b831f48eae6e7429ca",
+    "shape": [
+      2815784,
+      18130
+    ],
+    "obs_columns": [
+      "lane_id",
+      "n_genes_by_counts",
+      "total_counts",
+      "pct_counts_mt",
+      "top_guide_UMI_counts",
+      "guide_id",
+      "perturbed_gene_name",
+      "perturbed_gene_id",
+      "guide_type",
+      "PuroR",
+      "guide_group",
+      "low_quality"
+    ],
+    "var_columns": [
+      "gene_ids",
+      "feature_types",
+      "genome",
+      "gene_name",
+      "mt"
+    ],
+    "notes": ""
+  },
+  {
+    "dataset_id": "D4_Stim8hr",
+    "donor_id": "D4",
+    "condition": "Stim8hr",
+    "path": "/root/autodl-tmp/CRISPR_perturb/D4_Stim8hr.assigned_guide.h5ad",
+    "expected_size": 134582395766,
+    "observed_size": 134582395766,
+    "status": "complete",
+    "role": "external_test",
+    "mtime": 1788302922.0,
+    "fingerprint": "42b249a272e39f263f4b70bc15e5b683cd54b3ec10a236100d4970e4fe066ffd",
+    "shape": [
+      2727254,
+      18130
+    ],
+    "obs_columns": [
+      "lane_id",
+      "n_genes_by_counts",
+      "total_counts",
+      "pct_counts_mt",
+      "top_guide_UMI_counts",
+      "guide_id",
+      "perturbed_gene_name",
+      "perturbed_gene_id",
+      "guide_type",
+      "PuroR",
+      "guide_group",
+      "low_quality"
+    ],
+    "var_columns": [
+      "gene_ids",
+      "feature_types",
+      "genome",
+      "gene_name",
+      "mt"
+    ],
+    "notes": ""
+  }
+]

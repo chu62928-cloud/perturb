@@ -1,0 +1,71 @@
+{
+  "version": "csr_integrity.full.v1",
+  "path": "/root/autodl-tmp/CRISPR_perturb/D3_Stim48hr.assigned_guide.h5ad",
+  "source_before": {
+    "size": 137830572362,
+    "mtime_ns": 1788213198000000000,
+    "sample_sha256": "371d6d923418d505caf108462e4e18d3b4ab389c68111942aaa620607b1cc15a"
+  },
+  "block_rows": 1024,
+  "registered": {
+    "dataset_id": "D3_Stim48hr",
+    "donor_id": "D3",
+    "condition": "Stim48hr",
+    "path": "/root/autodl-tmp/CRISPR_perturb/D3_Stim48hr.assigned_guide.h5ad",
+    "expected_size": 137830572362,
+    "observed_size": 137830572362,
+    "status": "complete",
+    "role": "external_test",
+    "mtime": 1788213198.0,
+    "fingerprint": "371d6d923418d505caf108462e4e18d3b4ab389c68111942aaa620607b1cc15a",
+    "shape": [
+      2607532,
+      18130
+    ],
+    "obs_columns": [
+      "lane_id",
+      "n_genes_by_counts",
+      "total_counts",
+      "pct_counts_mt",
+      "top_guide_UMI_counts",
+      "guide_id",
+      "perturbed_gene_name",
+      "perturbed_gene_id",
+      "guide_type",
+      "PuroR",
+      "guide_group",
+      "low_quality"
+    ],
+    "var_columns": [
+      "gene_ids",
+      "feature_types",
+      "genome",
+      "gene_name",
+      "mt"
+    ],
+    "notes": ""
+  },
+  "status": "PASS",
+  "full_csr_read_valid": true,
+  "validation_scope": "X/indptr_X/indices_X/data_full_stream",
+  "failure": null,
+  "blocks_reused": 0,
+  "blocks_read": 2547,
+  "shape": [
+    2607532,
+    18130
+  ],
+  "indptr_length": 2607533,
+  "indices_length": 11445647009,
+  "data_length": 11445647009,
+  "indptr_sha256": "4d137a3f89695a1340afd76c558522ac6f9b72df37b4c7dd5ad8c987a6951f52",
+  "block_hash_sha256": "067fec3ae556d05567f62e7d9b0f7bc0ac37cb5b72545a28194ee6f119318da7",
+  "indptr_chunk_hash_sha256": "0c8c59c5f47e7d172d5847e02f9deadf6c29c4abbf01674426d8df1f85d863e0",
+  "source_after": {
+    "size": 137830572362,
+    "mtime_ns": 1788213198000000000,
+    "sample_sha256": "371d6d923418d505caf108462e4e18d3b4ab389c68111942aaa620607b1cc15a"
+  },
+  "elapsed_seconds": 405.9323801994324,
+  "artifact_hash": "147cd9656f04ac49a52398458a315d3f864f0b71a0d7df24b64ff2af0cf422df"
+}

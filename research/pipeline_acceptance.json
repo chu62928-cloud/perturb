@@ -1,0 +1,18 @@
+{
+  "status": "PASS_REVISED_DATA_CONTRACT_AND_PIPELINE_GATES",
+  "verified_at": "2026-09-01T22:10:00+08:00",
+  "environment": "e3_pipeline",
+  "python": "3.11.16",
+  "snakemake": "8.30.0",
+  "anndata": "0.12.19",
+  "scanpy": "1.11.5",
+  "config_hash": "ef17e15335bfc2f3b7a3ef5c7458bd8b5865adc916779edb679c45193c3d2abd",
+  "registry": {"present": 7, "complete": 7, "expected": 12, "d1_complete": 3},
+  "pilot": {"candidate_rows": 4661, "structure_v0": 96, "primary_64": 64, "challenge_32": 32, "primary_response_blind": true, "challenge_gate_scope": "stress_test_only"},
+  "data_contract": {"status": "DATA_CONTRACT_READY", "frozen": false, "d2_responses_used": false, "reason": "guide mapping rate, gene-order hash, normalization hash and split hash evidence are still required"},
+  "public_metadata": {"commit": "aa5c84a973c0e1a090b0072dc5b080bf7fbbed38", "guide_rows": 26504, "guide_kd_rows": 73765, "de_rows": 33983, "reference_rows": 714594},
+  "revised_controls": {"continuous_state_unit": "continuous_knn_ball", "leiden_role": "reporting_only", "d1_bootstrap": "gene->guide->cell or gene->region->guide->cell", "composition": "geometry_match_then_seal_then_score", "target": "multiobjective_Th17_up_Th2_down_safety_constraints"},
+  "tests": {"pytest": "13 passed", "pip_check": "No broken requirements found", "cli_stage_smoke": "PASS", "snakemake": "up to date"},
+  "gates": {"DATA_VALID": "PENDING_REQUIRED_EVIDENCE", "MODEL_GLOBAL_VALID": "PENDING", "MODEL_STATE_VALID": "PENDING", "COMPOSITION_VALID": "PENDING", "PLANNER_VALID": "PENDING", "EXPERIMENT_VALID": "PENDING"},
+  "notes": "No D2 responses or large downloads were accessed. Model scientific metrics remain pending the D1 effect matrix and frozen program sets."
+}

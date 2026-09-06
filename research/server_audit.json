@@ -1,0 +1,162 @@
+{
+  "checked_at": "2026-08-31T19:50:32.881916",
+  "files": [
+    {
+      "name": "D1_Rest.assigned_guide.h5ad",
+      "size_bytes": 142828875662,
+      "shape": [
+        3074496,
+        18130
+      ],
+      "stored_entries": 11853949618,
+      "hdf5_open_ok": true,
+      "eligible_ntc_cells": 76543,
+      "eligible_target_cells_before_curation": 1675494,
+      "eligible_target_gene_categories_before_curation": 12098,
+      "guide_group_type_counts": [
+        {
+          "guide_group": "multi sgRNA",
+          "guide_type": "targeting",
+          "n": 526103
+        },
+        {
+          "guide_group": "no sgRNA",
+          "guide_type": "nan",
+          "n": 794379
+        },
+        {
+          "guide_group": "targeting single sgRNA",
+          "guide_type": "non-targeting",
+          "n": 76634
+        },
+        {
+          "guide_group": "targeting single sgRNA",
+          "guide_type": "targeting",
+          "n": 1677380
+        }
+      ],
+      "first_middle_last_row_read_ok": true,
+      "sample_row_sums_match_total_counts": true,
+      "sample_values_nonnegative_integer_like": true,
+      "obs_names_unique": true,
+      "var_names_unique": true,
+      "var_first_three": [
+        "ENSG00000000003",
+        "ENSG00000000005",
+        "ENSG00000000419"
+      ]
+    },
+    {
+      "name": "D1_Stim48hr.assigned_guide.h5ad",
+      "size_bytes": 156246167022,
+      "shape": [
+        2805354,
+        18130
+      ],
+      "stored_entries": 12973186787,
+      "hdf5_open_ok": true,
+      "eligible_ntc_cells": 73534,
+      "eligible_target_cells_before_curation": 1574301,
+      "eligible_target_gene_categories_before_curation": 12168,
+      "guide_group_type_counts": [
+        {
+          "guide_group": "multi sgRNA",
+          "guide_type": "targeting",
+          "n": 564525
+        },
+        {
+          "guide_group": "no sgRNA",
+          "guide_type": "nan",
+          "n": 577552
+        },
+        {
+          "guide_group": "targeting single sgRNA",
+          "guide_type": "non-targeting",
+          "n": 74183
+        },
+        {
+          "guide_group": "targeting single sgRNA",
+          "guide_type": "targeting",
+          "n": 1589094
+        }
+      ],
+      "first_middle_last_row_read_ok": true,
+      "sample_row_sums_match_total_counts": true,
+      "sample_values_nonnegative_integer_like": true,
+      "obs_names_unique": true,
+      "var_names_unique": true,
+      "var_first_three": [
+        "CUSTOM001_PuroR",
+        "ENSG00000000003",
+        "ENSG00000000005"
+      ]
+    },
+    {
+      "name": "D1_Stim8hr.assigned_guide.h5ad",
+      "size_bytes": 154774003188,
+      "shape": [
+        2789727,
+        18130
+      ],
+      "stored_entries": 12850470637,
+      "hdf5_open_ok": true,
+      "eligible_ntc_cells": 69632,
+      "eligible_target_cells_before_curation": 1537130,
+      "eligible_target_gene_categories_before_curation": 12183,
+      "guide_group_type_counts": [
+        {
+          "guide_group": "multi sgRNA",
+          "guide_type": "targeting",
+          "n": 613496
+        },
+        {
+          "guide_group": "no sgRNA",
+          "guide_type": "nan",
+          "n": 565702
+        },
+        {
+          "guide_group": "targeting single sgRNA",
+          "guide_type": "non-targeting",
+          "n": 69788
+        },
+        {
+          "guide_group": "targeting single sgRNA",
+          "guide_type": "targeting",
+          "n": 1540741
+        }
+      ],
+      "first_middle_last_row_read_ok": true,
+      "sample_row_sums_match_total_counts": true,
+      "sample_values_nonnegative_integer_like": true,
+      "obs_names_unique": true,
+      "var_names_unique": true,
+      "var_first_three": [
+        "ENSG00000000003",
+        "ENSG00000000005",
+        "ENSG00000000419"
+      ]
+    },
+    {
+      "name": "D2_Stim8hr.assigned_guide.h5ad",
+      "size_bytes": 112828416000,
+      "read_error": "OSError: Unable to synchronously open file (truncated file: eof = 112828416000, sblock->base_addr = 0, stored_eof = 172796432870)"
+    }
+  ],
+  "disk_available_bytes": 425340674048,
+  "gpu_report": "name, memory.total [MiB], driver_version\nNVIDIA GeForce RTX 4080 SUPER, 32760 MiB, 580.142",
+  "cgroup_memory_max": "66571993088",
+  "feature_alignment": [
+    {
+      "a": "D1_Rest.assigned_guide.h5ad",
+      "b": "D1_Stim48hr.assigned_guide.h5ad",
+      "same_order": false,
+      "same_set": true
+    },
+    {
+      "a": "D1_Rest.assigned_guide.h5ad",
+      "b": "D1_Stim8hr.assigned_guide.h5ad",
+      "same_order": true,
+      "same_set": true
+    }
+  ]
+}

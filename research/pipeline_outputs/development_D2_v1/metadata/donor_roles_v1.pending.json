@@ -1,0 +1,32 @@
+{
+  "version": "donor_roles.v1",
+  "status": "PENDING_D2_CSR_AUDIT",
+  "audit_status": "PENDING",
+  "intent_only": true,
+  "development_donor": "D2",
+  "secondary_locked_confirmation": [
+    "D1"
+  ],
+  "external_test_donors": [
+    "D3",
+    "D4"
+  ],
+  "response_donors_used": [],
+  "ntc_donors_used": [],
+  "scientific_policy": {
+    "development_uses": [
+      "guide_qc",
+      "feature_selection",
+      "state_partition",
+      "effect_matrix",
+      "baseline",
+      "state_adaptation",
+      "threshold_selection"
+    ],
+    "secondary_confirmation_rule": "one_time_confirmation_after_model_selection",
+    "external_test_rule": "final_confirmation_only",
+    "integrity_audit_only_does_not_compute_biological_statistics": true
+  },
+  "created_at_epoch": 1788330247.9442415,
+  "role_manifest_hash": "40207792127172621e5505e4c1159633b875916c16e4453f89c0221e06a33aa6"
+}

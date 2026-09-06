@@ -1,0 +1,45 @@
+# 本地凭据与连接配置
+connect_server.py
+remote_config.json
+.env
+.env.*
+*.pem
+*.key
+
+# 原始数据与模型权重
+*.h5ad
+*.h5
+*.hdf5
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+models/
+
+# Python与测试缓存
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# 前端依赖与预览产物
+node_modules/
+research/preview_tools/
+research/qa_preview/
+outputs/
+*.html
+*.pdf
+
+# 压缩包和大型数组产物
+*.zip
+*.tar
+*.tar.gz
+*.npz
+*.npy
+
+# 编辑器与系统文件
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

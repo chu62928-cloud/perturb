@@ -1,0 +1,26 @@
+{
+  "version": "csr_integrity.full.v1",
+  "path": "/root/autodl-tmp/CRISPR_perturb/D2_Stim8hr.assigned_guide.h5ad",
+  "source_before": {
+    "size": 172796432870,
+    "mtime_ns": 1787640882000000000,
+    "sample_sha256": "65ba2670072e625d80d8c5f1c789b8a7af44db3f100af3a27375285079682dff"
+  },
+  "block_rows": 1024,
+  "status": "BLOCKED_D2_CSR",
+  "full_csr_read_valid": false,
+  "validation_scope": "X/indptr_X/indices_X/data_full_stream",
+  "failure": {
+    "type": "OSError",
+    "message": "CSR read failed in block 751 rows 769024:770048 raw=3614727211:3619483113: Can't synchronously read data (wrong B-tree signature)"
+  },
+  "blocks_reused": 751,
+  "blocks_read": 0,
+  "source_after": {
+    "size": 172796432870,
+    "mtime_ns": 1787640882000000000,
+    "sample_sha256": "65ba2670072e625d80d8c5f1c789b8a7af44db3f100af3a27375285079682dff"
+  },
+  "elapsed_seconds": 0.15384435653686523,
+  "artifact_hash": "a534dc85fc2ab42c2e20142b09afe99f0a9490bfd5fb50d5a1f89216d38d79f4"
+}

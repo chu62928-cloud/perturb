@@ -1,0 +1,14 @@
+{
+  "programs": {
+    "Th2": [],
+    "Th17": [],
+    "T_cell_activation": [],
+    "interferon_response": [],
+    "stress": [],
+    "apoptosis": [],
+    "cell_cycle": [],
+    "proliferation": []
+  },
+  "status": "gene_sets_pending_curated_reference",
+  "rule": "Program lists must be frozen on D2 development data before the one-time D1 confirmation and cannot be selected from Th2-to-Th17 outcome direction."
+}

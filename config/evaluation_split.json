@@ -1,0 +1,22 @@
+{
+  "version": "d2_development_d1_confirmation_v1",
+  "development": {
+    "donors": ["D2"],
+    "conditions": ["Rest", "Stim8hr", "Stim48hr"],
+    "uses": ["feature selection", "adaptation", "threshold selection", "model comparison"]
+  },
+  "locked_eval": {
+    "donors": ["D1"],
+    "conditions": ["Rest", "Stim8hr", "Stim48hr"],
+    "status": "secondary_locked_confirmation",
+    "uses": ["one-time intermediate locked evaluation"],
+    "forbidden": ["repeated tuning", "feature selection", "adaptation strategy selection"],
+    "notes": "D1 was previously read by engineering smoke tests; disclose as partially exposed confirmation donor."
+  },
+  "external_test": {
+    "donors": ["D3", "D4"],
+    "status": "pending_download",
+    "uses": ["final external confirmation"]
+  },
+  "release_manifest_fields": ["code_commit_or_hash", "config_hash", "model_hash", "dataset_registry_hash", "role_manifest_hash", "timestamp"]
+}

@@ -1,0 +1,216 @@
+{
+  "version": "csr_integrity.full.summary.v1",
+  "files": [
+    {
+      "version": "csr_integrity.full.v1",
+      "path": "/root/autodl-tmp/CRISPR_perturb/D2_Rest.assigned_guide.h5ad",
+      "source_before": {
+        "size": 140574804978,
+        "mtime_ns": 1787610262000000000,
+        "sample_sha256": "ff39899f6b9e06c956c2fbf633c111bdeb0234441fd9dec804b195d7d935877a"
+      },
+      "block_rows": 1024,
+      "registered": {
+        "dataset_id": "D2_Rest",
+        "donor_id": "D2",
+        "condition": "Rest",
+        "path": "/root/autodl-tmp/CRISPR_perturb/D2_Rest.assigned_guide.h5ad",
+        "expected_size": 140574804978,
+        "observed_size": 140574804978,
+        "status": "complete",
+        "role": "provisional_external",
+        "mtime": 1787610262.0,
+        "fingerprint": "ff39899f6b9e06c956c2fbf633c111bdeb0234441fd9dec804b195d7d935877a",
+        "shape": [
+          2940194,
+          18130
+        ],
+        "obs_columns": [
+          "lane_id",
+          "n_genes_by_counts",
+          "total_counts",
+          "pct_counts_mt",
+          "top_guide_UMI_counts",
+          "guide_id",
+          "perturbed_gene_name",
+          "perturbed_gene_id",
+          "guide_type",
+          "PuroR",
+          "guide_group",
+          "low_quality"
+        ],
+        "var_columns": [
+          "gene_ids",
+          "feature_types",
+          "genome",
+          "gene_name",
+          "mt"
+        ],
+        "notes": "D2 formal evaluation is locked after first release"
+      },
+      "status": "PASS",
+      "full_csr_read_valid": true,
+      "validation_scope": "X/indptr_X/indices_X/data_full_stream",
+      "failure": null,
+      "blocks_reused": 2872,
+      "blocks_read": 0,
+      "shape": [
+        2940194,
+        18130
+      ],
+      "indptr_length": 2940195,
+      "indices_length": 11668960770,
+      "data_length": 11668960770,
+      "indptr_sha256": "28ef26f2cb2f4973e58eeee9c14a71b838b9536f34cc6a131663798c8acfe7c1",
+      "block_hash_sha256": "253110058904b3c3e19fb9acbe423047bb447cccdddeb025ce1294b9bbdabd36",
+      "indptr_chunk_hash_sha256": "e17b2a64bb1cfb79a8381da921be80689f0d23525869d583b2710def9caaa301",
+      "source_after": {
+        "size": 140574804978,
+        "mtime_ns": 1787610262000000000,
+        "sample_sha256": "ff39899f6b9e06c956c2fbf633c111bdeb0234441fd9dec804b195d7d935877a"
+      },
+      "elapsed_seconds": 0.11796188354492188,
+      "artifact_hash": "be6ee79f5cb4e8f30dbe19e6c563a0e3b85013291bf1430f7ad002673d720d2b"
+    },
+    {
+      "version": "csr_integrity.full.v1",
+      "path": "/root/autodl-tmp/CRISPR_perturb/D2_Stim8hr.assigned_guide.h5ad",
+      "source_before": {
+        "size": 172796432870,
+        "mtime_ns": 1787640882000000000,
+        "sample_sha256": "65ba2670072e625d80d8c5f1c789b8a7af44db3f100af3a27375285079682dff"
+      },
+      "block_rows": 1024,
+      "registered": {
+        "dataset_id": "D2_Stim8hr",
+        "donor_id": "D2",
+        "condition": "Stim8hr",
+        "path": "/root/autodl-tmp/CRISPR_perturb/D2_Stim8hr.assigned_guide.h5ad",
+        "expected_size": 172796432870,
+        "observed_size": 172796432870,
+        "status": "complete",
+        "role": "provisional_external",
+        "mtime": 1787640882.0,
+        "fingerprint": "65ba2670072e625d80d8c5f1c789b8a7af44db3f100af3a27375285079682dff",
+        "shape": [
+          3032848,
+          18130
+        ],
+        "obs_columns": [
+          "lane_id",
+          "n_genes_by_counts",
+          "total_counts",
+          "pct_counts_mt",
+          "top_guide_UMI_counts",
+          "guide_id",
+          "perturbed_gene_name",
+          "perturbed_gene_id",
+          "guide_type",
+          "PuroR",
+          "guide_group",
+          "low_quality"
+        ],
+        "var_columns": [
+          "gene_ids",
+          "feature_types",
+          "genome",
+          "gene_name",
+          "mt"
+        ],
+        "notes": "D2 formal evaluation is locked after first release"
+      },
+      "status": "BLOCKED_D2_CSR",
+      "full_csr_read_valid": false,
+      "validation_scope": "X/indptr_X/indices_X/data_full_stream",
+      "failure": {
+        "type": "OSError",
+        "message": "CSR read failed in block 751 rows 769024:770048 raw=3614727211:3619483113: Can't synchronously read data (wrong B-tree signature)"
+      },
+      "blocks_reused": 751,
+      "blocks_read": 0,
+      "source_after": {
+        "size": 172796432870,
+        "mtime_ns": 1787640882000000000,
+        "sample_sha256": "65ba2670072e625d80d8c5f1c789b8a7af44db3f100af3a27375285079682dff"
+      },
+      "elapsed_seconds": 0.13489556312561035,
+      "artifact_hash": "f83283bc251763e81154be3334952c752d5021f0c433c80731ae7a0f529f97d6"
+    },
+    {
+      "version": "csr_integrity.full.v1",
+      "path": "/root/autodl-tmp/CRISPR_perturb/D2_Stim48hr.assigned_guide.h5ad",
+      "source_before": {
+        "size": 137554355000,
+        "mtime_ns": 1787669540000000000,
+        "sample_sha256": "90ce870870e64c40fdc942dc73bfede8de6b3bc2d05fd2cab4282bc2497991da"
+      },
+      "block_rows": 1024,
+      "registered": {
+        "dataset_id": "D2_Stim48hr",
+        "donor_id": "D2",
+        "condition": "Stim48hr",
+        "path": "/root/autodl-tmp/CRISPR_perturb/D2_Stim48hr.assigned_guide.h5ad",
+        "expected_size": 137554355000,
+        "observed_size": 137554355000,
+        "status": "complete",
+        "role": "provisional_external",
+        "mtime": 1787669540.0,
+        "fingerprint": "90ce870870e64c40fdc942dc73bfede8de6b3bc2d05fd2cab4282bc2497991da",
+        "shape": [
+          2863571,
+          18130
+        ],
+        "obs_columns": [
+          "lane_id",
+          "n_genes_by_counts",
+          "total_counts",
+          "pct_counts_mt",
+          "top_guide_UMI_counts",
+          "guide_id",
+          "perturbed_gene_name",
+          "perturbed_gene_id",
+          "guide_type",
+          "PuroR",
+          "guide_group",
+          "low_quality"
+        ],
+        "var_columns": [
+          "gene_ids",
+          "feature_types",
+          "genome",
+          "gene_name",
+          "mt"
+        ],
+        "notes": "D2 formal evaluation is locked after first release"
+      },
+      "status": "PASS",
+      "full_csr_read_valid": true,
+      "validation_scope": "X/indptr_X/indices_X/data_full_stream",
+      "failure": null,
+      "blocks_reused": 2797,
+      "blocks_read": 0,
+      "shape": [
+        2863571,
+        18130
+      ],
+      "indptr_length": 2863572,
+      "indices_length": 11417773379,
+      "data_length": 11417773379,
+      "indptr_sha256": "f820d637d3abfa5fbe0479cc9149c0d84e76bc831a838bd1c101ce678eb2dac6",
+      "block_hash_sha256": "1345fc6e8bcad1bcc3ff7f4ee4998e78c30eb6b63e9912bd5f29453e2cf507ce",
+      "indptr_chunk_hash_sha256": "bfa00413daa71c5e62628972ec7d60b80d69a3f7b0b35603f30717067dd8192a",
+      "source_after": {
+        "size": 137554355000,
+        "mtime_ns": 1787669540000000000,
+        "sample_sha256": "90ce870870e64c40fdc942dc73bfede8de6b3bc2d05fd2cab4282bc2497991da"
+      },
+      "elapsed_seconds": 0.1080009937286377,
+      "artifact_hash": "39128fb8e621b9f05c9f2067822722ccb3f766ea4376d2ff145d0e3e7acac8fb"
+    }
+  ],
+  "all_full_csr_read_valid": false,
+  "status": "BLOCKED_D2_CSR",
+  "integrity_audit_only": true,
+  "biological_statistics_computed": false,
+  "artifact_hash": "2897fb7fe8c6d1e35be7e3ba5024601a2e888bd5f96933450a147fe4a61908ba"
+}

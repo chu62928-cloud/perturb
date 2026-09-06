@@ -1,0 +1,33 @@
+{
+  "version": "csr_integrity.full.v1",
+  "path": "/root/autodl-tmp/CRISPR_perturb/D2_Rest.assigned_guide.h5ad",
+  "source_before": {
+    "size": 140574804978,
+    "mtime_ns": 1787610262000000000,
+    "sample_sha256": "ff39899f6b9e06c956c2fbf633c111bdeb0234441fd9dec804b195d7d935877a"
+  },
+  "block_rows": 1024,
+  "status": "PASS",
+  "full_csr_read_valid": true,
+  "validation_scope": "X/indptr_X/indices_X/data_full_stream",
+  "failure": null,
+  "blocks_reused": 2872,
+  "blocks_read": 0,
+  "shape": [
+    2940194,
+    18130
+  ],
+  "indptr_length": 2940195,
+  "indices_length": 11668960770,
+  "data_length": 11668960770,
+  "indptr_sha256": "28ef26f2cb2f4973e58eeee9c14a71b838b9536f34cc6a131663798c8acfe7c1",
+  "block_hash_sha256": "253110058904b3c3e19fb9acbe423047bb447cccdddeb025ce1294b9bbdabd36",
+  "indptr_chunk_hash_sha256": "e17b2a64bb1cfb79a8381da921be80689f0d23525869d583b2710def9caaa301",
+  "source_after": {
+    "size": 140574804978,
+    "mtime_ns": 1787610262000000000,
+    "sample_sha256": "ff39899f6b9e06c956c2fbf633c111bdeb0234441fd9dec804b195d7d935877a"
+  },
+  "elapsed_seconds": 0.12856721878051758,
+  "artifact_hash": "376d4b232532e8ab11b2855a8536a36dea7cf334004b999887ac7b3909cc421e"
+}

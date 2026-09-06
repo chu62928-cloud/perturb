@@ -1,0 +1,10 @@
+{
+  "version": "pilot_96.frozen_v1",
+  "primary_count": 64,
+  "challenge_count": 32,
+  "primary_response_blind": true,
+  "primary_gate_scope": "primary_64_only",
+  "challenge_scope": "stress_test_only",
+  "primary_sha256": "d3269ad8c5a3da7bb691c42cbd85c92f7b62c6b52f9dd38e037431aebd24b598",
+  "challenge_sha256": "c512699ff9531cd2fd62825ad952e4cd94b8812d1369966520f23b172767f001"
+}

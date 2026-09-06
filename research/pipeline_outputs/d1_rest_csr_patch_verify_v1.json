@@ -1,0 +1,10 @@
+{
+  "version": "d1_rest_csr_patch_verify.v1",
+  "path": "/root/autodl-tmp/CRISPR_perturb/D1_Rest.assigned_guide.h5ad",
+  "patch_sidecar": "metadata/d1_rest_csr_patch_v1.json",
+  "all_rows_valid": false,
+  "status": "BLOCKED",
+  "error_type": "RuntimeError",
+  "error": "X/indices read failed at row 450448, data slice 1726369350:1726374503: Can't synchronously read data (wrong B-tree signature)",
+  "d2_responses_used": false
+}

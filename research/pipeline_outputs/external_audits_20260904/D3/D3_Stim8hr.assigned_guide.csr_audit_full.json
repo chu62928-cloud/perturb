@@ -1,0 +1,71 @@
+{
+  "version": "csr_integrity.full.v1",
+  "path": "/root/autodl-tmp/CRISPR_perturb/D3_Stim8hr.assigned_guide.h5ad",
+  "source_before": {
+    "size": 142656069026,
+    "mtime_ns": 1787691792000000000,
+    "sample_sha256": "be4f20beb1e6bfeb04b993e5ea540531c2393ea7e01e0a27a7738a536f1156ee"
+  },
+  "block_rows": 1024,
+  "registered": {
+    "dataset_id": "D3_Stim8hr",
+    "donor_id": "D3",
+    "condition": "Stim8hr",
+    "path": "/root/autodl-tmp/CRISPR_perturb/D3_Stim8hr.assigned_guide.h5ad",
+    "expected_size": 142656069026,
+    "observed_size": 142656069026,
+    "status": "complete",
+    "role": "external_test",
+    "mtime": 1787691792.0,
+    "fingerprint": "be4f20beb1e6bfeb04b993e5ea540531c2393ea7e01e0a27a7738a536f1156ee",
+    "shape": [
+      2481284,
+      18130
+    ],
+    "obs_columns": [
+      "lane_id",
+      "n_genes_by_counts",
+      "total_counts",
+      "pct_counts_mt",
+      "top_guide_UMI_counts",
+      "guide_id",
+      "perturbed_gene_name",
+      "perturbed_gene_id",
+      "guide_type",
+      "PuroR",
+      "guide_group",
+      "low_quality"
+    ],
+    "var_columns": [
+      "gene_ids",
+      "feature_types",
+      "genome",
+      "gene_name",
+      "mt"
+    ],
+    "notes": ""
+  },
+  "status": "PASS",
+  "full_csr_read_valid": true,
+  "validation_scope": "X/indptr_X/indices_X/data_full_stream",
+  "failure": null,
+  "blocks_reused": 0,
+  "blocks_read": 2424,
+  "shape": [
+    2481284,
+    18130
+  ],
+  "indptr_length": 2481285,
+  "indices_length": 11845716886,
+  "data_length": 11845716886,
+  "indptr_sha256": "a1a94ed1fedd5c2b9c11ca2c0912fa7e1040f8262a1272fd19d23e7667f857be",
+  "block_hash_sha256": "964a050e6d5a6ddf7042a66d87f4770c8cafbf8c8d11517e3539bd8cf19c88ab",
+  "indptr_chunk_hash_sha256": "26ebbbe23cf5df75c5f5830209347b86c702edc9f432be6209c70b78294ef43d",
+  "source_after": {
+    "size": 142656069026,
+    "mtime_ns": 1787691792000000000,
+    "sample_sha256": "be4f20beb1e6bfeb04b993e5ea540531c2393ea7e01e0a27a7738a536f1156ee"
+  },
+  "elapsed_seconds": 416.3486530780792,
+  "artifact_hash": "0dd959d056f40dfc737760312b01cd72c44eea47010507e58b11a48e82532af8"
+}

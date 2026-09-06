@@ -1,0 +1,71 @@
+{
+  "version": "csr_integrity.full.v1",
+  "path": "/root/autodl-tmp/CRISPR_perturb/D2_Rest.assigned_guide.h5ad",
+  "source_before": {
+    "size": 140574804978,
+    "mtime_ns": 1787610262000000000,
+    "sample_sha256": "ff39899f6b9e06c956c2fbf633c111bdeb0234441fd9dec804b195d7d935877a"
+  },
+  "block_rows": 1024,
+  "registered": {
+    "dataset_id": "D2_Rest",
+    "donor_id": "D2",
+    "condition": "Rest",
+    "path": "/root/autodl-tmp/CRISPR_perturb/D2_Rest.assigned_guide.h5ad",
+    "expected_size": 140574804978,
+    "observed_size": 140574804978,
+    "status": "complete",
+    "role": "provisional_external",
+    "mtime": 1787610262.0,
+    "fingerprint": "ff39899f6b9e06c956c2fbf633c111bdeb0234441fd9dec804b195d7d935877a",
+    "shape": [
+      2940194,
+      18130
+    ],
+    "obs_columns": [
+      "lane_id",
+      "n_genes_by_counts",
+      "total_counts",
+      "pct_counts_mt",
+      "top_guide_UMI_counts",
+      "guide_id",
+      "perturbed_gene_name",
+      "perturbed_gene_id",
+      "guide_type",
+      "PuroR",
+      "guide_group",
+      "low_quality"
+    ],
+    "var_columns": [
+      "gene_ids",
+      "feature_types",
+      "genome",
+      "gene_name",
+      "mt"
+    ],
+    "notes": "D2 formal evaluation is locked after first release"
+  },
+  "status": "PASS",
+  "full_csr_read_valid": true,
+  "validation_scope": "X/indptr_X/indices_X/data_full_stream",
+  "failure": null,
+  "blocks_reused": 2872,
+  "blocks_read": 0,
+  "shape": [
+    2940194,
+    18130
+  ],
+  "indptr_length": 2940195,
+  "indices_length": 11668960770,
+  "data_length": 11668960770,
+  "indptr_sha256": "28ef26f2cb2f4973e58eeee9c14a71b838b9536f34cc6a131663798c8acfe7c1",
+  "block_hash_sha256": "253110058904b3c3e19fb9acbe423047bb447cccdddeb025ce1294b9bbdabd36",
+  "indptr_chunk_hash_sha256": "e17b2a64bb1cfb79a8381da921be80689f0d23525869d583b2710def9caaa301",
+  "source_after": {
+    "size": 140574804978,
+    "mtime_ns": 1787610262000000000,
+    "sample_sha256": "ff39899f6b9e06c956c2fbf633c111bdeb0234441fd9dec804b195d7d935877a"
+  },
+  "elapsed_seconds": 0.1213843822479248,
+  "artifact_hash": "34f9fd64a5dbc846b3a6aeda7776b4902cbf851ce8f970c0cc4bba250390a9b0"
+}

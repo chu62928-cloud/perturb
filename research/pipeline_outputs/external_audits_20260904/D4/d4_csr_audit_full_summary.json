@@ -1,0 +1,152 @@
+{
+  "version": "csr_integrity.full.summary.v1",
+  "files": [
+    {
+      "version": "csr_integrity.full.v1",
+      "path": "/root/autodl-tmp/CRISPR_perturb/D4_Rest.assigned_guide.h5ad",
+      "source_before": {
+        "size": 118609904492,
+        "mtime_ns": 1788300094000000000,
+        "sample_sha256": "77f45b9886e58b6ebb4d7f9d2fc649d042f13245afaa496872255b43d94ceb48"
+      },
+      "block_rows": 1024,
+      "registered": {
+        "dataset_id": "D4_Rest",
+        "donor_id": "D4",
+        "condition": "Rest",
+        "path": "/root/autodl-tmp/CRISPR_perturb/D4_Rest.assigned_guide.h5ad",
+        "expected_size": 118609904492,
+        "observed_size": 118609904492,
+        "status": "complete",
+        "role": "external_test",
+        "mtime": 1788300094.0,
+        "fingerprint": "77f45b9886e58b6ebb4d7f9d2fc649d042f13245afaa496872255b43d94ceb48",
+        "shape": [
+          2693903,
+          18130
+        ],
+        "obs_columns": [
+          "lane_id",
+          "n_genes_by_counts",
+          "total_counts",
+          "pct_counts_mt",
+          "top_guide_UMI_counts",
+          "guide_id",
+          "perturbed_gene_name",
+          "perturbed_gene_id",
+          "guide_type",
+          "PuroR",
+          "guide_group",
+          "low_quality"
+        ],
+        "var_columns": [
+          "gene_ids",
+          "feature_types",
+          "genome",
+          "gene_name",
+          "mt"
+        ],
+        "notes": ""
+      },
+      "status": "PASS",
+      "full_csr_read_valid": true,
+      "validation_scope": "X/indptr_X/indices_X/data_full_stream",
+      "failure": null,
+      "blocks_reused": 0,
+      "blocks_read": 2631,
+      "shape": [
+        2693903,
+        18130
+      ],
+      "indptr_length": 2693904,
+      "indices_length": 9844028382,
+      "data_length": 9844028382,
+      "indptr_sha256": "1226822de1424ee5c14838805025ddaba82c99d8e7a3caeda67064a3fabfb5c2",
+      "block_hash_sha256": "98c3316c0e9946742fed174c0510fa0de6335992e990d8953b816a7d9ea540c9",
+      "indptr_chunk_hash_sha256": "6dbf9208475315a572642db5872b09614d973a05b4d21113860ad831e2f258a8",
+      "source_after": {
+        "size": 118609904492,
+        "mtime_ns": 1788300094000000000,
+        "sample_sha256": "77f45b9886e58b6ebb4d7f9d2fc649d042f13245afaa496872255b43d94ceb48"
+      },
+      "elapsed_seconds": 299.9828767776489,
+      "artifact_hash": "f7fa3696fe778cfaa63c049d7c3907bccd236e2bdda5e89f418d65b427315ade"
+    },
+    {
+      "version": "csr_integrity.full.v1",
+      "path": "/root/autodl-tmp/CRISPR_perturb/D4_Stim8hr.assigned_guide.h5ad",
+      "source_before": {
+        "size": 134582395766,
+        "mtime_ns": 1788302922000000000,
+        "sample_sha256": "42b249a272e39f263f4b70bc15e5b683cd54b3ec10a236100d4970e4fe066ffd"
+      },
+      "block_rows": 1024,
+      "registered": {
+        "dataset_id": "D4_Stim8hr",
+        "donor_id": "D4",
+        "condition": "Stim8hr",
+        "path": "/root/autodl-tmp/CRISPR_perturb/D4_Stim8hr.assigned_guide.h5ad",
+        "expected_size": 134582395766,
+        "observed_size": 134582395766,
+        "status": "complete",
+        "role": "external_test",
+        "mtime": 1788302922.0,
+        "fingerprint": "42b249a272e39f263f4b70bc15e5b683cd54b3ec10a236100d4970e4fe066ffd",
+        "shape": [
+          2727254,
+          18130
+        ],
+        "obs_columns": [
+          "lane_id",
+          "n_genes_by_counts",
+          "total_counts",
+          "pct_counts_mt",
+          "top_guide_UMI_counts",
+          "guide_id",
+          "perturbed_gene_name",
+          "perturbed_gene_id",
+          "guide_type",
+          "PuroR",
+          "guide_group",
+          "low_quality"
+        ],
+        "var_columns": [
+          "gene_ids",
+          "feature_types",
+          "genome",
+          "gene_name",
+          "mt"
+        ],
+        "notes": ""
+      },
+      "status": "PASS",
+      "full_csr_read_valid": true,
+      "validation_scope": "X/indptr_X/indices_X/data_full_stream",
+      "failure": null,
+      "blocks_reused": 0,
+      "blocks_read": 2664,
+      "shape": [
+        2727254,
+        18130
+      ],
+      "indptr_length": 2727255,
+      "indices_length": 11172666538,
+      "data_length": 11172666538,
+      "indptr_sha256": "b1f8c302c32b2cd5071903f6aa90d7be99905d8f1465f11e3223c092e4af744e",
+      "block_hash_sha256": "fc5cc0a0860b0a35ac0db3c767d0d82e5a6a0c8b0ed8a1931bdea1782039e1a7",
+      "indptr_chunk_hash_sha256": "ff3558908758c343b6b49456718111602988b9ea3450f4f429f57e8de8d5525f",
+      "source_after": {
+        "size": 134582395766,
+        "mtime_ns": 1788302922000000000,
+        "sample_sha256": "42b249a272e39f263f4b70bc15e5b683cd54b3ec10a236100d4970e4fe066ffd"
+      },
+      "elapsed_seconds": 371.6641674041748,
+      "artifact_hash": "0cd7b4d6a4f4a25602b0e85b3118fb9eed448bb08d9eb9b66bca02de79699f78"
+    }
+  ],
+  "all_full_csr_read_valid": true,
+  "status": "PASS",
+  "integrity_audit_only": true,
+  "biological_statistics_computed": false,
+  "artifact_hash": "52c9ad007453aa756aa606291d7f75bdc7585a92679af2cddc89a8b50af45d8a"
+}

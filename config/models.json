@@ -1,0 +1,13 @@
+{
+  "models": [
+    {"name": "ntc_no_change", "kind": "baseline", "environment": "e3_pipeline"},
+    {"name": "condition_mean_effect", "kind": "baseline", "environment": "e3_pipeline"},
+    {"name": "linear_residual_ridge", "kind": "baseline", "environment": "e3_pipeline"},
+    {"name": "pert2state", "kind": "baseline", "environment": "e3-th-actuator"},
+    {"name": "STATE", "kind": "deep_adapter", "environment": "e3_state", "adaptation": ["head", "last_layers", "lora"]},
+    {"name": "STACK", "kind": "deep_adapter", "environment": "e3_stack"},
+    {"name": "PRiMeFlow", "kind": "deep_adapter", "environment": "e3_primeflow", "pretrained": false},
+    {"name": "GEARS", "kind": "deep_adapter", "environment": "e3_gears"}
+  ],
+  "rule": "Deep adapters are not activated for formal planning until simple baselines and strict holdouts pass."
+}

@@ -1,0 +1,59 @@
+{
+  "version": "d1_csr_integrity.v1",
+  "files": [
+    {
+      "path": "/root/autodl-tmp/CRISPR_perturb/D1_Rest.assigned_guide.h5ad",
+      "shape": [
+        3074496,
+        18130
+      ],
+      "indptr_length": 3074497,
+      "data_length": 11853949618,
+      "first_pointer": 0,
+      "last_pointer": 11853949618,
+      "decreasing_pointer_count": 1,
+      "first_decreasing_row": 450449,
+      "zero_pointer_count_after_start": 2002,
+      "first_zero_row": 450450,
+      "valid": false,
+      "d2_responses_used": false
+    },
+    {
+      "path": "/root/autodl-tmp/CRISPR_perturb/D1_Stim8hr.assigned_guide.h5ad",
+      "shape": [
+        2789727,
+        18130
+      ],
+      "indptr_length": 2789728,
+      "data_length": 12850470637,
+      "first_pointer": 0,
+      "last_pointer": 12850470637,
+      "decreasing_pointer_count": 0,
+      "first_decreasing_row": null,
+      "zero_pointer_count_after_start": 0,
+      "first_zero_row": null,
+      "valid": true,
+      "d2_responses_used": false
+    },
+    {
+      "path": "/root/autodl-tmp/CRISPR_perturb/D1_Stim48hr.assigned_guide.h5ad",
+      "shape": [
+        2805354,
+        18130
+      ],
+      "indptr_length": 2805355,
+      "data_length": 12973186787,
+      "first_pointer": 0,
+      "last_pointer": 12973186787,
+      "decreasing_pointer_count": 0,
+      "first_decreasing_row": null,
+      "zero_pointer_count_after_start": 0,
+      "first_zero_row": null,
+      "valid": true,
+      "d2_responses_used": false
+    }
+  ],
+  "all_valid": false,
+  "d2_responses_used": false,
+  "artifact_hash": "8e549ff1f0d0407c8c7f373936230bb57bb675765d961587d73bcf959b35614e"
+}

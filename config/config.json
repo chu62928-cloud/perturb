@@ -1,0 +1,56 @@
+{
+  "project_root": ".",
+  "data_root": "/root/autodl-tmp/CRISPR_perturb",
+  "runtime_root": "/root/autodl-tmp/CRISPR_perturb_runtime/pipeline",
+  "shared_gene_count": 2000,
+  "latent_dimensions": 50,
+  "local_state_resolution": 1.0,
+  "continuous_state": {
+    "n_anchors_per_condition": 10,
+    "k_neighbors": 200,
+    "n_folds": 5,
+    "density_quantile": 0.1,
+    "buffer_scale": 1.25,
+    "leiden_role": "reporting_only"
+  },
+  "holdout_gene_fraction": 0.2,
+  "holdout_interaction_fraction": 0.2,
+  "random_seed": 20260901,
+  "development_donor": "D2",
+  "secondary_confirmation_donors": ["D1"],
+  "external_test_donors": ["D3", "D4"],
+  "role_manifest": "metadata/donor_roles_v1.json",
+  "pilot": {
+    "n_genes": 96,
+    "core_genes": 64,
+    "challenge_genes": 32,
+    "seed": 20260901,
+    "max_cells_per_condition": 10000,
+    "min_cells_per_guide": 100,
+    "min_guides_per_gene": 2
+  },
+  "gates": {
+    "rmse_improvement": 0.05,
+    "bootstrap_ci_lower": 0.0,
+    "program_direction_margin": 0.02,
+    "critical_program_tolerance": 0.05,
+    "condition_rmse_tolerance": 0.1,
+    "support_knn_quantile": 0.95,
+    "support_density_quantile": 0.05,
+    "support_min_effective_cells": 20,
+    "composition_error_amplification": 0.1,
+    "composition_support_pass_rate": 0.8,
+    "state_distribution_metrics_required": 2,
+    "state_proportion_error_tolerance": 0.05,
+    "state_region_rmse_tolerance": 0.1,
+    "composition_min_valid_triplets": 50,
+    "composition_min_second_actions": 20,
+    "composition_min_regions": 3
+  },
+  "dataset_ids": [
+    "D1_Rest", "D1_Stim8hr", "D1_Stim48hr",
+    "D2_Rest", "D2_Stim8hr", "D2_Stim48hr",
+    "D3_Rest", "D3_Stim8hr", "D3_Stim48hr",
+    "D4_Rest", "D4_Stim8hr", "D4_Stim48hr"
+  ]
+}

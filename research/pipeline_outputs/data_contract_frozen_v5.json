@@ -1,0 +1,39 @@
+{
+  "status": "DATA_CONTRACT_READY",
+  "valid": false,
+  "primary_count": 64,
+  "challenge_count": 32,
+  "primary_sha256": "d3269ad8c5a3da7bb691c42cbd85c92f7b62c6b52f9dd38e037431aebd24b598",
+  "challenge_sha256": "c512699ff9531cd2fd62825ad952e4cd94b8812d1369966520f23b172767f001",
+  "registry_sha256": "011b64350b811e22b2f463e352543d3ed9d9f5489f7e4d6425915e36ead3c611",
+  "d1_complete": 3,
+  "stable_files": true,
+  "library_mapping_rate": 0.9868927318083802,
+  "library_mapping_rate_ok": true,
+  "gene_order_hash_present": true,
+  "normalization_hash_present": true,
+  "effect_matrix_evidence": false,
+  "split_hash_present": true,
+  "state_regions_evidence": true,
+  "csr_integrity_evidence": true,
+  "csr_patch_evidence": true,
+  "csr_patch_applied": true,
+  "raw_input_modified": false,
+  "external_csr_patch_policy_accepted": false,
+  "evidence_paths": {
+    "guide_qc": "metadata/guide_qc_v1.json",
+    "gene_order": "metadata/shared_gene_order_v2.json",
+    "state_split": "metadata/benchmark_splits_v1.json",
+    "state_regions": "metadata/continuous_state_regions_v1.json",
+    "csr_integrity": "metadata/d1_csr_integrity_v2.json",
+    "csr_patch": "metadata/d1_rest_csr_patch_v1.json",
+    "pilot_manifest": "metadata/pilot_manifest_v1.json"
+  },
+  "reasons": [
+    "D1 effect matrix evidence missing",
+    "external CSR patch requires explicit scientific-policy acceptance"
+  ],
+  "d2_responses_used": false,
+  "frozen": false,
+  "contract_version": "data_contract.frozen_v3_csr_patch"
+}

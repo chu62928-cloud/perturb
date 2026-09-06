@@ -1,0 +1,54 @@
+configfile: "config/config.json"
+
+PIPE = "PYTHONPATH=src python -m cd4perturb.cli"
+CFG = "--config config/config.json"
+RUNTIME = config["runtime_root"]
+
+rule all:
+    input:
+        RUNTIME + "/metadata/dataset_registry.json",
+        RUNTIME + "/logs/preflight.json",
+        RUNTIME + "/metadata/gene_candidates.json",
+        RUNTIME + "/metadata/pilot_96.json",
+        RUNTIME + "/metadata/pilot_64_primary_v1.json",
+        RUNTIME + "/metadata/pilot_32_challenge_v1.json",
+        RUNTIME + "/metadata/pilot_manifest_v1.json",
+        RUNTIME + "/metadata/data_contract_frozen_v2.json"
+
+rule preflight:
+    output:
+        RUNTIME + "/logs/preflight.json"
+    shell:
+        "{PIPE} preflight {CFG} --output " + RUNTIME + " > {output}"
+
+rule audit:
+    input:
+        RUNTIME + "/logs/preflight.json"
+    output:
+        RUNTIME + "/metadata/dataset_registry.json"
+    params:
+        audit="/root/autodl-tmp/CRISPR_perturb_runtime/data_audit/current.json"
+    shell:
+        "{PIPE} audit {CFG} --audit {params.audit} --output " + RUNTIME
+
+rule prepare_pilot:
+    input:
+        RUNTIME + "/metadata/dataset_registry.json"
+    output:
+        candidates=RUNTIME + "/metadata/gene_candidates.json",
+        pilot=RUNTIME + "/metadata/pilot_96.json",
+        primary=RUNTIME + "/metadata/pilot_64_primary_v1.json",
+        challenge=RUNTIME + "/metadata/pilot_32_challenge_v1.json",
+        manifest=RUNTIME + "/metadata/pilot_manifest_v1.json"
+    shell:
+        "{PIPE} prepare-pilot {CFG} --output " + RUNTIME
+
+rule freeze_data:
+    input:
+        registry=RUNTIME + "/metadata/dataset_registry.json",
+        primary=RUNTIME + "/metadata/pilot_64_primary_v1.json",
+        challenge=RUNTIME + "/metadata/pilot_32_challenge_v1.json"
+    output:
+        RUNTIME + "/metadata/data_contract_frozen_v2.json"
+    shell:
+        "{PIPE} freeze-data {CFG} --primary {input.primary} --challenge {input.challenge} --evidence-dir " + RUNTIME + " --output " + RUNTIME

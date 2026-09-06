@@ -1,0 +1,86 @@
+{
+  "version": "d2_hvg_marker_precheck.v1",
+  "status": "PRELIMINARY_NOT_FROZEN_PANEL",
+  "verified_date": "2026-09-06",
+  "purpose": "在正式冻结D2训练划分和2000基因面板前，评估Naive、Th1、Th2、Th17核心评分基因的测量覆盖与HVG缺失风险。",
+  "important_limitations": [
+    "这不是正式d2_gene_panel_2000.json，不能用于模型训练或最终评价。",
+    "HVG结果来自均匀分块抽样，不等同于冻结训练划分上的全量流式计算。",
+    "D2的Rest、Stim8hr、Stim48hr是刺激背景，不是Naive、Th1、Th2或Th17真值标签。"
+  ],
+  "d2_gene_axis_audit": {
+    "conditions": [
+      "D2_Rest",
+      "D2_Stim8hr",
+      "D2_Stim48hr"
+    ],
+    "genes_per_condition_including_PuroR": 18130,
+    "gene_name_column": "gene_name",
+    "candidate_marker_count": 36,
+    "candidate_markers_measured_in_all_conditions": 36,
+    "candidate_markers_missing": []
+  },
+  "preliminary_hvg_sampling": {
+    "selection": "每个条件沿细胞轴均匀取64个连续块，每块128行；仅保留low_quality=false且guide_group=targeting single sgRNA的细胞。",
+    "cells_total": 17033,
+    "cells_by_condition": {
+      "D2_Rest": 5570,
+      "D2_Stim8hr": 5596,
+      "D2_Stim48hr": 5867
+    },
+    "preprocessing": {
+      "exclude_feature": "PuroR",
+      "normalize_total_target_sum": 10000,
+      "log1p": true,
+      "scanpy_version": "1.11.5",
+      "hvg_flavor": "seurat",
+      "n_bins": 20,
+      "n_top_genes": 2000,
+      "batch_key": null
+    }
+  },
+  "preliminary_hvg_coverage": {
+    "naive": {
+      "candidate_genes": ["CCR7", "SELL", "TCF7", "LEF1", "MAL", "LTB", "IL7R", "KLF2"],
+      "present": ["CCR7", "SELL", "TCF7", "LEF1", "MAL", "LTB", "IL7R", "KLF2"],
+      "missing": [],
+      "coverage": 1.0
+    },
+    "Th1": {
+      "candidate_genes": ["TBX21", "IFNG", "CXCR3", "STAT4", "IL12RB2", "TNF"],
+      "present": ["TBX21", "IFNG", "CXCR3", "IL12RB2", "TNF"],
+      "missing": ["STAT4"],
+      "coverage": 0.8333333333333334
+    },
+    "Th2": {
+      "candidate_genes": ["GATA3", "IL4", "IL5", "IL13", "CCR4", "PTGDR2", "IL1RL1", "STAT6", "IL4R"],
+      "present": ["IL4", "IL5", "IL13", "PTGDR2", "IL1RL1"],
+      "missing": ["GATA3", "CCR4", "STAT6", "IL4R"],
+      "coverage": 0.5555555555555556
+    },
+    "Th17": {
+      "candidate_genes": ["RORC", "IL17A", "IL17F", "CCR6", "IL23R", "KLRB1", "CCL20", "IL21", "IL22", "RORA", "BATF", "IRF4", "STAT3"],
+      "present": ["RORC", "IL17A", "IL17F", "CCR6", "IL23R", "KLRB1", "CCL20", "IL21", "IL22", "RORA", "BATF", "IRF4", "STAT3"],
+      "missing": [],
+      "coverage": 1.0
+    }
+  },
+  "identity_anchor_policy": {
+    "pre_registered_anchors": {
+      "naive": ["TCF7", "LEF1", "CCR7", "SELL", "MAL"],
+      "Th1": ["TBX21", "IL12RB2", "CXCR3"],
+      "Th2": ["GATA3", "CCR4", "PTGDR2"],
+      "Th17": ["RORC", "CCR6", "IL23R"]
+    },
+    "preliminary_missing_anchors": ["GATA3", "CCR4"],
+    "rule": "仅对D2确实测得、属于冻结蛋白编码交集、训练集表达达到预注册阈值且映射无歧义的缺失身份锚点执行少量强制纳入；效应细胞因子和STAT总表达不自动强制纳入。",
+    "replacement_rule": "每强制加入一个合格身份锚点，删除一个HVG名次最靠后的非强制基因，最终维度保持2000，并记录原始名次、原因和被替换基因。",
+    "model_consistency": "STATE-D2-Scratch与STATE-D2-Transfer必须读取完全相同的最终基因顺序和哈希。"
+  },
+  "recommended_validation_layers": [
+    "先用独立人初始CD4的Naive/Th0/Th1/Th2/Th17参考数据验证评分器能否区分已知谱系。",
+    "再用D2已实测的TBX21、GATA3、RORC等单基因CRISPRi响应验证STATE预测方向；这一步只能称为谱系程序方向验证。",
+    "在单步模型和评分器均通过后，才讨论Th2到Th17的组合或序贯规划。"
+  ],
+  "supporting_evidence": "research/state_d2/th_lineage_marker_evidence.md"
+}

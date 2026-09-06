@@ -1,0 +1,34 @@
+{
+  "version": "donor_roles.v1",
+  "status": "BLOCKED_D2_CSR",
+  "audit_status": "BLOCKED",
+  "intent_only": true,
+  "development_donor": "D2",
+  "secondary_locked_confirmation": [
+    "D1"
+  ],
+  "external_test_donors": [
+    "D3",
+    "D4"
+  ],
+  "response_donors_used": [],
+  "ntc_donors_used": [],
+  "scientific_policy": {
+    "development_uses": [
+      "guide_qc",
+      "feature_selection",
+      "state_partition",
+      "effect_matrix",
+      "baseline",
+      "state_adaptation",
+      "threshold_selection"
+    ],
+    "secondary_confirmation_rule": "one_time_confirmation_after_model_selection",
+    "external_test_rule": "final_confirmation_only",
+    "integrity_audit_only_does_not_compute_biological_statistics": true
+  },
+  "csr_audit_summary": "/root/autodl-tmp/CRISPR_perturb_runtime/pipeline/development_D2_v1/metadata/d2_csr_audit_v1/d2_csr_audit_full_summary.json",
+  "csr_audit_artifact_hash": "2897fb7fe8c6d1e35be7e3ba5024601a2e888bd5f96933450a147fe4a61908ba",
+  "created_at_epoch": 1788332142.5453792,
+  "role_manifest_hash": "c55c4be65651e1f46ab8c7b57c42090bbef53b7b46b60bd1f7880c3561aa5767"
+}

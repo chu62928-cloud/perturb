@@ -1,0 +1,20 @@
+{
+  "status": "DATA_CONTRACT_READY",
+  "valid": false,
+  "primary_count": 64,
+  "challenge_count": 32,
+  "primary_sha256": "d3269ad8c5a3da7bb691c42cbd85c92f7b62c6b52f9dd38e037431aebd24b598",
+  "challenge_sha256": "c512699ff9531cd2fd62825ad952e4cd94b8812d1369966520f23b172767f001",
+  "registry_sha256": "011b64350b811e22b2f463e352543d3ed9d9f5489f7e4d6425915e36ead3c611",
+  "d1_complete": 3,
+  "stable_files": true,
+  "library_mapping_rate": null,
+  "library_mapping_rate_ok": false,
+  "gene_order_hash_present": false,
+  "normalization_hash_present": false,
+  "split_hash_present": true,
+  "reasons": [],
+  "d2_responses_used": false,
+  "frozen": false,
+  "contract_version": "data_contract.frozen_v1"
+}

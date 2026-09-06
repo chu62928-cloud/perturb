@@ -1,0 +1,46 @@
+{
+  "version": "d1_rest_csr_patch.v1",
+  "dataset_id": "D1_Rest",
+  "original_path": "/root/autodl-tmp/CRISPR_perturb/D1_Rest.assigned_guide.h5ad",
+  "source_url": "https://genome-scale-tcell-perturb-seq.s3.amazonaws.com/marson2025_data/D1_Rest.assigned_guide.h5ad",
+  "hdf5_dataset": "X/indptr",
+  "dtype": "<i8",
+  "chunk_shape": [
+    1001
+  ],
+  "chunks": [
+    {
+      "row_start": 450450,
+      "row_end": 451450,
+      "byte_start": 20762308416,
+      "byte_end": 20762316423,
+      "row_end_inclusive": true,
+      "row_count": 1001,
+      "byte_count": 8008,
+      "patch_file": "patches/d1_rest_x_indptr_450450_451450.bin",
+      "sha256": "936e7bfaa2fa61ca2b6488af16961b01a6efc5b89928838d42a761bba4c9dd10",
+      "downloaded_at": "2026-09-02T05:25:53+00:00",
+      "http_status": 0,
+      "content_range": "existing-sidecar-bytes"
+    },
+    {
+      "row_start": 451451,
+      "row_end": 452451,
+      "byte_start": 20810454136,
+      "byte_end": 20810462143,
+      "row_end_inclusive": true,
+      "row_count": 1001,
+      "byte_count": 8008,
+      "patch_file": "patches/d1_rest_x_indptr_451451_452451.bin",
+      "sha256": "58289bdd31396760fd75b2a1c0d5801c9fe7bda548e4486babd0a3a3815e7a3b",
+      "downloaded_at": "2026-09-02T05:25:53+00:00",
+      "http_status": 0,
+      "content_range": "existing-sidecar-bytes"
+    }
+  ],
+  "raw_input_modified": false,
+  "csr_patch_applied": true,
+  "d2_responses_used": false,
+  "provenance": "HTTP Range reads of two pre-audited uncompressed HDF5 X/indptr chunks; no full object download",
+  "artifact_hash": "7fc7f844254e661a2b1ad4833ce7e513be7d376f66ff46058b69717d0b7de745"
+}

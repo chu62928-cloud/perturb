@@ -1,0 +1,81 @@
+{
+  "version": "csr_integrity.full.summary.v1",
+  "files": [
+    {
+      "version": "csr_integrity.full.v1",
+      "path": "/root/autodl-tmp/CRISPR_perturb/D1_Rest.assigned_guide.h5ad",
+      "source_before": {
+        "size": 142828875662,
+        "mtime_ns": 1788396556000000000,
+        "sample_sha256": "61733c640f7d46d9bf777f26bd3b18314edc8cdf5bfdf4ad6bebe0fdf2cdc78d"
+      },
+      "block_rows": 1024,
+      "registered": {
+        "dataset_id": "D1_Rest",
+        "donor_id": "D1",
+        "condition": "Rest",
+        "path": "/root/autodl-tmp/CRISPR_perturb/D1_Rest.assigned_guide.h5ad",
+        "expected_size": 142828875662,
+        "observed_size": 142828875662,
+        "status": "complete",
+        "role": "development",
+        "mtime": 1788396556.0,
+        "fingerprint": "61733c640f7d46d9bf777f26bd3b18314edc8cdf5bfdf4ad6bebe0fdf2cdc78d",
+        "shape": [
+          3074496,
+          18130
+        ],
+        "obs_columns": [
+          "lane_id",
+          "n_genes_by_counts",
+          "total_counts",
+          "pct_counts_mt",
+          "top_guide_UMI_counts",
+          "guide_id",
+          "perturbed_gene_name",
+          "perturbed_gene_id",
+          "guide_type",
+          "PuroR",
+          "guide_group",
+          "low_quality"
+        ],
+        "var_columns": [
+          "gene_ids",
+          "feature_types",
+          "genome",
+          "gene_name",
+          "mt"
+        ],
+        "notes": ""
+      },
+      "status": "PASS",
+      "full_csr_read_valid": true,
+      "validation_scope": "X/indptr_X/indices_X/data_full_stream",
+      "failure": null,
+      "blocks_reused": 0,
+      "blocks_read": 3003,
+      "shape": [
+        3074496,
+        18130
+      ],
+      "indptr_length": 3074497,
+      "indices_length": 11853949618,
+      "data_length": 11853949618,
+      "indptr_sha256": "33c5282448b74f4c98fb6436c876b4baf8ad9ceaeee40464f2d647a8c427f70b",
+      "block_hash_sha256": "4c5ef78a30b1147a101cf965e610587a29c6e61466bd557df4aa7bb3caf288a3",
+      "indptr_chunk_hash_sha256": "6565016c3fb93f39ccb838e26eeb7d35847a394d8ef162424f87f5a99abb520c",
+      "source_after": {
+        "size": 142828875662,
+        "mtime_ns": 1788396556000000000,
+        "sample_sha256": "61733c640f7d46d9bf777f26bd3b18314edc8cdf5bfdf4ad6bebe0fdf2cdc78d"
+      },
+      "elapsed_seconds": 343.82823395729065,
+      "artifact_hash": "d0812f894a4d3b9d46324086174c88dd5cf5bcad62e05ac023eb1bb2c53c050a"
+    }
+  ],
+  "all_full_csr_read_valid": true,
+  "status": "PASS",
+  "integrity_audit_only": true,
+  "biological_statistics_computed": false,
+  "artifact_hash": "c7842fc6f8047c3d6ba8ed07551b024a940495b0f0a78e31315d2cffba71d0ea"
+}

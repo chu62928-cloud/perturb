@@ -1,0 +1,25 @@
+{
+  "name": "th2_to_th17_v0",
+  "version": "draft",
+  "frozen": false,
+  "reference_dataset": "D2",
+  "target_programs": ["Th17"],
+  "source_programs": ["Th2"],
+  "safety_programs": ["stress", "apoptosis", "general_activation"],
+  "shared_gene_count": 2000,
+  "weights": {
+    "Th17": 1.0,
+    "Th2": -1.0,
+    "stress": -0.5,
+    "apoptosis": -0.75,
+    "general_activation": -0.5
+  },
+  "hard_constraints": {
+    "Th17_min_shift": 0.0,
+    "Th2_max_shift": 0.0,
+    "safety_reference": "D2_NTC_p95"
+  },
+  "gate_chain": ["DATA_VALID", "MODEL_GLOBAL_VALID", "MODEL_STATE_VALID", "COMPOSITION_VALID", "PLANNER_VALID", "EXPERIMENT_VALID"],
+  "freeze_rule": "Freeze on D2 development data before one-time D1 confirmation; D1 cannot tune this contract.",
+  "notes": "Rest/Stim8hr/Stim48hr are conditions, not Th2/Th17 labels. Reference samples and program gene sets remain pending external metadata."
+}

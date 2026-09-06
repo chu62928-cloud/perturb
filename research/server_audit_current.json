@@ -1,0 +1,463 @@
+{
+  "checked_at_epoch": 1788245724.78906,
+  "root": "/root/autodl-tmp/CRISPR_perturb",
+  "expected_count": 12,
+  "present_count": 7,
+  "files": [
+    {
+      "name": "D1_Rest.assigned_guide.h5ad",
+      "path": "/root/autodl-tmp/CRISPR_perturb/D1_Rest.assigned_guide.h5ad",
+      "size_bytes": 142828875662,
+      "expected_size_bytes": 142828875662,
+      "size_matches_expected": true,
+      "hdf5_open_ok": true,
+      "shape": [
+        3074496,
+        18130
+      ],
+      "obs_columns": [
+        "lane_id",
+        "n_genes_by_counts",
+        "total_counts",
+        "pct_counts_mt",
+        "top_guide_UMI_counts",
+        "guide_id",
+        "perturbed_gene_name",
+        "perturbed_gene_id",
+        "guide_type",
+        "PuroR",
+        "guide_group",
+        "low_quality"
+      ],
+      "var_columns": [
+        "gene_ids",
+        "feature_types",
+        "genome",
+        "gene_name",
+        "mt"
+      ],
+      "layers": [],
+      "obsm": [],
+      "first_middle_last_probe": {
+        "first": [
+          [
+            0.0,
+            0.0,
+            2.0
+          ]
+        ],
+        "middle": [
+          [
+            0.0,
+            0.0,
+            3.0
+          ]
+        ],
+        "last": [
+          [
+            0.0,
+            0.0,
+            3.0
+          ]
+        ]
+      },
+      "obs_names_unique": true,
+      "var_names_unique": true,
+      "var_first_three": [
+        "ENSG00000000003",
+        "ENSG00000000005",
+        "ENSG00000000419"
+      ]
+    },
+    {
+      "name": "D1_Stim48hr.assigned_guide.h5ad",
+      "path": "/root/autodl-tmp/CRISPR_perturb/D1_Stim48hr.assigned_guide.h5ad",
+      "size_bytes": 156246167022,
+      "expected_size_bytes": 156246167022,
+      "size_matches_expected": true,
+      "hdf5_open_ok": true,
+      "shape": [
+        2805354,
+        18130
+      ],
+      "obs_columns": [
+        "lane_id",
+        "n_genes_by_counts",
+        "total_counts",
+        "pct_counts_mt",
+        "top_guide_UMI_counts",
+        "guide_id",
+        "perturbed_gene_name",
+        "perturbed_gene_id",
+        "guide_type",
+        "PuroR",
+        "guide_group",
+        "low_quality"
+      ],
+      "var_columns": [
+        "gene_ids",
+        "feature_types",
+        "genome",
+        "gene_name",
+        "mt"
+      ],
+      "layers": [],
+      "obsm": [],
+      "first_middle_last_probe": {
+        "first": [
+          [
+            8.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "middle": [
+          [
+            19.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "last": [
+          [
+            50.0,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "obs_names_unique": true,
+      "var_names_unique": true,
+      "var_first_three": [
+        "CUSTOM001_PuroR",
+        "ENSG00000000003",
+        "ENSG00000000005"
+      ]
+    },
+    {
+      "name": "D1_Stim8hr.assigned_guide.h5ad",
+      "path": "/root/autodl-tmp/CRISPR_perturb/D1_Stim8hr.assigned_guide.h5ad",
+      "size_bytes": 154774003188,
+      "expected_size_bytes": 154774003188,
+      "size_matches_expected": true,
+      "hdf5_open_ok": true,
+      "shape": [
+        2789727,
+        18130
+      ],
+      "obs_columns": [
+        "lane_id",
+        "n_genes_by_counts",
+        "total_counts",
+        "pct_counts_mt",
+        "top_guide_UMI_counts",
+        "guide_id",
+        "perturbed_gene_name",
+        "perturbed_gene_id",
+        "guide_type",
+        "PuroR",
+        "guide_group",
+        "low_quality"
+      ],
+      "var_columns": [
+        "gene_ids",
+        "feature_types",
+        "genome",
+        "gene_name",
+        "mt"
+      ],
+      "layers": [],
+      "obsm": [],
+      "first_middle_last_probe": {
+        "first": [
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "middle": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "last": [
+          [
+            0.0,
+            0.0,
+            6.0
+          ]
+        ]
+      },
+      "obs_names_unique": true,
+      "var_names_unique": true,
+      "var_first_three": [
+        "ENSG00000000003",
+        "ENSG00000000005",
+        "ENSG00000000419"
+      ]
+    },
+    {
+      "name": "D2_Rest.assigned_guide.h5ad",
+      "path": "/root/autodl-tmp/CRISPR_perturb/D2_Rest.assigned_guide.h5ad",
+      "size_bytes": 140574804978,
+      "expected_size_bytes": 140574804978,
+      "size_matches_expected": true,
+      "hdf5_open_ok": true,
+      "shape": [
+        2940194,
+        18130
+      ],
+      "obs_columns": [
+        "lane_id",
+        "n_genes_by_counts",
+        "total_counts",
+        "pct_counts_mt",
+        "top_guide_UMI_counts",
+        "guide_id",
+        "perturbed_gene_name",
+        "perturbed_gene_id",
+        "guide_type",
+        "PuroR",
+        "guide_group",
+        "low_quality"
+      ],
+      "var_columns": [
+        "gene_ids",
+        "feature_types",
+        "genome",
+        "gene_name",
+        "mt"
+      ],
+      "layers": [],
+      "obsm": [],
+      "first_middle_last_probe": {
+        "first": [
+          [
+            0.0,
+            0.0,
+            3.0
+          ]
+        ],
+        "middle": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "last": [
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "obs_names_unique": true,
+      "var_names_unique": true,
+      "var_first_three": [
+        "ENSG00000000003",
+        "ENSG00000000005",
+        "ENSG00000000419"
+      ]
+    },
+    {
+      "name": "D2_Stim48hr.assigned_guide.h5ad",
+      "path": "/root/autodl-tmp/CRISPR_perturb/D2_Stim48hr.assigned_guide.h5ad",
+      "size_bytes": 137554355000,
+      "expected_size_bytes": 137554355000,
+      "size_matches_expected": true,
+      "hdf5_open_ok": true,
+      "shape": [
+        2863571,
+        18130
+      ],
+      "obs_columns": [
+        "lane_id",
+        "n_genes_by_counts",
+        "total_counts",
+        "pct_counts_mt",
+        "top_guide_UMI_counts",
+        "guide_id",
+        "perturbed_gene_name",
+        "perturbed_gene_id",
+        "guide_type",
+        "PuroR",
+        "guide_group",
+        "low_quality"
+      ],
+      "var_columns": [
+        "gene_ids",
+        "feature_types",
+        "genome",
+        "gene_name",
+        "mt"
+      ],
+      "layers": [],
+      "obsm": [],
+      "first_middle_last_probe": {
+        "first": [
+          [
+            6.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "middle": [
+          [
+            6.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "last": [
+          [
+            8.0,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "obs_names_unique": true,
+      "var_names_unique": true,
+      "var_first_three": [
+        "CUSTOM001_PuroR",
+        "ENSG00000000003",
+        "ENSG00000000005"
+      ]
+    },
+    {
+      "name": "D2_Stim8hr.assigned_guide.h5ad",
+      "path": "/root/autodl-tmp/CRISPR_perturb/D2_Stim8hr.assigned_guide.h5ad",
+      "size_bytes": 172796432870,
+      "expected_size_bytes": 172796432870,
+      "size_matches_expected": true,
+      "hdf5_open_ok": true,
+      "shape": [
+        3032848,
+        18130
+      ],
+      "obs_columns": [
+        "lane_id",
+        "n_genes_by_counts",
+        "total_counts",
+        "pct_counts_mt",
+        "top_guide_UMI_counts",
+        "guide_id",
+        "perturbed_gene_name",
+        "perturbed_gene_id",
+        "guide_type",
+        "PuroR",
+        "guide_group",
+        "low_quality"
+      ],
+      "var_columns": [
+        "gene_ids",
+        "feature_types",
+        "genome",
+        "gene_name",
+        "mt"
+      ],
+      "layers": [],
+      "obsm": [],
+      "first_middle_last_probe": {
+        "first": [
+          [
+            0.0,
+            0.0,
+            5.0
+          ]
+        ],
+        "middle": [
+          [
+            0.0,
+            0.0,
+            3.0
+          ]
+        ],
+        "last": [
+          [
+            0.0,
+            0.0,
+            4.0
+          ]
+        ]
+      },
+      "obs_names_unique": true,
+      "var_names_unique": true,
+      "var_first_three": [
+        "ENSG00000000003",
+        "ENSG00000000005",
+        "ENSG00000000419"
+      ]
+    },
+    {
+      "name": "D3_Stim8hr.assigned_guide.h5ad",
+      "path": "/root/autodl-tmp/CRISPR_perturb/D3_Stim8hr.assigned_guide.h5ad",
+      "size_bytes": 142656069026,
+      "expected_size_bytes": 142656069026,
+      "size_matches_expected": true,
+      "hdf5_open_ok": true,
+      "shape": [
+        2481284,
+        18130
+      ],
+      "obs_columns": [
+        "lane_id",
+        "n_genes_by_counts",
+        "total_counts",
+        "pct_counts_mt",
+        "top_guide_UMI_counts",
+        "guide_id",
+        "perturbed_gene_name",
+        "perturbed_gene_id",
+        "guide_type",
+        "PuroR",
+        "guide_group",
+        "low_quality"
+      ],
+      "var_columns": [
+        "gene_ids",
+        "feature_types",
+        "genome",
+        "gene_name",
+        "mt"
+      ],
+      "layers": [],
+      "obsm": [],
+      "first_middle_last_probe": {
+        "first": [
+          [
+            6.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "middle": [
+          [
+            17.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "last": [
+          [
+            62.0,
+            0.0,
+            0.0
+          ]
+        ]
+      },
+      "obs_names_unique": true,
+      "var_names_unique": true,
+      "var_first_three": [
+        "CUSTOM001_PuroR",
+        "ENSG00000000003",
+        "ENSG00000000005"
+      ]
+    }
+  ]
+}

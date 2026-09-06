@@ -1,0 +1,8 @@
+name: e3_pipeline
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - -r requirements/e3_pipeline.requirements.in

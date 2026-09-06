@@ -1,0 +1,102 @@
+{
+  "version": "csr_integrity.full.summary.v1",
+  "files": [
+    {
+      "version": "csr_integrity.full.v1",
+      "path": "/root/autodl-tmp/CRISPR_perturb/D2_Rest.assigned_guide.h5ad",
+      "source_before": {
+        "size": 140574804978,
+        "mtime_ns": 1787610262000000000,
+        "sample_sha256": "ff39899f6b9e06c956c2fbf633c111bdeb0234441fd9dec804b195d7d935877a"
+      },
+      "block_rows": 1024,
+      "status": "PASS",
+      "full_csr_read_valid": true,
+      "validation_scope": "X/indptr_X/indices_X/data_full_stream",
+      "failure": null,
+      "blocks_reused": 2872,
+      "blocks_read": 0,
+      "shape": [
+        2940194,
+        18130
+      ],
+      "indptr_length": 2940195,
+      "indices_length": 11668960770,
+      "data_length": 11668960770,
+      "indptr_sha256": "28ef26f2cb2f4973e58eeee9c14a71b838b9536f34cc6a131663798c8acfe7c1",
+      "block_hash_sha256": "253110058904b3c3e19fb9acbe423047bb447cccdddeb025ce1294b9bbdabd36",
+      "indptr_chunk_hash_sha256": "e17b2a64bb1cfb79a8381da921be80689f0d23525869d583b2710def9caaa301",
+      "source_after": {
+        "size": 140574804978,
+        "mtime_ns": 1787610262000000000,
+        "sample_sha256": "ff39899f6b9e06c956c2fbf633c111bdeb0234441fd9dec804b195d7d935877a"
+      },
+      "elapsed_seconds": 0.12856721878051758,
+      "artifact_hash": "376d4b232532e8ab11b2855a8536a36dea7cf334004b999887ac7b3909cc421e"
+    },
+    {
+      "version": "csr_integrity.full.v1",
+      "path": "/root/autodl-tmp/CRISPR_perturb/D2_Stim8hr.assigned_guide.h5ad",
+      "source_before": {
+        "size": 172796432870,
+        "mtime_ns": 1787640882000000000,
+        "sample_sha256": "65ba2670072e625d80d8c5f1c789b8a7af44db3f100af3a27375285079682dff"
+      },
+      "block_rows": 1024,
+      "status": "BLOCKED_D2_CSR",
+      "full_csr_read_valid": false,
+      "validation_scope": "X/indptr_X/indices_X/data_full_stream",
+      "failure": {
+        "type": "OSError",
+        "message": "CSR read failed in block 751 rows 769024:770048 raw=3614727211:3619483113: Can't synchronously read data (wrong B-tree signature)"
+      },
+      "blocks_reused": 751,
+      "blocks_read": 0,
+      "source_after": {
+        "size": 172796432870,
+        "mtime_ns": 1787640882000000000,
+        "sample_sha256": "65ba2670072e625d80d8c5f1c789b8a7af44db3f100af3a27375285079682dff"
+      },
+      "elapsed_seconds": 0.15384435653686523,
+      "artifact_hash": "a534dc85fc2ab42c2e20142b09afe99f0a9490bfd5fb50d5a1f89216d38d79f4"
+    },
+    {
+      "version": "csr_integrity.full.v1",
+      "path": "/root/autodl-tmp/CRISPR_perturb/D2_Stim48hr.assigned_guide.h5ad",
+      "source_before": {
+        "size": 137554355000,
+        "mtime_ns": 1787669540000000000,
+        "sample_sha256": "90ce870870e64c40fdc942dc73bfede8de6b3bc2d05fd2cab4282bc2497991da"
+      },
+      "block_rows": 1024,
+      "status": "PASS",
+      "full_csr_read_valid": true,
+      "validation_scope": "X/indptr_X/indices_X/data_full_stream",
+      "failure": null,
+      "blocks_reused": 2797,
+      "blocks_read": 0,
+      "shape": [
+        2863571,
+        18130
+      ],
+      "indptr_length": 2863572,
+      "indices_length": 11417773379,
+      "data_length": 11417773379,
+      "indptr_sha256": "f820d637d3abfa5fbe0479cc9149c0d84e76bc831a838bd1c101ce678eb2dac6",
+      "block_hash_sha256": "1345fc6e8bcad1bcc3ff7f4ee4998e78c30eb6b63e9912bd5f29453e2cf507ce",
+      "indptr_chunk_hash_sha256": "bfa00413daa71c5e62628972ec7d60b80d69a3f7b0b35603f30717067dd8192a",
+      "source_after": {
+        "size": 137554355000,
+        "mtime_ns": 1787669540000000000,
+        "sample_sha256": "90ce870870e64c40fdc942dc73bfede8de6b3bc2d05fd2cab4282bc2497991da"
+      },
+      "elapsed_seconds": 0.11838579177856445,
+      "artifact_hash": "626ee695c6d1b3d15ad91420def6fe39ed06eec8f96f892508d6678f139c3169"
+    }
+  ],
+  "all_full_csr_read_valid": false,
+  "status": "BLOCKED_D2_CSR",
+  "integrity_audit_only": true,
+  "biological_statistics_computed": false,
+  "artifact_hash": "99561665efcc02ccc6f97c8ad26014f0bac8ab3e4ded662612a5458c201abe96"
+}

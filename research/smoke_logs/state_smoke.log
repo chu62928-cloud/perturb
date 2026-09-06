@@ -1,0 +1,56 @@
+StateTransitionPerturbationModel(
+  (loss_fn): SamplesLoss()
+  (gene_decoder): LatentToGeneDecoder(
+    (decoder): Sequential(
+      (0): Linear(in_features=2000, out_features=1024, bias=True)
+      (1): LayerNorm((1024,), eps=1e-05, elementwise_affine=True)
+      (2): GELU(approximate='none')
+      (3): Dropout(p=0.1, inplace=False)
+      (4): Linear(in_features=1024, out_features=1024, bias=True)
+      (5): LayerNorm((1024,), eps=1e-05, elementwise_affine=True)
+      (6): GELU(approximate='none')
+      (7): Dropout(p=0.1, inplace=False)
+      (8): Linear(in_features=1024, out_features=512, bias=True)
+      (9): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+      (10): GELU(approximate='none')
+      (11): Dropout(p=0.1, inplace=False)
+      (12): Linear(in_features=512, out_features=2000, bias=True)
+      (13): ReLU()
+    )
+  )
+  (pert_encoder): Sequential(
+    (0): Linear(in_features=2024, out_features=328, bias=True)
+  )
+  (basal_encoder): Sequential(
+    (0): Linear(in_features=2000, out_features=328, bias=True)
+  )
+  (transformer_backbone): LlamaBidirectionalModel(
+    (embed_tokens): Embedding(32000, 328, padding_idx=0)
+    (layers): ModuleList(
+      (0-7): 8 x LlamaDecoderLayer(
+        (self_attn): LlamaAttention(
+          (q_proj): Linear(in_features=328, out_features=768, bias=False)
+          (k_proj): Linear(in_features=328, out_features=768, bias=False)
+          (v_proj): Linear(in_features=328, out_features=768, bias=False)
+          (o_proj): Linear(in_features=768, out_features=328, bias=False)
+        )
+        (mlp): LlamaMLP(
+          (gate_proj): Linear(in_features=328, out_features=3072, bias=False)
+          (up_proj): Linear(in_features=328, out_features=3072, bias=False)
+          (down_proj): Linear(in_features=3072, out_features=328, bias=False)
+          (act_fn): SiLU()
+        )
+        (input_layernorm): LlamaRMSNorm((328,), eps=1e-06)
+        (post_attention_layernorm): LlamaRMSNorm((328,), eps=1e-06)
+      )
+    )
+    (norm): LlamaRMSNorm((328,), eps=1e-06)
+    (rotary_emb): NoRoPE()
+  )
+  (project_out): Sequential(
+    (0): Linear(in_features=328, out_features=2000, bias=True)
+  )
+  (batch_encoder): Embedding(56, 328)
+  (relu): ReLU()
+)
+{"model": "STATE", "checkpoint": "/root/autodl-tmp/CRISPR_perturb_runtime/models/huggingface/ST-HVG-Replogle/fewshot/hepg2/checkpoints/last.ckpt", "device": "NVIDIA GeForce RTX 4080 SUPER", "torch": "2.7.0+cu128", "cuda": "12.8", "parameters": 49396728, "input_shape": [1, 64, 2000], "output_shape": [64, 2000], "peak_gpu_bytes": 214476288, "elapsed_seconds": 1.9689508955925703}

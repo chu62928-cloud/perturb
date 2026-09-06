@@ -1,0 +1,962 @@
+[
+  {
+    "gene": "THYN1",
+    "tier": "core",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "EHMT1",
+    "tier": "core",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "CD8A",
+    "tier": "core",
+    "expression_bin": "low",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "CLIC5",
+    "tier": "core",
+    "expression_bin": "low",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "FAM229B",
+    "tier": "core",
+    "expression_bin": "low",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "RAB30",
+    "tier": "core",
+    "expression_bin": "low",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "TRIT1",
+    "tier": "core",
+    "expression_bin": "low",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "RPS6KA1",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "FAM208A",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "HIST1H4I",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "LRTOMT",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "C11orf1",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "RPL26L1",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "METAP1",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "HLA-DQA2",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "POMK",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "TRAPPC2",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "TCTE3",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "RHOXF2",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "HIST1H4K",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "ZNF814",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "HIST1H3D",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "SEPT6",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "CXorf40B",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "C7orf55-LUC7L2",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "HIST1H2BB",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "TROVE2",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "HIST1H3F",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "ANGPT2",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "ARNTL2",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "CASP1",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "HIST2H2BE",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "ZNF749",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "HLA-DPA1",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "IL21",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "KHDC4",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "WDFY1",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "SPSB2",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "PIWIL4",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "COX8A",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "ATL3",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "POU3F4",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "CRTAM",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "TUSC2",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "CAPS",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "PIP5K1A",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "DNAJB9",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "RBM43",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "RBM45",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "TM2D3",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "CARD16",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "LDAH",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "ZNF696",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "ACOT13",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "C2CD2",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "FBH1",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "MID1IP1",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "ULK4",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "C14orf132",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "SLC25A34",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "MT1E",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "ALX1",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "HKDC1",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "FOXN2",
+    "tier": "core",
+    "expression_bin": "unknown",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "expression/coverage stratification only"
+  },
+  {
+    "gene": "TP53",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "SH3KBP1",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "TRPV2",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "SIT1",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "SAMHD1",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "LYST",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "ZDHHC5",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "RFX5",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "SENP5",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "CYP20A1",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "ELOF1",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "MAP7D1",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "MCTS1",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "RNH1",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "HSPA4",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "SIKE1",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "CREBZF",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "TESPA1",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "LTA4H",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "CNPY2",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "NDUFV3",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "RBMS1",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "VAMP2",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "APOL2",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "TRAP1",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "FRYL",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "PCLAF",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "BRD7",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "IPO8",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "SFMBT2",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "ATF7IP",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  },
+  {
+    "gene": "IFNAR1",
+    "tier": "challenge",
+    "expression_bin": "high",
+    "effect_bin": "unknown",
+    "guide_concordance": "unknown",
+    "functional_class": "unknown",
+    "stimulus_dependent": false,
+    "selection_reason": "D1-only effect/context/guide challenge stratum"
+  }
+]

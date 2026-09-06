@@ -1,0 +1,74 @@
+{
+  "version": "csr_integrity.full.summary.v1",
+  "files": [
+    {
+      "version": "csr_integrity.full.v1",
+      "path": "/root/autodl-tmp/CRISPR_perturb/D4_Stim48hr.assigned_guide.h5ad",
+      "source_before": {
+        "size": 159231588926,
+        "mtime_ns": 1788442018000000000,
+        "sample_sha256": "ecc8f244d43773535faad406816eb9327cb1cbcfc0bdc1b831f48eae6e7429ca"
+      },
+      "block_rows": 1024,
+      "registered": {
+        "dataset_id": "D4_Stim48hr",
+        "donor_id": "D4",
+        "condition": "Stim48hr",
+        "path": "/root/autodl-tmp/CRISPR_perturb/D4_Stim48hr.assigned_guide.h5ad",
+        "expected_size": 159231588926,
+        "observed_size": 159231588926,
+        "status": "complete",
+        "role": "external_test",
+        "mtime": 1788442018.0,
+        "fingerprint": "ecc8f244d43773535faad406816eb9327cb1cbcfc0bdc1b831f48eae6e7429ca",
+        "shape": [
+          2815784,
+          18130
+        ],
+        "obs_columns": [
+          "lane_id",
+          "n_genes_by_counts",
+          "total_counts",
+          "pct_counts_mt",
+          "top_guide_UMI_counts",
+          "guide_id",
+          "perturbed_gene_name",
+          "perturbed_gene_id",
+          "guide_type",
+          "PuroR",
+          "guide_group",
+          "low_quality"
+        ],
+        "var_columns": [
+          "gene_ids",
+          "feature_types",
+          "genome",
+          "gene_name",
+          "mt"
+        ],
+        "notes": ""
+      },
+      "status": "BLOCKED_D2_CSR",
+      "full_csr_read_valid": false,
+      "validation_scope": "X/indptr_X/indices_X/data_full_stream",
+      "failure": {
+        "type": "ValueError",
+        "message": "indices out of range rows 2069504:2070528"
+      },
+      "blocks_reused": 0,
+      "blocks_read": 2021,
+      "source_after": {
+        "size": 159231588926,
+        "mtime_ns": 1788442018000000000,
+        "sample_sha256": "ecc8f244d43773535faad406816eb9327cb1cbcfc0bdc1b831f48eae6e7429ca"
+      },
+      "elapsed_seconds": 392.40457129478455,
+      "artifact_hash": "b5b2ece5ce6811f3725e33266bc1898423b6d7608966c8e82e95cb0b9dcc9c5c"
+    }
+  ],
+  "all_full_csr_read_valid": false,
+  "status": "BLOCKED_D2_CSR",
+  "integrity_audit_only": true,
+  "biological_statistics_computed": false,
+  "artifact_hash": "ca287f7f20446531d965be50caf304a479194ef7d8652e5343179a87c57ae810"
+}
