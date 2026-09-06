@@ -2,7 +2,7 @@
 
 ## Last verified
 
-- 2026-09-06T19:05+08:00
+- 2026-09-06T19:18+08:00
 
 ## Objective
 
@@ -145,7 +145,7 @@
 
 ## Update history
 
-- 2026-09-06T19:10+08:00: 提交`0339ee5`完善正式HVG映射、检测率审计、D2批流和`d2-train`入口；提交`9c930a5`加强迁移报告目标哈希/重叠断言并加入批流合成数据测试；提交`5a1cd9d`完成真实D2 Scratch/Transfer批流干跑产物。最终远端测试为37项通过、1项因e3_pipeline无PyTorch跳过，`pip check`和`compileall`通过；所有提交均已推送到唯一分支`d2-state-single-step`。
+- 2026-09-06T19:10+08:00: 提交`0339ee5`完善正式HVG映射、检测率审计、D2批流和`d2-train`入口；提交`9c930a5`加强迁移报告目标哈希/重叠断言并加入批流合成数据测试；提交`5a1cd9d`完成真实D2 Scratch/Transfer批流干跑产物；提交`f30c52f`更新连续性记录。最终远端测试为37项通过、1项因e3_pipeline无PyTorch跳过，`pip check`、`compileall`和项目记忆检查通过；所有提交均已推送到唯一分支`d2-state-single-step`。
 
 - 2026-09-06T16:05+08:00: 写入D2专属STATE可执行规划，建立安全Git基线并推送`main`提交`3cf0df4`；创建并推送唯一大目标分支`d2-state-single-step`。远端e3_pipeline复测31项通过、4条已知警告。
 
