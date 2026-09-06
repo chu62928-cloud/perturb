@@ -11,6 +11,7 @@
 
 ## Current state
 
+- VERIFIED: Git仓库已安全初始化并推送；远端为 `https://github.com/chu62928-cloud/perturb.git`，基线提交 `3cf0df4`，当前唯一大目标分支为 `d2-state-single-step`。`connect_server.py`、`remote_config.json`、原始数据、模型权重、缓存和大型生成物已由 `.gitignore` 排除。
 - VERIFIED: `config/programs.json` 中 Naive/Th1/Th2/Th17 及安全程序尚未冻结；当前 Th2、Th17 等列表为空，因此此前不能声称核心评分基因已经被2,000基因面板覆盖。
 - VERIFIED: 2026-09-06 只读核对确认，预注册审计用的36个 Naive/Th1/Th2/Th17 候选基因全部存在于 D2 三个条件相同的18,130维测量轴中。
 - VERIFIED: D2均匀分块抽样的HVG预审计纳入17,033个基础质控合格、单sgRNA细胞；按 CP10K、log1p、Scanpy 1.11.5 `seurat` top 2,000计算，Naive覆盖8/8、Th1覆盖5/6（缺STAT4）、Th2覆盖5/9（缺GATA3、CCR4、STAT6、IL4R）、Th17覆盖13/13。该结果仅用于风险预审计，不是冻结模型面板。
@@ -28,6 +29,7 @@
 
 ## Verified results and evidence
 
+- VERIFIED: 具体执行规划已保存为 `research/state_d2/STATE_D2_EXECUTION_PLAN.md`。2026-09-06远端锁定环境复测为`31 passed, 4 warnings`；本地Python 3.14在设置`PYTHONPATH=src`后为26通过、2个因缺少scikit-learn失败、3个因缺少anndata跳过，属于本地依赖不完整而非本轮文档变更回归。`compileall`、新增JSON解析和项目记忆检查均通过。
 - VERIFIED: 谱系标记文献证据已写入 `research/state_d2/th_lineage_marker_evidence.md`；D2测量轴和抽样HVG覆盖报告为 `research/state_d2/d2_hvg_marker_precheck.json`。两者明确区分身份锚点、条件依赖效应因子及激活/应激/凋亡混杂程序。
 - VERIFIED: D2三个条件中，基础质控合格且标记为单sgRNA的关键调控因子扰动均有可用细胞：TBX21每条件297–331、GATA3为240–387、RORC为162–175、STAT4为104–139、STAT6为248–327；IFNG仅0–6，不适合作为稳定扰动验证靶点。以上为obs标签计数，不等同于通过后续敲低效率过滤。
 - VERIFIED: 本地旧数据审计位于 `research/server_audit.json`；其中 D2 截断结论已过时，需由本轮新审计替代。
@@ -125,6 +127,8 @@
 - BLOCKED: D4_Stim48hr 在修复或重新下载前不能用于最终外部测试；D2 虽已通过完整 CSR 闸门，角色激活仍需单独执行并保留不可变记录。
 
 ## Update history
+
+- 2026-09-06T16:05+08:00: 写入D2专属STATE可执行规划，建立安全Git基线并推送`main`提交`3cf0df4`；创建并推送唯一大目标分支`d2-state-single-step`。远端e3_pipeline复测31项通过、4条已知警告。
 
 - 2026-09-06T15:51+08:00: 完成Th谱系评分基因前置核对。36个候选全部存在于D2三条件测量轴；17,033细胞抽样HVG预审计显示Naive和Th17完全覆盖、Th1缺STAT4、Th2缺GATA3/CCR4/STAT6/IL4R。提出只对14个身份锚点执行表达资格和少量强制纳入审计，并将外部极化评分器验收与D2扰动方向验证分开。
 
