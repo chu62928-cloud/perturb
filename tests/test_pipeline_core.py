@@ -30,6 +30,7 @@ from cd4perturb.state_protocol import decide_state_adaptation, select_adaptation
 from cd4perturb.state_d2_evaluation import (conclude_model, evaluate_d2_predictions,
                                             pseudobulk_pearson)
 from cd4perturb.state_d2_training import TrainingContract, freeze_training_contract
+from cd4perturb.state_d2_data import D2BatchStream
 from cd4perturb.roles import role_payload, seal_role_manifest, validate_role_manifest
 from cd4perturb.state_d2 import (apply_identity_anchor_policy, freeze_d2_splits,
                                  program_coverage, score_programs, validate_lineage_programs,
@@ -121,6 +122,37 @@ def test_d2_hvg_enrichment_adds_mapping_and_detection_rates():
                                        {"Rest": 1, "Stim8hr": 2, "Stim48hr": 3})
     assert enriched["gene_statistics"]["A"]["gene_id"] == "ENSG_A"
     assert enriched["gene_statistics"]["A"]["detected_rate_by_condition"]["Stim8hr"] == 1.0
+
+
+def test_d2_batch_stream_pairs_same_condition_ntc_sets(tmp_path: Path):
+    ad = pytest.importorskip("anndata")
+    pytest.importorskip("torch")
+    scipy_sparse = pytest.importorskip("scipy.sparse")
+    pandas = pytest.importorskip("pandas")
+    paths = []
+    for condition in ("Rest", "Stim8hr", "Stim48hr"):
+        values = np.vstack([np.tile([10., 2.], (8, 1)), np.tile([20., 4.], (8, 1))])
+        obs = pandas.DataFrame({
+            "guide_group": pandas.Categorical(["targeting single sgRNA"] * 16),
+            "low_quality": np.zeros(16, dtype=bool),
+            "perturbed_gene_name": pandas.Categorical([""] * 8 + ["G1"] * 8),
+            "perturbed_gene_id": pandas.Categorical([""] * 8 + ["ENSG1"] * 8),
+            "guide_type": pandas.Categorical(["non-targeting"] * 8 + ["targeting"] * 8),
+        })
+        obj = ad.AnnData(scipy_sparse.csr_matrix(values), obs=obs)
+        obj.var["gene_ids"] = ["ENSG_A", "ENSG_B"]
+        obj.var["gene_name"] = ["A", "B"]
+        path = tmp_path / f"D2_{condition}.assigned_guide.h5ad"
+        obj.write_h5ad(path)
+        paths.append(path)
+    records = [{"perturbation_name": gene, "condition": condition, "split": "train"}
+               for condition in ("Rest", "Stim8hr", "Stim48hr") for gene in ("NTC", "G1")]
+    stream = D2BatchStream(paths, ["A", "B"], ["NTC", "G1"], {"records": records},
+                           batch_size=2, set_len=4, max_rows_per_gene=8, seed=4)
+    batch = next(iter(stream))
+    assert tuple(batch["expression"].shape) == (2, 4, 2)
+    assert tuple(batch["perturbation"].shape) == (2, 4, 2)
+    assert tuple(batch["target"].shape) == (2, 4, 2)
 
 
 def test_d2_freeze_cross_artifact_validation():

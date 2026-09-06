@@ -136,8 +136,16 @@ def initialize_transfer_adapter(adapter, checkpoint_payload: Mapping,
     if expected_report is not None:
         if expected_report.get("semantic_assertions_pass") is not True:
             raise ValueError("transfer report did not pass semantic assertions")
-        for key in ("target_gene_order_hash", "target_perturbation_vocab_hash"):
-            if key in expected_report and key in report and expected_report[key] != report[key]:
+        if "target_gene_order_hash" in expected_report:
+            from .state_d2 import _hash_payload
+            if expected_report["target_gene_order_hash"] != _hash_payload(list(target_gene_names)):
+                raise ValueError("transfer report mismatch: target gene order")
+        if "target_perturbation_vocab_hash" in expected_report:
+            from .state_d2 import _hash_payload
+            if expected_report["target_perturbation_vocab_hash"] != _hash_payload(list(target_perturbation_names)):
+                raise ValueError("transfer report mismatch: target perturbation vocabulary")
+        for key in ("gene_overlap", "perturbation_overlap", "copied_key_count", "target_key_count"):
+            if key in expected_report and expected_report[key] != report.get(key):
                 raise ValueError(f"transfer report mismatch: {key}")
     wrapped.load_state_dict(transferred)
     return report
