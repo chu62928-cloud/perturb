@@ -42,6 +42,12 @@ def _regex_categories(series, pattern: str) -> np.ndarray:
     return np.asarray([bool(re.search(pattern, _text(x), re.I)) for x in series.to_numpy()])
 
 
+def _values_and_codes(series):
+    if hasattr(series.dtype, "categories"):
+        return np.asarray([_text(x) for x in series.cat.categories]), series.cat.codes.to_numpy()
+    return None, np.asarray([_text(x) for x in series.to_numpy()])
+
+
 def _panel_columns(path: Path, panel: Sequence[str]) -> list[int]:
     import anndata as ad
     obj = ad.read_h5ad(path, backed="r")
@@ -78,10 +84,21 @@ def eligible_rows_by_gene(path: str | Path, genes: Iterable[str], *, max_rows: i
         ntc = base & _regex_categories(obj.obs["guide_type"], r"ntc|non[-_ ]?target|control|negative")
         if "NTC" in wanted:
             out["NTC"] = np.flatnonzero(ntc)[:max_rows]
-        for gene in sorted(wanted - {"NTC"}):
-            mask = base & (_equals(obj.obs["perturbed_gene_name"], gene) |
-                           _equals(obj.obs["perturbed_gene_id"], gene))
-            out[gene] = np.flatnonzero(mask)[:max_rows]
+        # Group once over the eligible rows.  Calling np.isin once per gene is
+        # quadratic for the full D2 vocabulary (~12k targets).
+        wanted_targets = wanted - {"NTC"}
+        name_values, name_codes = _values_and_codes(obj.obs["perturbed_gene_name"])
+        id_values, id_codes = _values_and_codes(obj.obs["perturbed_gene_id"])
+        buckets = {gene: [] for gene in wanted_targets}
+        for row in np.flatnonzero(base):
+            name_code = int(name_codes[row]) if name_values is not None else None
+            id_code = int(id_codes[row]) if id_values is not None else None
+            name = name_values[name_code] if name_values is not None and name_code >= 0 else (name_codes[row] if name_values is None else "")
+            gene_id = id_values[id_code] if id_values is not None and id_code >= 0 else (id_codes[row] if id_values is None else "")
+            target = name or gene_id
+            if target in buckets and len(buckets[target]) < max_rows:
+                buckets[target].append(int(row))
+        out.update({gene: np.asarray(rows, dtype=np.int64) for gene, rows in buckets.items()})
         return out
     finally:
         if getattr(obj, "file", None) is not None:
