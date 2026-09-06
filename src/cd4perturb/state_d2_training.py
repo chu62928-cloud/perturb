@@ -17,7 +17,7 @@ class TrainingContract:
     perturbation_vocab_hash: str
     split_hash: str
     model_config_hash: str
-    batch_size: int = 1
+    batch_size: int = 64
     max_steps: int = 40000
     validation_every: int = 500
     early_stop_patience: int = 8

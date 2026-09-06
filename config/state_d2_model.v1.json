@@ -8,6 +8,7 @@
   "n_encoder_layers": 4,
   "n_decoder_layers": 4,
   "n_attention_heads": 8,
+  "batch_size": 64,
   "batch_encoder": false,
   "backgrounds": ["Rest", "Stim8hr", "Stim48hr"],
   "seeds": [20260901, 20260902, 20260903],
