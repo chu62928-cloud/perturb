@@ -28,8 +28,56 @@ from cd4perturb.data import (build_d1_effect_matrix, _load_csr_patch,
 from cd4perturb.baselines import gene_effect_transfer, pert2state_baseline
 from cd4perturb.state_protocol import decide_state_adaptation, select_adaptation
 from cd4perturb.roles import role_payload, seal_role_manifest, validate_role_manifest
+from cd4perturb.state_d2 import (apply_identity_anchor_policy, freeze_d2_splits,
+                                 program_coverage, score_programs, validate_lineage_programs,
+                                 validate_program_scores)
 from scripts.audit_csr_full import audit_file
 import scripts.audit_csr_full as audit_csr_module
+
+
+def test_d2_program_definition_is_disjoint_and_scores_are_separate():
+    payload = {
+        "identity_programs": {
+            "Naive": ["TCF7"], "Th1": ["TBX21"], "Th2": ["GATA3"], "Th17": ["RORC"]},
+        "effect_genes": {"Th1": ["IFNG"]},
+        "confounder_programs": {"activation": ["FOS"]},
+        "anchor_policy": {"required_conditions": ["Rest", "Stim8hr", "Stim48hr"],
+                           "max_forced_genes": 10},
+    }
+    assert validate_lineage_programs(payload)
+    expression = np.array([[3., 0., 0., 0., 0., 4.],
+                           [0., 3., 0., 0., 0., 1.],
+                           [0., 0., 3., 0., 0., 2.],
+                           [0., 0., 0., 3., 0., 1.]])
+    scores = score_programs(expression, ["TCF7", "TBX21", "GATA3", "RORC", "IFNG", "FOS"], payload)
+    assert set(scores) == {"Naive", "Th1", "Th2", "Th17", "effect:Th1", "confounder:activation"}
+    assert program_coverage(["TCF7"], payload)["identity_programs"]["Naive"]["fraction"] == 1.0
+    labels = np.array(["Naive", "Th1", "Th2", "Th17"])
+    donors = np.array(["d1", "d1", "d2", "d2"])
+    validated = validate_program_scores({"Naive": scores["Naive"]}, labels, donors)
+    assert validated["programs"]["Naive"]["macro_auc"] is not None
+
+
+def test_d2_split_and_anchor_policy_are_deterministic():
+    first = freeze_d2_splits(["G1", "G2", "G3", "G4", "G5"], seed=7)
+    second = freeze_d2_splits(["G5", "G4", "G3", "G2", "G1"], seed=7)
+    assert first["split_hash"] == second["split_hash"]
+    combos = {(row["perturbation_name"], row["condition"]) for row in first["records"]}
+    assert len(combos) == len(first["records"])
+    raw = [f"G{i}" for i in range(2000)]
+    stats = {"TBX21": {"measured_in_all_conditions": True,
+                         "detected_by_condition": {"Rest": 1, "Stim8hr": 1, "Stim48hr": 0},
+                         "total_detected_cells": 600, "raw_hvg_rank": 7000}}
+    panel = apply_identity_anchor_policy(raw, stats,
+                                         programs={"identity_programs": {"Th1": ["TBX21"]}},
+                                         max_forced_genes=10)
+    assert panel["forced_identity_anchors"] == []
+    stats["TBX21"]["detected_by_condition"]["Stim48hr"] = 1
+    panel = apply_identity_anchor_policy(raw, stats,
+                                         programs={"identity_programs": {"Th1": ["TBX21"]}},
+                                         max_forced_genes=10)
+    assert panel["forced_identity_anchors"] == ["TBX21"]
+    assert len(panel["gene_order"]) == 2000 and len(set(panel["gene_order"])) == 2000
 
 
 def _write_audit_fixture(path: Path, indptr, indices, data):

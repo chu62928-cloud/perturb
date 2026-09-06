@@ -1,0 +1,42 @@
+{
+  "version": "th_lineage_programs.v1",
+  "description": "冻结的人初始CD4 T细胞谱系身份、效应和混杂程序；身份程序用于评分，效应基因单独报告。",
+  "identity_programs": {
+    "Naive": ["TCF7", "LEF1", "CCR7", "SELL", "MAL"],
+    "Th1": ["TBX21", "IL12RB2", "CXCR3"],
+    "Th2": ["GATA3", "CCR4", "PTGDR2"],
+    "Th17": ["RORC", "CCR6", "IL23R"]
+  },
+  "effect_genes": {
+    "Th1": ["IFNG"],
+    "Th2": ["IL4", "IL5", "IL13"],
+    "Th17": ["IL17A", "IL17F", "CCL20", "IL26"]
+  },
+  "confounder_programs": {
+    "activation": ["FOS", "JUN", "DUSP1", "CD69", "IL2RA", "TNFRSF4"],
+    "stress": ["HSPA1A", "HSPA1B", "DNAJB1", "HSP90AA1", "XBP1"],
+    "apoptosis": ["BAX", "BBC3", "PMAIP1", "CASP3", "FAS"],
+    "cell_cycle": ["MKI67", "TOP2A", "TYMS", "PCNA", "STMN1"],
+    "interferon": ["ISG15", "IFIT1", "IFIT3", "MX1", "OAS1", "IFI6"]
+  },
+  "anchor_policy": {
+    "max_forced_genes": 10,
+    "required_conditions": ["Rest", "Stim8hr", "Stim48hr"],
+    "min_train_conditions_detected": 2,
+    "min_total_detected_cells": 500,
+    "raw_hvg_rank_strictly_worse_than": 5000,
+    "replacement": "one-lowest-ranked-nonforced-hvg-per-forced-gene",
+    "gene_axis": "D2 measured human protein-coding Ensembl intersection",
+    "exclude": ["PuroR"]
+  },
+  "validation": {
+    "external_sources": [
+      "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE135390",
+      "https://www.nature.com/articles/s41467-020-15543-y"
+    ],
+    "minimum_donor_direction_consistency": "2/3",
+    "macro_auc_minimum": 0.8,
+    "early_stimulation_is_diagnostic_only": true,
+    "d2_condition_labels_are_not_lineage_labels": true
+  }
+}

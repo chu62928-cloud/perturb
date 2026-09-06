@@ -15,7 +15,7 @@ from .roles import role_payload, validate_role_manifest, write_role_manifest
 
 def _parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="cd4perturb", description="CD4 Perturb-seq auditable pipeline")
-    p.add_argument("command", choices=["preflight", "audit", "audit-csr", "activate-roles", "audit-public", "prepare-pilot", "guide-qc", "gene-order", "ntc-latent", "freeze-data", "effect-matrix", "state-regions", "freeze-splits", "release-d2", "release-confirmation", "fit-baselines", "state-adaptation", "evaluate", "match-composition", "score-composition", "proxy-composition", "plan", "report"])
+    p.add_argument("command", choices=["preflight", "audit", "audit-csr", "activate-roles", "audit-public", "prepare-pilot", "guide-qc", "gene-order", "ntc-latent", "freeze-data", "effect-matrix", "state-regions", "freeze-splits", "release-d2", "release-confirmation", "fit-baselines", "state-adaptation", "evaluate", "match-composition", "score-composition", "proxy-composition", "plan", "report", "program-validate", "d2-audit", "d2-vocab", "d2-splits", "d2-hvg", "d2-gene-panel"])
     p.add_argument("--config", default="config/config.json")
     p.add_argument("--audit", default=None)
     p.add_argument("--candidate-table", default=None)
@@ -41,6 +41,12 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("--evidence-dir", default=None)
     p.add_argument("--accept-external-csr-patch", action="store_true",
                    help="explicitly accept the auditable D1_Rest indptr sidecar for DATA_VALID")
+    p.add_argument("--programs", default="config/th_lineage_programs.v1.json",
+                   help="frozen Naive/Th1/Th2/Th17 program definition")
+    p.add_argument("--hvg-input", default=None,
+                   help="raw D2 HVG artifact used by d2-gene-panel")
+    p.add_argument("--max-cells", type=int, default=None,
+                   help="optional deterministic per-condition cell cap for HVG pre-audit")
     return p
 
 
@@ -148,6 +154,89 @@ def main(argv: list[str] | None = None) -> int:
                           "audit_donor": audit_donor,
                           "unregistered_files": [p.name for p in paths if p.name not in registered]}, ensure_ascii=False, indent=2))
         return 0 if result["all_full_csr_read_valid"] else 2
+    if args.command == "program-validate":
+        from .state_d2 import load_lineage_programs, program_coverage
+        programs = load_lineage_programs(args.programs)
+        result = {"version": programs["version"],
+                  "identity_programs": programs["identity_programs"],
+                  "effect_genes": programs["effect_genes"],
+                  "confounder_programs": programs["confounder_programs"],
+                  "d2_responses_used": False}
+        if args.genes:
+            genes = json.loads(Path(args.genes).read_text(encoding="utf-8"))
+            result["coverage"] = program_coverage(genes, programs)
+        target = out_root / "research" / "state_d2" / "program_definition_v1.json"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(json.dumps({"output": str(target), "version": result["version"]}, ensure_ascii=False, indent=2))
+        return 0
+    if args.command == "d2-audit":
+        if not args.paths:
+            raise SystemExit("d2-audit requires --paths JSON list")
+        from .state_d2 import audit_d2_data
+        paths = json.loads(Path(args.paths).read_text(encoding="utf-8"))
+        summary = json.loads(Path(args.audit_summary).read_text(encoding="utf-8")) if args.audit_summary else None
+        result = audit_d2_data(paths, csr_summary=summary)
+        target = out_root / "research" / "state_d2" / "d2_data_audit.json"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(json.dumps({"output": str(target), "common_n_vars": result["common_n_vars"]}, ensure_ascii=False, indent=2))
+        return 0
+    if args.command == "d2-vocab":
+        if not args.paths:
+            raise SystemExit("d2-vocab requires --paths JSON list")
+        from .state_d2 import build_d2_perturbation_vocab
+        paths = json.loads(Path(args.paths).read_text(encoding="utf-8"))
+        library = load_guide_library(args.guide_library) if args.guide_library else None
+        result = build_d2_perturbation_vocab(paths, library_rows=library)
+        target = out_root / "research" / "state_d2" / "d2_perturbation_vocab.json"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(json.dumps({"output": str(target), "eligible_target_count": result["eligible_target_count"],
+                          "vocab_hash": result["vocab_hash"]}, ensure_ascii=False, indent=2))
+        return 0
+    if args.command == "d2-splits":
+        from .state_d2 import freeze_d2_splits
+        genes = None
+        if args.genes:
+            genes = json.loads(Path(args.genes).read_text(encoding="utf-8"))
+        elif args.input:
+            vocab = json.loads(Path(args.input).read_text(encoding="utf-8"))
+            genes = vocab.get("perturbation_names", [])
+        if not genes:
+            raise SystemExit("d2-splits requires --genes JSON list or --input vocabulary JSON")
+        result = freeze_d2_splits(genes, seed=cfg.random_seed)
+        target = out_root / "research" / "state_d2" / "splits" / "d2_splits.json"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(json.dumps({"output": str(target), "split_hash": result["split_hash"]}, ensure_ascii=False, indent=2))
+        return 0
+    if args.command == "d2-hvg":
+        if not args.paths:
+            raise SystemExit("d2-hvg requires --paths JSON list")
+        from .state_d2 import compute_d2_hvg_panel
+        paths = json.loads(Path(args.paths).read_text(encoding="utf-8"))
+        target = out_root / "research" / "state_d2" / "d2_hvg_raw.json"
+        splits = json.loads(Path(args.input).read_text(encoding="utf-8")) if args.input else None
+        result = compute_d2_hvg_panel(paths, output=target, block_rows=args.block_rows,
+                                      max_cells=args.max_cells, seed=cfg.random_seed, splits=splits)
+        print(json.dumps({"output": str(target), "n_cells": result["n_cells"],
+                          "raw_hvg_hash": result["raw_hvg_hash"]}, ensure_ascii=False, indent=2))
+        return 0
+    if args.command == "d2-gene-panel":
+        if not args.hvg_input:
+            raise SystemExit("d2-gene-panel requires --hvg-input raw HVG JSON")
+        from .state_d2 import apply_identity_anchor_policy
+        raw = json.loads(Path(args.hvg_input).read_text(encoding="utf-8"))
+        programs = json.loads(Path(args.programs).read_text(encoding="utf-8"))
+        result = apply_identity_anchor_policy(raw["raw_hvg"], raw["gene_statistics"], programs=programs)
+        result["source_hvg_artifact"] = str(args.hvg_input)
+        target = out_root / "research" / "state_d2" / "d2_gene_panel_2000.json"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(json.dumps({"output": str(target), "gene_order_hash": result["gene_order_hash"],
+                          "forced_count": result["forced_count"]}, ensure_ascii=False, indent=2))
+        return 0
     if args.command == "activate-roles":
         if not args.audit_summary:
             raise SystemExit("activate-roles requires --audit-summary")

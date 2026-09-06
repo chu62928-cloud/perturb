@@ -64,4 +64,30 @@ snakemake --snakefile workflow/Snakefile --cores 1
 
 `audit-public` 只核查固定 GitHub 提交的公共元数据。汇总效应和 guide 效率不自动进入 D2 选择或调参；D2 guide 校订只能使用固定提交库，D1 只保留为一次性二级确认。
 
+## D2 专属 STATE 单步冻结
+
+在 D2 CSR 审计摘要通过后，以下命令按顺序运行；所有产物写入同一个 `development_D2_v2/research/state_d2` 目录。`d2-hvg` 的 `--input` 是已经冻结的基因×背景划分，因此正式面板不会读取测试响应。
+
+```bash
+python -m cd4perturb.cli program-validate --config config/config.json \
+  --output /root/autodl-tmp/CRISPR_perturb_runtime/pipeline/development_D2_v2
+python -m cd4perturb.cli d2-audit --config config/config.json \
+  --paths config/d2_paths.json --audit-summary <d2_csr_audit_full_summary.json> \
+  --output /root/autodl-tmp/CRISPR_perturb_runtime/pipeline/development_D2_v2
+python -m cd4perturb.cli d2-vocab --config config/config.json \
+  --paths config/d2_paths.json --guide-library <fixed_submission_library.csv> \
+  --output /root/autodl-tmp/CRISPR_perturb_runtime/pipeline/development_D2_v2
+python -m cd4perturb.cli d2-splits --config config/config.json \
+  --input /root/autodl-tmp/CRISPR_perturb_runtime/pipeline/development_D2_v2/research/state_d2/d2_perturbation_vocab.json \
+  --output /root/autodl-tmp/CRISPR_perturb_runtime/pipeline/development_D2_v2
+python -m cd4perturb.cli d2-hvg --config config/config.json \
+  --paths config/d2_paths.json --input <d2_splits.json> --block-rows 1024 \
+  --output /root/autodl-tmp/CRISPR_perturb_runtime/pipeline/development_D2_v2
+python -m cd4perturb.cli d2-gene-panel --config config/config.json \
+  --hvg-input <d2_hvg_raw.json> \
+  --output /root/autodl-tmp/CRISPR_perturb_runtime/pipeline/development_D2_v2
+```
+
+`d2-gene-panel` 只对预注册身份锚点执行有资格审计的一对一末位替换，最多十个；Scratch、Transfer、基线和评价均必须读取同一 `gene_order_hash`。D2 的三个条件仅是生物背景，评分器定义与外部 GSE135390/Cano-Gamez 参考验证记录在 `research/state_d2/program_validation/`，不能把 D2 条件名称当作谱系标签。
+
 当 D2 的固定基因顺序与状态空间准备好后，使用 `effect-matrix`（`--input` 为 D2 路径 JSON，`--genes` 为基因顺序 JSON）生成逐 guide 与稳健基因级效应；新命令通过角色清单拒绝错误供者路径，并以文件为单位、只读取选定列。使用 `state-regions`（紧凑 NPZ，包含 `latent`、`conditions`）生成连续状态区域；如果同一输入还包含组合性数据，状态条件可放在 `latent_conditions`。基线、评价、组合性和规划阶段均要求显式输入，缺失输入时直接失败，不会伪造模型通过状态。
