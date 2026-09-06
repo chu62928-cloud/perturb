@@ -92,4 +92,6 @@ python -m cd4perturb.cli d2-gene-panel --config config/config.json \
 
 模型阶段使用 `config/state_d2_model.v1.json` 和 `state_d2_training.py` 中的冻结训练合同：三个种子、最多 40,000 步、同一批次和划分、验证 MMD 选最佳检查点。Transfer 报告由 `scripts/state_d2_transfer_audit.py` 生成；官方检查点没有可核实的有序扰动名称时，扰动投影保持随机初始化，绝不按整数索引复制。评价结果只能通过 `state_d2_evaluation.py` 给出 Transfer、Scratch、未超过简单基线或谱系方向不可评价四种结论，`MODEL_STATE_VALID` 固定为 `NOT_EVALUABLE`。
 
+外部评分器输入必须是独立参考数据的 `expression/gene_names/labels/donors` NPZ，使用 `scripts/validate_lineage_programs.py`；该命令拒绝把 D2 当作外部标签数据。
+
 当 D2 的固定基因顺序与状态空间准备好后，使用 `effect-matrix`（`--input` 为 D2 路径 JSON，`--genes` 为基因顺序 JSON）生成逐 guide 与稳健基因级效应；新命令通过角色清单拒绝错误供者路径，并以文件为单位、只读取选定列。使用 `state-regions`（紧凑 NPZ，包含 `latent`、`conditions`）生成连续状态区域；如果同一输入还包含组合性数据，状态条件可放在 `latent_conditions`。基线、评价、组合性和规划阶段均要求显式输入，缺失输入时直接失败，不会伪造模型通过状态。
