@@ -27,6 +27,8 @@ from cd4perturb.data import (build_d1_effect_matrix, _load_csr_patch,
                               _read_indptr_slice_h5)
 from cd4perturb.baselines import gene_effect_transfer, pert2state_baseline
 from cd4perturb.state_protocol import decide_state_adaptation, select_adaptation
+from cd4perturb.state_d2_evaluation import (conclude_model, evaluate_d2_predictions,
+                                            pseudobulk_pearson)
 from cd4perturb.roles import role_payload, seal_role_manifest, validate_role_manifest
 from cd4perturb.state_d2 import (apply_identity_anchor_policy, freeze_d2_splits,
                                  program_coverage, score_programs, validate_lineage_programs,
@@ -78,6 +80,20 @@ def test_d2_split_and_anchor_policy_are_deterministic():
                                          max_forced_genes=10)
     assert panel["forced_identity_anchors"] == ["TBX21"]
     assert len(panel["gene_order"]) == 2000 and len(set(panel["gene_order"])) == 2000
+
+
+def test_d2_evaluation_and_narrow_conclusion():
+    real = np.array([[1., 0.], [2., 0.], [0., 1.], [0., 2.]])
+    pred = real * 0.9
+    result = evaluate_d2_predictions(real, pred, ["A", "A", "B", "B"],
+                                     ["Rest", "Rest", "Stim8hr", "Stim8hr"],
+                                     baseline=np.zeros_like(real), ntc_mask=[True, True, False, False])
+    assert pseudobulk_pearson(real, pred) > .99
+    assert result["ntc_n"] == 2 and "Rest" in result["by_condition"]
+    conclusion = conclude_model({"primary_64_score": .8}, {"primary_64_score": .7},
+                                {"name": "condition_mean"}, True, True)
+    assert conclusion["model_conclusion"] == "Transfer"
+    assert conclusion["MODEL_STATE_VALID"] == "NOT_EVALUABLE"
 
 
 def _write_audit_fixture(path: Path, indptr, indices, data):
