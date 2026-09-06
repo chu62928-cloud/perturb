@@ -129,6 +129,89 @@ def pilot_forward_contract(config: D2StateConfig | None = None, device: str = "c
             "device": str(device), "batch_encoder": False}
 
 
+def train_d2_pilot(config: D2StateConfig, train_batches, selected_perturbations: Sequence[str],
+                   output_dir: str | Path, *, steps: int = 200, device: str = "cuda",
+                   learning_rate: float = 1e-3, comparison_window: int = 20) -> dict:
+    """Run the response-blind lightweight optimizer pilot and enforce its hard gates."""
+    torch, _ = _torch()
+    if steps < 2 * comparison_window or comparison_window <= 0:
+        raise ValueError("pilot steps must contain two comparison windows")
+    selected = list(map(str, selected_perturbations))
+    if not selected or len(set(selected)) != len(selected):
+        raise ValueError("pilot perturbations must be unique and non-empty")
+    torch.manual_seed(20260901)
+    model = build_d2_state_model(config).to(device)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=5e-4)
+    if device.startswith("cuda"):
+        torch.cuda.reset_peak_memory_stats()
+    probe = next(iter(train_batches))
+    expected_shape = (int(probe["expression"].shape[0]), config.cell_set_len, config.n_genes)
+    model.eval()
+    with torch.no_grad():
+        initial_prediction = model(probe["expression"], probe["perturbation"])
+        initial_probe_loss = torch.nn.functional.mse_loss(initial_prediction, probe["target"])
+    if tuple(initial_prediction.shape) != expected_shape or not torch.isfinite(initial_probe_loss):
+        raise RuntimeError("pilot probe failed shape or finite-value checks")
+    model.train()
+    losses = []
+    seen = set()
+    iterator = iter(train_batches)
+    for _ in range(int(steps)):
+        batch = next(iterator)
+        seen.update(map(str, batch.get("perturbation_names", [])))
+        optimizer.zero_grad(set_to_none=True)
+        prediction = model(batch["expression"], batch["perturbation"])
+        if tuple(prediction.shape) != (int(batch["expression"].shape[0]),
+                                      config.cell_set_len, config.n_genes):
+            raise RuntimeError("pilot training output shape changed")
+        loss = torch.nn.functional.mse_loss(prediction, batch["target"])
+        if not torch.isfinite(loss):
+            raise FloatingPointError("pilot training loss is NaN/Inf")
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 10.0)
+        optimizer.step()
+        losses.append(float(loss.detach().cpu()))
+    first_median = float(__import__("statistics").median(losses[:comparison_window]))
+    last_median = float(__import__("statistics").median(losses[-comparison_window:]))
+    model.eval()
+    with torch.no_grad():
+        final_prediction = model(probe["expression"], probe["perturbation"])
+        final_probe_loss = torch.nn.functional.mse_loss(final_prediction, probe["target"])
+    loss_descent = bool(last_median < first_median and final_probe_loss < initial_probe_loss)
+    covered_all = set(selected).issubset(seen)
+    target_dir = Path(output_dir)
+    target_dir.mkdir(parents=True, exist_ok=True)
+    checkpoint = target_dir / "pilot.ckpt"
+    temporary = checkpoint.with_suffix(".ckpt.tmp")
+    torch.save({"state_dict": model.state_dict(), "config": config.as_dict()}, temporary)
+    temporary.replace(checkpoint)
+    restored = build_d2_state_model(config).to(device)
+    restored.load_state_dict(torch.load(checkpoint, map_location=device, weights_only=True)["state_dict"])
+    restored.eval()
+    with torch.no_grad():
+        restored_prediction = restored(probe["expression"], probe["perturbation"])
+    reload_ok = bool(torch.allclose(final_prediction, restored_prediction, atol=1e-6, rtol=1e-6))
+    peak_memory = int(torch.cuda.max_memory_allocated()) if device.startswith("cuda") else 0
+    memory_stable = not device.startswith("cuda") or peak_memory < 32 * 1024 ** 3
+    result = {
+        "version": "d2_state_pilot_metrics.v1", "steps": int(steps),
+        "selected_perturbation_count": len(selected), "covered_perturbation_count": len(seen),
+        "covered_all_perturbations": covered_all, "first_window_median_loss": first_median,
+        "last_window_median_loss": last_median,
+        "initial_probe_loss": float(initial_probe_loss.detach().cpu()),
+        "final_probe_loss": float(final_probe_loss.detach().cpu()), "loss_descent": loss_descent,
+        "finite": all(map(__import__("math").isfinite, losses)),
+        "output_shape": list(final_prediction.shape), "checkpoint_reload": reload_ok,
+        "peak_cuda_memory_bytes": peak_memory, "memory_stable": memory_stable, "device": device,
+        "test_responses_used": False, "d2_responses_used": True,
+    }
+    if not (result["loss_descent"] and result["finite"] and covered_all and reload_ok and memory_stable):
+        raise RuntimeError(f"D2 pilot hard gate failed: {result}")
+    metrics_path = target_dir / "pilot_metrics.json"
+    metrics_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    return result
+
+
 def _gene_row_or_column_key(key: str) -> str | None:
     if key in {"basal_encoder.0.weight", "basal_encoder.weight"}:
         return "gene_input"
@@ -231,4 +314,3 @@ def write_transfer_report(report: Mapping, path: str | Path) -> None:
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(dict(report), ensure_ascii=False, indent=2), encoding="utf-8")
-

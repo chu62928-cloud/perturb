@@ -2,6 +2,8 @@ from __future__ import annotations
 
 """Bounded D2 cell sampling for the STATE pilot and later training runs."""
 
+import hashlib
+import json
 import re
 from pathlib import Path
 from typing import Iterable, Mapping, Sequence
@@ -131,38 +133,121 @@ def eligible_rows_by_gene(path: str | Path, genes: Iterable[str], *, max_rows: i
             obj.file.close()
 
 
-def read_log_expression(path: str | Path, rows: Sequence[int], panel: Sequence[str]) -> np.ndarray:
-    """Read selected rows and panel columns, recomputing CP10K from raw X."""
+def eligible_counts_by_gene(path: str | Path, genes: Iterable[str]) -> dict[str, int]:
+    """Count quality-filtered single-guide cells without reading expression values."""
     import anndata as ad
     path = Path(path)
-    rows = np.asarray(rows, dtype=np.int64)
-    if not len(rows):
-        return np.zeros((0, len(panel)), dtype=np.float32)
-    columns = _panel_columns(path, panel)
+    wanted = {str(g) for g in genes} - {"NTC"}
     obj = ad.read_h5ad(path, backed="r")
     try:
-        n_vars = int(obj.n_vars)
+        base = _equals(obj.obs["guide_group"], SINGLE_GUIDE_GROUP)
+        low_quality = obj.obs["low_quality"].to_numpy()
+        if low_quality.dtype != bool:
+            low_quality = np.asarray([_bool(x) for x in low_quality])
+        base &= ~low_quality
+        counts = {gene: 0 for gene in wanted}
+        claimed = np.zeros(len(base), dtype=bool)
+        for column in ("perturbed_gene_name", "perturbed_gene_id"):
+            values, codes = _values_and_codes(obj.obs[column])
+            if values is None:
+                for row in np.flatnonzero(base & ~claimed):
+                    gene = _text(codes[row])
+                    if gene in counts:
+                        counts[gene] += 1
+                        claimed[row] = True
+                continue
+            code_to_gene = {int(code): str(gene) for code, gene in enumerate(values)
+                            if str(gene) in wanted}
+            if not code_to_gene:
+                continue
+            hits = base & ~claimed & np.isin(codes, list(code_to_gene))
+            hit_codes, hit_counts = np.unique(codes[hits], return_counts=True)
+            for code, count in zip(hit_codes, hit_counts):
+                counts[code_to_gene[int(code)]] += int(count)
+            claimed |= hits
+        return counts
     finally:
         if getattr(obj, "file", None) is not None:
             obj.file.close()
-    import h5py
+
+
+def select_pilot_perturbations(counts_by_condition: Mapping[str, Mapping[str, int]],
+                               splits: Mapping, perturbation_names: Sequence[str],
+                               priority: Sequence[str], *, n_targets: int = 64,
+                               set_len: int = 32, min_training_backgrounds: int = 2) -> dict:
+    """Freeze a deterministic, response-blind pilot list from training support only."""
+    names = [str(name) for name in perturbation_names if str(name) != "NTC"]
+    if len(set(names)) != len(names) or n_targets <= 0:
+        raise ValueError("pilot vocabulary and target count must be valid")
+    train_pairs = {(str(row.get("perturbation_name")), str(row.get("condition")))
+                   for row in splits.get("records", []) if row.get("split") == "train"}
+    eligible = {}
+    for gene in names:
+        supported = {condition: int(counts.get(gene, 0))
+                     for condition, counts in counts_by_condition.items()
+                     if (gene, str(condition)) in train_pairs and int(counts.get(gene, 0)) >= set_len}
+        if len(supported) >= min_training_backgrounds:
+            eligible[gene] = {
+                "training_cell_counts": supported,
+                "minimum_training_cell_count": min(supported.values()),
+                "training_background_count": len(supported),
+            }
+    missing_priority = [str(gene) for gene in priority if str(gene) not in eligible]
+    if missing_priority:
+        raise ValueError(f"priority pilot perturbations lack training support: {missing_priority}")
+    selected = list(dict.fromkeys(map(str, priority)))
+    ranked = sorted((gene for gene in eligible if gene not in selected),
+                    key=lambda gene: (-eligible[gene]["minimum_training_cell_count"], gene))
+    selected.extend(ranked[:max(0, n_targets - len(selected))])
+    if len(selected) != n_targets:
+        raise ValueError(f"only {len(selected)} perturbations meet the {n_targets}-target pilot rule")
+    payload = {
+        "version": "d2_state_pilot_manifest.v1",
+        "selected_perturbations": selected,
+        "priority_perturbations": list(map(str, priority)),
+        "selection": {gene: eligible[gene] for gene in selected},
+        "criteria": {"n_targets": n_targets, "set_len": set_len,
+                     "min_training_backgrounds": min_training_backgrounds,
+                     "ranking": "minimum_training_cell_count_desc_then_gene"},
+        "split_hash": splits.get("split_hash"),
+        "test_responses_used": False,
+    }
+    payload["manifest_hash"] = hashlib.sha256(
+        json.dumps(payload, sort_keys=True).encode()).hexdigest()
+    return payload
+
+
+def build_d2_pilot_manifest(paths: Iterable[str | Path], perturbation_names: Sequence[str],
+                            splits: Mapping, priority: Sequence[str], *, n_targets: int = 64,
+                            set_len: int = 32) -> dict:
+    paths = [Path(path) for path in paths]
+    counts = {_condition(path): eligible_counts_by_gene(path, perturbation_names) for path in paths}
+    return select_pilot_perturbations(counts, splits, perturbation_names, priority,
+                                      n_targets=n_targets, set_len=set_len)
+
+
+def _read_log_expression_handle(handle, rows: Sequence[int], columns: Sequence[int],
+                                 n_vars: int, panel_size: int) -> np.ndarray:
+    """Read selected rows from an already-open CSR HDF5 handle."""
+    rows = np.asarray(rows, dtype=np.int64)
+    if not len(rows):
+        return np.zeros((0, panel_size), dtype=np.float32)
     pieces = []
     sorted_values = []
-    with h5py.File(path, "r") as handle:
-        order = np.argsort(rows)
-        sorted_rows = rows[order]
-        cursor = 0
-        while cursor < len(sorted_rows):
-            end = cursor + 1
-            while (end < len(sorted_rows) and end - cursor < 512 and
-                   int(sorted_rows[end] - sorted_rows[end - 1]) <= 64):
-                end += 1
-            chunk = sorted_rows[cursor:end]
-            first, last = int(chunk[0]), int(chunk[-1])
-            block = _read_csr_block_columns_h5(handle, first, last + 1, columns, n_vars)
-            pieces.append((order[cursor:end], block[chunk - first]))
-            sorted_values.append(block[chunk - first])
-            cursor = end
+    order = np.argsort(rows)
+    sorted_rows = rows[order]
+    cursor = 0
+    while cursor < len(sorted_rows):
+        end = cursor + 1
+        while (end < len(sorted_rows) and end - cursor < 512 and
+               int(sorted_rows[end] - sorted_rows[end - 1]) <= 64):
+            end += 1
+        chunk = sorted_rows[cursor:end]
+        first, last = int(chunk[0]), int(chunk[-1])
+        block = _read_csr_block_columns_h5(handle, first, last + 1, columns, n_vars)
+        pieces.append((order[cursor:end], block[chunk - first]))
+        sorted_values.append(block[chunk - first])
+        cursor = end
     values = np.vstack(sorted_values).astype(np.float32, copy=False)
     restored = np.empty_like(values)
     for positions, piece in pieces:
@@ -170,6 +255,22 @@ def read_log_expression(path: str | Path, rows: Sequence[int], panel: Sequence[s
     totals = restored.sum(axis=1)
     totals = np.where(totals > 0, totals, 1.0)
     return np.log1p(restored / totals[:, None] * 10000.0).astype(np.float32)
+
+
+def read_log_expression(path: str | Path, rows: Sequence[int], panel: Sequence[str]) -> np.ndarray:
+    """Read selected rows and panel columns, recomputing CP10K from raw X."""
+    import anndata as ad
+    import h5py
+    path = Path(path)
+    columns = _panel_columns(path, panel)
+    obj = ad.read_h5ad(path, backed="r")
+    try:
+        n_vars = int(obj.n_vars)
+    finally:
+        if getattr(obj, "file", None) is not None:
+            obj.file.close()
+    with h5py.File(path, "r") as handle:
+        return _read_log_expression_handle(handle, rows, columns, n_vars, len(panel))
 
 
 def make_pilot_batch(paths: Iterable[str | Path], panel: Sequence[str], perturbations: Sequence[str],
@@ -250,6 +351,22 @@ class D2BatchStream:
         if not self.records:
             raise ValueError(f"D2 {split} split has no records with {self.set_len}-cell support")
         self._paths_by_condition = {_condition(path): path for path in self.paths}
+        self._panel_columns_by_condition = {
+            condition: _panel_columns(path, self.panel)
+            for condition, path in self._paths_by_condition.items()
+        }
+        self._n_vars_by_condition = {}
+        self._h5_handles = {}
+        import anndata as ad
+        import h5py
+        for condition, path in self._paths_by_condition.items():
+            obj = ad.read_h5ad(path, backed="r")
+            try:
+                self._n_vars_by_condition[condition] = int(obj.n_vars)
+            finally:
+                if getattr(obj, "file", None) is not None:
+                    obj.file.close()
+            self._h5_handles[condition] = h5py.File(path, "r")
 
     def _draw_assignments(self, rng) -> list[tuple[int, str, str, np.ndarray, np.ndarray]]:
         choices = rng.integers(0, len(self.records), size=self.batch_size)
@@ -279,15 +396,22 @@ class D2BatchStream:
             targets = np.zeros_like(expressions)
             perturbations = np.zeros((self.batch_size, self.set_len, len(self.names)), dtype=np.float32)
             grouped: dict[str, list[tuple[int, np.ndarray, np.ndarray]]] = {}
+            batch_genes = [""] * self.batch_size
             for batch_index, gene, condition, control_rows, target_rows in self._draw_assignments(rng):
                 grouped.setdefault(condition, []).append((batch_index, control_rows, target_rows))
                 perturbations[batch_index, :, self.name_to_index[gene]] = 1.0
+                batch_genes[batch_index] = gene
             for condition, entries in grouped.items():
                 path = self._paths_by_condition[condition]
                 controls = np.concatenate([entry[1] for entry in entries])
                 responses = np.concatenate([entry[2] for entry in entries])
-                control_values = read_log_expression(path, controls, self.panel)
-                response_values = read_log_expression(path, responses, self.panel)
+                handle = self._h5_handles[condition]
+                columns = self._panel_columns_by_condition[condition]
+                n_vars = self._n_vars_by_condition[condition]
+                control_values = _read_log_expression_handle(
+                    handle, controls, columns, n_vars, len(self.panel))
+                response_values = _read_log_expression_handle(
+                    handle, responses, columns, n_vars, len(self.panel))
                 for local, (batch_index, _, _) in enumerate(entries):
                     left, right = local * self.set_len, (local + 1) * self.set_len
                     expressions[batch_index] = control_values[left:right]
@@ -295,7 +419,18 @@ class D2BatchStream:
             yield {"expression": torch.as_tensor(expressions, device=self.device),
                    "perturbation": torch.as_tensor(perturbations, device=self.device),
                    "target": torch.as_tensor(targets, device=self.device),
+                   "perturbation_names": batch_genes,
                    "split": self.split, "d2_responses_used": True}
 
     def __iter__(self):
         return self.iter_from(0)
+
+    def close(self):
+        for handle in getattr(self, "_h5_handles", {}).values():
+            try:
+                handle.close()
+            except Exception:
+                pass
+
+    def __del__(self):  # pragma: no cover - best-effort cleanup on process exit
+        self.close()
