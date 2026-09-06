@@ -410,6 +410,36 @@ def apply_identity_anchor_policy(raw_hvg: Sequence[str], gene_stats: Mapping[str
             "policy": "only measured, unique, two training-condition detected, >=500 cells, raw rank >5000; one-for-one tail replacement"}
 
 
+def validate_d2_freeze_artifacts(audit: Mapping, vocab: Mapping, splits: Mapping,
+                                 panel: Mapping, pilot: Mapping | None = None) -> dict:
+    """Cross-check that every downstream consumer sees one frozen contract."""
+    if audit.get("donor_id") != "D2" or audit.get("raw_h5ad_modified") is not False:
+        raise ValueError("D2 audit is missing or indicates modified raw input")
+    names = list(vocab.get("perturbation_names", []))
+    if not names or names[0] != "NTC" or vocab.get("perturbation_name_to_integer", {}).get("NTC") != 0:
+        raise ValueError("D2 vocabulary must reserve NTC at integer index zero")
+    genes = list(panel.get("gene_order", []))
+    if len(genes) != 2000 or len(set(genes)) != 2000:
+        raise ValueError("D2 panel must contain 2,000 unique genes")
+    records = list(splits.get("records", []))
+    combos = [(str(row.get("perturbation_name")), str(row.get("condition"))) for row in records]
+    if len(combos) != len(set(combos)):
+        raise ValueError("D2 split records contain overlapping gene×condition combinations")
+    result = {"version": "d2_freeze_validation.v1", "audit_version": audit.get("version"),
+              "gene_order_hash": panel.get("gene_order_hash"),
+              "perturbation_vocab_hash": vocab.get("vocab_hash"),
+              "split_hash": splits.get("split_hash"), "n_genes": len(genes),
+              "n_perturbations": len(names), "n_split_records": len(records),
+              "pilot_checked": pilot is not None, "d2_responses_used": False}
+    if pilot is not None:
+        if pilot.get("output_shape") != [32, 2000] or pilot.get("finite") is not True or pilot.get("checkpoint_reload") is not True:
+            raise ValueError("D2 pilot contract is not complete")
+        if pilot.get("gene_order_hash") != result["gene_order_hash"] or pilot.get("perturbation_vocab_hash") != result["perturbation_vocab_hash"]:
+            raise ValueError("D2 pilot used a different panel or vocabulary")
+    result["freeze_hash"] = _hash_payload(result)
+    return result
+
+
 def compute_d2_hvg_panel(paths: Iterable[str | Path], output: str | Path | None = None,
                          block_rows: int = 1024, max_cells: int | None = None,
                          seed: int = 20260901, splits: Mapping | None = None) -> dict:

@@ -33,7 +33,7 @@ from cd4perturb.state_d2_training import TrainingContract, freeze_training_contr
 from cd4perturb.roles import role_payload, seal_role_manifest, validate_role_manifest
 from cd4perturb.state_d2 import (apply_identity_anchor_policy, freeze_d2_splits,
                                  program_coverage, score_programs, validate_lineage_programs,
-                                 validate_program_scores)
+                                 validate_program_scores, validate_d2_freeze_artifacts)
 from scripts.audit_csr_full import audit_file
 import scripts.audit_csr_full as audit_csr_module
 
@@ -106,6 +106,16 @@ def test_d2_training_contract_is_fair_and_budget_locked():
     assert contract.max_steps == 40000 and contract.selection_metric == "validation_mmd"
     with pytest.raises(ValueError):
         TrainingContract("Transfer", 1, "g", "v", "s", "m", max_steps=1)
+
+
+def test_d2_freeze_cross_artifact_validation():
+    audit = {"donor_id": "D2", "raw_h5ad_modified": False, "version": "audit"}
+    vocab = {"perturbation_names": ["NTC", "G"], "perturbation_name_to_integer": {"NTC": 0},
+             "vocab_hash": "v" * 64}
+    splits = {"records": [{"perturbation_name": "G", "condition": "Rest"}], "split_hash": "s" * 64}
+    panel = {"gene_order": [f"G{i}" for i in range(2000)], "gene_order_hash": "g" * 64}
+    result = validate_d2_freeze_artifacts(audit, vocab, splits, panel)
+    assert result["n_genes"] == 2000 and len(result["freeze_hash"]) == 64
 
 
 def _write_audit_fixture(path: Path, indptr, indices, data):

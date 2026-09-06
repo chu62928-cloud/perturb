@@ -16,7 +16,7 @@ from .guide_correction import load_guide_library
 
 def _parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="cd4perturb", description="CD4 Perturb-seq auditable pipeline")
-    p.add_argument("command", choices=["preflight", "audit", "audit-csr", "activate-roles", "audit-public", "prepare-pilot", "guide-qc", "gene-order", "ntc-latent", "freeze-data", "effect-matrix", "state-regions", "freeze-splits", "release-d2", "release-confirmation", "fit-baselines", "state-adaptation", "evaluate", "match-composition", "score-composition", "proxy-composition", "plan", "report", "program-validate", "d2-audit", "d2-vocab", "d2-splits", "d2-hvg", "d2-gene-panel", "d2-pilot", "d2-contract"])
+    p.add_argument("command", choices=["preflight", "audit", "audit-csr", "activate-roles", "audit-public", "prepare-pilot", "guide-qc", "gene-order", "ntc-latent", "freeze-data", "effect-matrix", "state-regions", "freeze-splits", "release-d2", "release-confirmation", "fit-baselines", "state-adaptation", "evaluate", "match-composition", "score-composition", "proxy-composition", "plan", "report", "program-validate", "d2-audit", "d2-vocab", "d2-splits", "d2-hvg", "d2-gene-panel", "d2-pilot", "d2-contract", "d2-freeze-check"])
     p.add_argument("--config", default="config/config.json")
     p.add_argument("--audit", default=None)
     p.add_argument("--candidate-table", default=None)
@@ -312,6 +312,19 @@ def main(argv: list[str] | None = None) -> int:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
         print(json.dumps({"output": str(target), "contracts": len(contracts)}, ensure_ascii=False, indent=2))
+        return 0
+    if args.command == "d2-freeze-check":
+        required = {"audit": args.audit, "vocab": args.input, "splits": args.manifest, "panel": args.gene_panel}
+        if any(value is None for value in required.values()):
+            raise SystemExit("d2-freeze-check requires --audit, --input vocabulary, --manifest splits and --gene-panel")
+        from .state_d2 import validate_d2_freeze_artifacts
+        payloads = {name: json.loads(Path(value).read_text(encoding="utf-8")) for name, value in required.items()}
+        pilot = json.loads(Path(args.pilot).read_text(encoding="utf-8")) if args.pilot else None
+        result = validate_d2_freeze_artifacts(payloads["audit"], payloads["vocab"], payloads["splits"], payloads["panel"], pilot)
+        target = out_root / "research" / "state_d2" / "d2_freeze_validation.json"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(json.dumps({"output": str(target), "freeze_hash": result["freeze_hash"]}, ensure_ascii=False, indent=2))
         return 0
     if args.command == "activate-roles":
         if not args.audit_summary:
