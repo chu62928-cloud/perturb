@@ -10,7 +10,7 @@ from typing import Iterable, Mapping, Sequence
 
 import numpy as np
 
-from .data import _read_csr_block_columns_h5
+from .data import _read_indptr_slice_h5
 from .guide_correction import SINGLE_GUIDE_GROUP, _text
 
 
@@ -226,6 +226,45 @@ def build_d2_pilot_manifest(paths: Iterable[str | Path], perturbation_names: Seq
                                       n_targets=n_targets, set_len=set_len)
 
 
+def _read_csr_panel_with_totals_h5(handle, start: int, stop: int,
+                                    columns: Sequence[int], n_vars: int) -> tuple[np.ndarray, np.ndarray]:
+    """Read panel counts and recomputed all-gene library sizes from raw X.
+
+    STATE's CP10K normalization uses each cell's total count over the full
+    measured gene axis.  The model input is then restricted to the frozen
+    2,000-gene panel; using the panel sum as the denominator would make the
+    normalization depend on the benchmark feature selection.
+    """
+    import h5py
+    from scipy.sparse import csr_matrix
+
+    x = handle["X"]
+    if isinstance(x, h5py.Dataset):
+        full = np.asarray(x[start:stop, :], dtype=np.float32)
+        return full[:, columns].astype(np.float32, copy=False), full.sum(axis=1, dtype=np.float64).astype(np.float32)
+    indptr = _read_indptr_slice_h5(handle, start, stop + 1)
+    if len(indptr) and (indptr[0] < 0 or np.any(np.diff(indptr) < 0)):
+        raise ValueError(f"invalid CSR indptr in rows {start}:{stop}; input file is corrupt")
+    raw_start, raw_stop = int(indptr[0]), int(indptr[-1])
+    indices = np.asarray(x["indices"][raw_start:raw_stop])
+    values = np.asarray(x["data"][raw_start:raw_stop], dtype=np.float32)
+    indptr -= raw_start
+    matrix = csr_matrix((values, indices, indptr), shape=(stop - start, n_vars))
+    panel = matrix[:, columns].toarray().astype(np.float32, copy=False)
+    totals = np.asarray(matrix.sum(axis=1)).ravel().astype(np.float32, copy=False)
+    return panel, totals
+
+
+def _normalize_panel_counts(panel_counts: np.ndarray, all_gene_totals: np.ndarray) -> np.ndarray:
+    """Apply the frozen CP10K followed by log1p transform."""
+    panel_counts = np.asarray(panel_counts, dtype=np.float32)
+    all_gene_totals = np.asarray(all_gene_totals, dtype=np.float32)
+    if panel_counts.ndim != 2 or all_gene_totals.shape != (panel_counts.shape[0],):
+        raise ValueError("panel counts and all-gene totals have incompatible shapes")
+    totals = np.where(all_gene_totals > 0, all_gene_totals, 1.0)
+    return np.log1p(panel_counts / totals[:, None] * 10000.0).astype(np.float32)
+
+
 def _read_log_expression_handle(handle, rows: Sequence[int], columns: Sequence[int],
                                  n_vars: int, panel_size: int) -> np.ndarray:
     """Read selected rows from an already-open CSR HDF5 handle."""
@@ -244,17 +283,18 @@ def _read_log_expression_handle(handle, rows: Sequence[int], columns: Sequence[i
             end += 1
         chunk = sorted_rows[cursor:end]
         first, last = int(chunk[0]), int(chunk[-1])
-        block = _read_csr_block_columns_h5(handle, first, last + 1, columns, n_vars)
-        pieces.append((order[cursor:end], block[chunk - first]))
-        sorted_values.append(block[chunk - first])
+        block, totals = _read_csr_panel_with_totals_h5(handle, first, last + 1, columns, n_vars)
+        pieces.append((order[cursor:end], block[chunk - first], totals[chunk - first]))
+        sorted_values.append((block[chunk - first], totals[chunk - first]))
         cursor = end
-    values = np.vstack(sorted_values).astype(np.float32, copy=False)
+    values = np.vstack([item[0] for item in sorted_values]).astype(np.float32, copy=False)
+    all_gene_totals = np.concatenate([item[1] for item in sorted_values]).astype(np.float32, copy=False)
     restored = np.empty_like(values)
-    for positions, piece in pieces:
+    restored_totals = np.empty_like(all_gene_totals)
+    for positions, piece, piece_totals in pieces:
         restored[positions] = piece
-    totals = restored.sum(axis=1)
-    totals = np.where(totals > 0, totals, 1.0)
-    return np.log1p(restored / totals[:, None] * 10000.0).astype(np.float32)
+        restored_totals[positions] = piece_totals
+    return _normalize_panel_counts(restored, restored_totals)
 
 
 def read_log_expression(path: str | Path, rows: Sequence[int], panel: Sequence[str]) -> np.ndarray:
@@ -313,7 +353,8 @@ class D2BatchStream:
                  perturbation_names: Sequence[str], splits: Mapping, *,
                  split: str = "train", batch_size: int = 64, set_len: int = 32,
                  max_rows_per_gene: int = 128, seed: int = 20260901,
-                 device: str | None = None):
+                 device: str | None = None, cache_expression: bool = True,
+                 cache_max_bytes: int = 28 * 1024**3):
         if split not in {"train", "validation", "test"}:
             raise ValueError("D2 split must be train, validation or test")
         if batch_size <= 0 or set_len <= 0 or max_rows_per_gene < set_len:
@@ -329,6 +370,12 @@ class D2BatchStream:
         self.split = split
         self.seed = int(seed)
         self.device = device
+        self.cache_expression = bool(cache_expression)
+        self.cache_max_bytes = int(cache_max_bytes)
+        if self.cache_max_bytes < 0:
+            raise ValueError("cache_max_bytes must be non-negative")
+        self._expression_cache: dict[tuple[str, str], np.ndarray] = {}
+        self._expression_cache_bytes = 0
         records = [row for row in splits.get("records", []) if str(row.get("split")) == split]
         if not records:
             raise ValueError(f"D2 split has no {split} records")
@@ -380,6 +427,27 @@ class D2BatchStream:
             assignments.append((batch_index, gene, condition, control_rows, target_rows))
         return assignments
 
+    def _expression_pool(self, gene: str, condition: str) -> tuple[np.ndarray, np.ndarray]:
+        """Load one bounded target/control pool once and reuse it across steps."""
+        key = (str(gene), str(condition))
+        cached = self._expression_cache.get(key)
+        if cached is not None:
+            return self._rows[key], cached
+        rows = self._rows[key]
+        values = _read_log_expression_handle(
+            self._h5_handles[condition], rows,
+            self._panel_columns_by_condition[condition],
+            self._n_vars_by_condition[condition], len(self.panel))
+        if self.cache_expression and values.nbytes <= self.cache_max_bytes:
+            while self._expression_cache and self._expression_cache_bytes + values.nbytes > self.cache_max_bytes:
+                old_key = next(iter(self._expression_cache))
+                old_value = self._expression_cache.pop(old_key)
+                self._expression_cache_bytes -= old_value.nbytes
+            if values.nbytes <= self.cache_max_bytes:
+                self._expression_cache[key] = values
+                self._expression_cache_bytes += values.nbytes
+        return rows, values
+
     def iter_from(self, completed_batches: int = 0):
         """Yield the deterministic stream after cheaply replaying RNG draws."""
         try:
@@ -395,27 +463,29 @@ class D2BatchStream:
             expressions = np.zeros((self.batch_size, self.set_len, len(self.panel)), dtype=np.float32)
             targets = np.zeros_like(expressions)
             perturbations = np.zeros((self.batch_size, self.set_len, len(self.names)), dtype=np.float32)
-            grouped: dict[str, list[tuple[int, np.ndarray, np.ndarray]]] = {}
+            grouped: dict[str, list[tuple[int, str, np.ndarray, np.ndarray]]] = {}
             batch_genes = [""] * self.batch_size
             for batch_index, gene, condition, control_rows, target_rows in self._draw_assignments(rng):
-                grouped.setdefault(condition, []).append((batch_index, control_rows, target_rows))
+                grouped.setdefault(condition, []).append((batch_index, gene, control_rows, target_rows))
                 perturbations[batch_index, :, self.name_to_index[gene]] = 1.0
                 batch_genes[batch_index] = gene
             for condition, entries in grouped.items():
-                path = self._paths_by_condition[condition]
-                controls = np.concatenate([entry[1] for entry in entries])
-                responses = np.concatenate([entry[2] for entry in entries])
-                handle = self._h5_handles[condition]
-                columns = self._panel_columns_by_condition[condition]
-                n_vars = self._n_vars_by_condition[condition]
-                control_values = _read_log_expression_handle(
-                    handle, controls, columns, n_vars, len(self.panel))
-                response_values = _read_log_expression_handle(
-                    handle, responses, columns, n_vars, len(self.panel))
-                for local, (batch_index, _, _) in enumerate(entries):
-                    left, right = local * self.set_len, (local + 1) * self.set_len
-                    expressions[batch_index] = control_values[left:right]
-                    targets[batch_index] = response_values[left:right]
+                control_rows, control_values = self._expression_pool("NTC", condition)
+                target_pools = {
+                    gene: self._expression_pool(gene, condition)
+                    for gene in {entry[1] for entry in entries}
+                }
+                for batch_index, gene, selected_controls, selected_targets in entries:
+                    control_indices = np.searchsorted(control_rows, selected_controls)
+                    target_rows, target_values = target_pools[gene]
+                    target_indices = np.searchsorted(target_rows, selected_targets)
+                    if (np.any(control_indices >= len(control_rows)) or
+                            np.any(control_rows[control_indices] != selected_controls) or
+                            np.any(target_indices >= len(target_rows)) or
+                            np.any(target_rows[target_indices] != selected_targets)):
+                        raise RuntimeError("D2 expression pool rows are not sorted or missing")
+                    expressions[batch_index] = control_values[control_indices]
+                    targets[batch_index] = target_values[target_indices]
             yield {"expression": torch.as_tensor(expressions, device=self.device),
                    "perturbation": torch.as_tensor(perturbations, device=self.device),
                    "target": torch.as_tensor(targets, device=self.device),

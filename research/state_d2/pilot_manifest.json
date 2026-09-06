@@ -1,0 +1,640 @@
+{
+  "version": "d2_state_pilot_manifest.v1",
+  "selected_perturbations": [
+    "TBX21",
+    "GATA3",
+    "RORC",
+    "STAT4",
+    "STAT6",
+    "STAT3",
+    "BATF",
+    "IRF4",
+    "WDFY1",
+    "B4GALT5",
+    "VIM",
+    "SMR3B",
+    "LAT2",
+    "ERGIC3",
+    "PVR",
+    "UBE2V2",
+    "TPMT",
+    "CCNC",
+    "DOP1B",
+    "CES3",
+    "LAIR1",
+    "ZNF284",
+    "SETDB1",
+    "CHIC2",
+    "CCDC107",
+    "TM4SF1",
+    "CYP20A1",
+    "VWF",
+    "YIPF1",
+    "ZNF430",
+    "SNTA1",
+    "PHF3",
+    "BCL9",
+    "LTF",
+    "UBA5",
+    "CALCOCO1",
+    "SYT11",
+    "CDC25A",
+    "DRC3",
+    "SULT1A1",
+    "ZNF600",
+    "FBXO9",
+    "RANGRF",
+    "NAGA",
+    "DMRTB1",
+    "WNT9A",
+    "DBNL",
+    "HPS1",
+    "SLC2A3",
+    "C20orf96",
+    "TNPO2",
+    "MLKL",
+    "MTMR9",
+    "CARD19",
+    "TNIP3",
+    "VKORC1",
+    "NEURL1",
+    "WRN",
+    "OFD1",
+    "SLC38A2",
+    "UBE2L3",
+    "CD244",
+    "TMEM123",
+    "KLF6"
+  ],
+  "priority_perturbations": [
+    "TBX21",
+    "GATA3",
+    "RORC",
+    "STAT4",
+    "STAT6",
+    "STAT3",
+    "BATF",
+    "IRF4"
+  ],
+  "selection": {
+    "TBX21": {
+      "training_cell_counts": {
+        "Rest": 327,
+        "Stim8hr": 331,
+        "Stim48hr": 297
+      },
+      "minimum_training_cell_count": 297,
+      "training_background_count": 3
+    },
+    "GATA3": {
+      "training_cell_counts": {
+        "Stim8hr": 332,
+        "Stim48hr": 240
+      },
+      "minimum_training_cell_count": 240,
+      "training_background_count": 2
+    },
+    "RORC": {
+      "training_cell_counts": {
+        "Stim8hr": 175,
+        "Stim48hr": 162
+      },
+      "minimum_training_cell_count": 162,
+      "training_background_count": 2
+    },
+    "STAT4": {
+      "training_cell_counts": {
+        "Rest": 123,
+        "Stim8hr": 139,
+        "Stim48hr": 104
+      },
+      "minimum_training_cell_count": 104,
+      "training_background_count": 3
+    },
+    "STAT6": {
+      "training_cell_counts": {
+        "Rest": 269,
+        "Stim8hr": 248,
+        "Stim48hr": 327
+      },
+      "minimum_training_cell_count": 248,
+      "training_background_count": 3
+    },
+    "STAT3": {
+      "training_cell_counts": {
+        "Rest": 68,
+        "Stim8hr": 99,
+        "Stim48hr": 100
+      },
+      "minimum_training_cell_count": 68,
+      "training_background_count": 3
+    },
+    "BATF": {
+      "training_cell_counts": {
+        "Rest": 42,
+        "Stim8hr": 69,
+        "Stim48hr": 69
+      },
+      "minimum_training_cell_count": 42,
+      "training_background_count": 3
+    },
+    "IRF4": {
+      "training_cell_counts": {
+        "Rest": 95,
+        "Stim8hr": 51,
+        "Stim48hr": 33
+      },
+      "minimum_training_cell_count": 33,
+      "training_background_count": 3
+    },
+    "WDFY1": {
+      "training_cell_counts": {
+        "Stim8hr": 7844,
+        "Stim48hr": 10728
+      },
+      "minimum_training_cell_count": 7844,
+      "training_background_count": 2
+    },
+    "B4GALT5": {
+      "training_cell_counts": {
+        "Rest": 5546,
+        "Stim8hr": 5570,
+        "Stim48hr": 5535
+      },
+      "minimum_training_cell_count": 5535,
+      "training_background_count": 3
+    },
+    "VIM": {
+      "training_cell_counts": {
+        "Rest": 3664,
+        "Stim8hr": 3853,
+        "Stim48hr": 3566
+      },
+      "minimum_training_cell_count": 3566,
+      "training_background_count": 3
+    },
+    "SMR3B": {
+      "training_cell_counts": {
+        "Rest": 3389,
+        "Stim48hr": 3956
+      },
+      "minimum_training_cell_count": 3389,
+      "training_background_count": 2
+    },
+    "LAT2": {
+      "training_cell_counts": {
+        "Stim8hr": 3530,
+        "Stim48hr": 2651
+      },
+      "minimum_training_cell_count": 2651,
+      "training_background_count": 2
+    },
+    "ERGIC3": {
+      "training_cell_counts": {
+        "Stim8hr": 2693,
+        "Stim48hr": 2621
+      },
+      "minimum_training_cell_count": 2621,
+      "training_background_count": 2
+    },
+    "PVR": {
+      "training_cell_counts": {
+        "Stim8hr": 2589,
+        "Stim48hr": 2891
+      },
+      "minimum_training_cell_count": 2589,
+      "training_background_count": 2
+    },
+    "UBE2V2": {
+      "training_cell_counts": {
+        "Stim8hr": 2511,
+        "Stim48hr": 2539
+      },
+      "minimum_training_cell_count": 2511,
+      "training_background_count": 2
+    },
+    "TPMT": {
+      "training_cell_counts": {
+        "Rest": 2478,
+        "Stim8hr": 2845,
+        "Stim48hr": 2660
+      },
+      "minimum_training_cell_count": 2478,
+      "training_background_count": 3
+    },
+    "CCNC": {
+      "training_cell_counts": {
+        "Rest": 2662,
+        "Stim8hr": 2912,
+        "Stim48hr": 2403
+      },
+      "minimum_training_cell_count": 2403,
+      "training_background_count": 3
+    },
+    "DOP1B": {
+      "training_cell_counts": {
+        "Rest": 2323,
+        "Stim8hr": 2399,
+        "Stim48hr": 2364
+      },
+      "minimum_training_cell_count": 2323,
+      "training_background_count": 3
+    },
+    "CES3": {
+      "training_cell_counts": {
+        "Rest": 2322,
+        "Stim8hr": 2187,
+        "Stim48hr": 2607
+      },
+      "minimum_training_cell_count": 2187,
+      "training_background_count": 3
+    },
+    "LAIR1": {
+      "training_cell_counts": {
+        "Rest": 2178,
+        "Stim8hr": 2172,
+        "Stim48hr": 2417
+      },
+      "minimum_training_cell_count": 2172,
+      "training_background_count": 3
+    },
+    "ZNF284": {
+      "training_cell_counts": {
+        "Rest": 2166,
+        "Stim8hr": 2131,
+        "Stim48hr": 2219
+      },
+      "minimum_training_cell_count": 2131,
+      "training_background_count": 3
+    },
+    "SETDB1": {
+      "training_cell_counts": {
+        "Rest": 2370,
+        "Stim8hr": 2293,
+        "Stim48hr": 2112
+      },
+      "minimum_training_cell_count": 2112,
+      "training_background_count": 3
+    },
+    "CHIC2": {
+      "training_cell_counts": {
+        "Rest": 2148,
+        "Stim8hr": 1993,
+        "Stim48hr": 2008
+      },
+      "minimum_training_cell_count": 1993,
+      "training_background_count": 3
+    },
+    "CCDC107": {
+      "training_cell_counts": {
+        "Rest": 1965,
+        "Stim8hr": 2235
+      },
+      "minimum_training_cell_count": 1965,
+      "training_background_count": 2
+    },
+    "TM4SF1": {
+      "training_cell_counts": {
+        "Rest": 2162,
+        "Stim8hr": 1945,
+        "Stim48hr": 2443
+      },
+      "minimum_training_cell_count": 1945,
+      "training_background_count": 3
+    },
+    "CYP20A1": {
+      "training_cell_counts": {
+        "Rest": 2121,
+        "Stim8hr": 1941,
+        "Stim48hr": 2084
+      },
+      "minimum_training_cell_count": 1941,
+      "training_background_count": 3
+    },
+    "VWF": {
+      "training_cell_counts": {
+        "Rest": 2141,
+        "Stim8hr": 2099,
+        "Stim48hr": 1899
+      },
+      "minimum_training_cell_count": 1899,
+      "training_background_count": 3
+    },
+    "YIPF1": {
+      "training_cell_counts": {
+        "Rest": 1987,
+        "Stim8hr": 1885
+      },
+      "minimum_training_cell_count": 1885,
+      "training_background_count": 2
+    },
+    "ZNF430": {
+      "training_cell_counts": {
+        "Rest": 1993,
+        "Stim8hr": 1860,
+        "Stim48hr": 1922
+      },
+      "minimum_training_cell_count": 1860,
+      "training_background_count": 3
+    },
+    "SNTA1": {
+      "training_cell_counts": {
+        "Rest": 2843,
+        "Stim8hr": 1857,
+        "Stim48hr": 2016
+      },
+      "minimum_training_cell_count": 1857,
+      "training_background_count": 3
+    },
+    "PHF3": {
+      "training_cell_counts": {
+        "Rest": 1873,
+        "Stim8hr": 1878,
+        "Stim48hr": 1817
+      },
+      "minimum_training_cell_count": 1817,
+      "training_background_count": 3
+    },
+    "BCL9": {
+      "training_cell_counts": {
+        "Stim8hr": 1812,
+        "Stim48hr": 2401
+      },
+      "minimum_training_cell_count": 1812,
+      "training_background_count": 2
+    },
+    "LTF": {
+      "training_cell_counts": {
+        "Rest": 1786,
+        "Stim8hr": 1805,
+        "Stim48hr": 1785
+      },
+      "minimum_training_cell_count": 1785,
+      "training_background_count": 3
+    },
+    "UBA5": {
+      "training_cell_counts": {
+        "Stim8hr": 1784,
+        "Stim48hr": 1877
+      },
+      "minimum_training_cell_count": 1784,
+      "training_background_count": 2
+    },
+    "CALCOCO1": {
+      "training_cell_counts": {
+        "Rest": 2099,
+        "Stim48hr": 1781
+      },
+      "minimum_training_cell_count": 1781,
+      "training_background_count": 2
+    },
+    "SYT11": {
+      "training_cell_counts": {
+        "Rest": 2092,
+        "Stim8hr": 1731
+      },
+      "minimum_training_cell_count": 1731,
+      "training_background_count": 2
+    },
+    "CDC25A": {
+      "training_cell_counts": {
+        "Rest": 2050,
+        "Stim48hr": 1723
+      },
+      "minimum_training_cell_count": 1723,
+      "training_background_count": 2
+    },
+    "DRC3": {
+      "training_cell_counts": {
+        "Rest": 1807,
+        "Stim8hr": 1742,
+        "Stim48hr": 1719
+      },
+      "minimum_training_cell_count": 1719,
+      "training_background_count": 3
+    },
+    "SULT1A1": {
+      "training_cell_counts": {
+        "Rest": 1761,
+        "Stim8hr": 1699,
+        "Stim48hr": 1804
+      },
+      "minimum_training_cell_count": 1699,
+      "training_background_count": 3
+    },
+    "ZNF600": {
+      "training_cell_counts": {
+        "Rest": 1783,
+        "Stim8hr": 1683
+      },
+      "minimum_training_cell_count": 1683,
+      "training_background_count": 2
+    },
+    "FBXO9": {
+      "training_cell_counts": {
+        "Rest": 1663,
+        "Stim48hr": 1764
+      },
+      "minimum_training_cell_count": 1663,
+      "training_background_count": 2
+    },
+    "RANGRF": {
+      "training_cell_counts": {
+        "Rest": 1852,
+        "Stim8hr": 1659,
+        "Stim48hr": 2092
+      },
+      "minimum_training_cell_count": 1659,
+      "training_background_count": 3
+    },
+    "NAGA": {
+      "training_cell_counts": {
+        "Rest": 1652,
+        "Stim48hr": 1794
+      },
+      "minimum_training_cell_count": 1652,
+      "training_background_count": 2
+    },
+    "DMRTB1": {
+      "training_cell_counts": {
+        "Rest": 1628,
+        "Stim48hr": 1724
+      },
+      "minimum_training_cell_count": 1628,
+      "training_background_count": 2
+    },
+    "WNT9A": {
+      "training_cell_counts": {
+        "Rest": 1775,
+        "Stim48hr": 1626
+      },
+      "minimum_training_cell_count": 1626,
+      "training_background_count": 2
+    },
+    "DBNL": {
+      "training_cell_counts": {
+        "Stim8hr": 1617,
+        "Stim48hr": 1953
+      },
+      "minimum_training_cell_count": 1617,
+      "training_background_count": 2
+    },
+    "HPS1": {
+      "training_cell_counts": {
+        "Rest": 2621,
+        "Stim8hr": 2276,
+        "Stim48hr": 1587
+      },
+      "minimum_training_cell_count": 1587,
+      "training_background_count": 3
+    },
+    "SLC2A3": {
+      "training_cell_counts": {
+        "Rest": 1562,
+        "Stim48hr": 1799
+      },
+      "minimum_training_cell_count": 1562,
+      "training_background_count": 2
+    },
+    "C20orf96": {
+      "training_cell_counts": {
+        "Rest": 1898,
+        "Stim8hr": 1847,
+        "Stim48hr": 1525
+      },
+      "minimum_training_cell_count": 1525,
+      "training_background_count": 3
+    },
+    "TNPO2": {
+      "training_cell_counts": {
+        "Rest": 1525,
+        "Stim48hr": 1656
+      },
+      "minimum_training_cell_count": 1525,
+      "training_background_count": 2
+    },
+    "MLKL": {
+      "training_cell_counts": {
+        "Rest": 1485,
+        "Stim8hr": 1982,
+        "Stim48hr": 1593
+      },
+      "minimum_training_cell_count": 1485,
+      "training_background_count": 3
+    },
+    "MTMR9": {
+      "training_cell_counts": {
+        "Rest": 1501,
+        "Stim48hr": 1456
+      },
+      "minimum_training_cell_count": 1456,
+      "training_background_count": 2
+    },
+    "CARD19": {
+      "training_cell_counts": {
+        "Rest": 1457,
+        "Stim8hr": 1455
+      },
+      "minimum_training_cell_count": 1455,
+      "training_background_count": 2
+    },
+    "TNIP3": {
+      "training_cell_counts": {
+        "Rest": 1436,
+        "Stim48hr": 1434
+      },
+      "minimum_training_cell_count": 1434,
+      "training_background_count": 2
+    },
+    "VKORC1": {
+      "training_cell_counts": {
+        "Rest": 1377,
+        "Stim8hr": 1447,
+        "Stim48hr": 1509
+      },
+      "minimum_training_cell_count": 1377,
+      "training_background_count": 3
+    },
+    "NEURL1": {
+      "training_cell_counts": {
+        "Rest": 1376,
+        "Stim48hr": 1549
+      },
+      "minimum_training_cell_count": 1376,
+      "training_background_count": 2
+    },
+    "WRN": {
+      "training_cell_counts": {
+        "Stim8hr": 1371,
+        "Stim48hr": 1385
+      },
+      "minimum_training_cell_count": 1371,
+      "training_background_count": 2
+    },
+    "OFD1": {
+      "training_cell_counts": {
+        "Rest": 1931,
+        "Stim8hr": 1653,
+        "Stim48hr": 1367
+      },
+      "minimum_training_cell_count": 1367,
+      "training_background_count": 3
+    },
+    "SLC38A2": {
+      "training_cell_counts": {
+        "Rest": 1440,
+        "Stim8hr": 1361,
+        "Stim48hr": 1419
+      },
+      "minimum_training_cell_count": 1361,
+      "training_background_count": 3
+    },
+    "UBE2L3": {
+      "training_cell_counts": {
+        "Rest": 1467,
+        "Stim8hr": 1360,
+        "Stim48hr": 1517
+      },
+      "minimum_training_cell_count": 1360,
+      "training_background_count": 3
+    },
+    "CD244": {
+      "training_cell_counts": {
+        "Rest": 1339,
+        "Stim8hr": 1363,
+        "Stim48hr": 1555
+      },
+      "minimum_training_cell_count": 1339,
+      "training_background_count": 3
+    },
+    "TMEM123": {
+      "training_cell_counts": {
+        "Rest": 1357,
+        "Stim8hr": 1337,
+        "Stim48hr": 1332
+      },
+      "minimum_training_cell_count": 1332,
+      "training_background_count": 3
+    },
+    "KLF6": {
+      "training_cell_counts": {
+        "Rest": 1327,
+        "Stim8hr": 1339,
+        "Stim48hr": 1481
+      },
+      "minimum_training_cell_count": 1327,
+      "training_background_count": 3
+    }
+  },
+  "criteria": {
+    "n_targets": 64,
+    "set_len": 32,
+    "min_training_backgrounds": 2,
+    "ranking": "minimum_training_cell_count_desc_then_gene"
+  },
+  "split_hash": "6debd4dbad36bccc22e47041a1c8461710ecfe5d715d0599740be4f8b809e84b",
+  "test_responses_used": false,
+  "gene_order_hash": "810bed53174adcb51c80b39f00f28a4ac9031ae0e0b1ef7a47a4f7c33b7b1e99",
+  "perturbation_vocab_hash": "5c2c29e7f512f0cdf9fdf2ef31a3afeee8b286c76385f622bfe5e6f9065e7cc5",
+  "manifest_hash": "36fa00655d2970b314346aa0f0d38cfbb0276fa4ef388f9a8ad82bbcb4b408d3"
+}

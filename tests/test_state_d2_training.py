@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import pytest
+import numpy as np
 
-from cd4perturb.state_d2_data import select_pilot_perturbations
+from cd4perturb.state_d2_data import _normalize_panel_counts, select_pilot_perturbations
 from cd4perturb.state_d2_model import D2StateConfig, train_d2_pilot
 from cd4perturb.state_d2_training import (
+    restore_state_output,
     freeze_training_contract,
     train_two_phase,
     validate_frozen_training_contract,
@@ -66,6 +68,15 @@ def test_pilot_selection_uses_only_supported_training_backgrounds():
     assert "C" not in manifest["selected_perturbations"]
 
 
+def test_panel_normalization_uses_all_gene_library_size():
+    panel = np.asarray([[10.0, 0.0], [0.0, 5.0]], dtype=np.float32)
+    normalized = _normalize_panel_counts(panel, np.asarray([100.0, 100.0], dtype=np.float32))
+    expected = np.log1p(panel / 100.0 * 10000.0)
+    np.testing.assert_allclose(normalized, expected, rtol=1e-6, atol=1e-6)
+    panel_only_denominator = np.log1p(panel / np.maximum(panel.sum(axis=1), 1.0)[:, None] * 10000.0)
+    assert not np.allclose(normalized, panel_only_denominator)
+
+
 def test_pilot_training_reports_loss_descent_and_reload(tmp_path):
     torch = pytest.importorskip("torch")
 
@@ -88,6 +99,15 @@ def test_pilot_training_reports_loss_descent_and_reload(tmp_path):
     assert result["loss_descent"] is True
     assert result["covered_all_perturbations"] is True
     assert result["checkpoint_reload"] is True
+
+
+def test_official_output_restore_requires_exact_set_elements():
+    torch = pytest.importorskip("torch")
+    flattened = torch.zeros(1, 8, 2)
+    restored = restore_state_output(flattened, batch_size=2, set_len=4, n_genes=2)
+    assert tuple(restored.shape) == (2, 4, 2)
+    with pytest.raises(ValueError, match="official STATE output shape"):
+        restore_state_output(torch.zeros(1, 7, 2), batch_size=2, set_len=4, n_genes=2)
 
 
 def test_scratch_updates_backbone_while_transfer_phase_one_freezes_it(tmp_path):

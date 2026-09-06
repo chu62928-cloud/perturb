@@ -2,24 +2,26 @@
 
 ## Last verified
 
-- 2026-09-06T20:24+08:00
+- 2026-09-06T21:26+08:00
 
 ## Objective
 
 - VERIFIED: 利用原代人 CD4 T 细胞全基因组 Perturb-seq，评估多个单步扰动执行器的可组合性，并构建不确定性感知的短程序贯扰动规划器；最终目标是提出并实验验证 Th2→Th17 的顺序性 CRISPR 干扰方案。
-- VERIFIED: 当前阶段已建立隔离模型环境、验证模型/权重可加载、补全数据审计与运行记录；未启动全量模型训练。
+- VERIFIED: 当前已完成正式训练前的合同修正、64扰动试点和Scratch/Transfer正式架构20步冒烟；六个40,000步全量任务尚未启动。
 
 ## Current state
 
 - VERIFIED: 2026-09-06 D2正式2,000基因面板已在三条件允许训练组合和NTC细胞上完成全量流式计算；共5,384,109个细胞、18,129个非PuroR实测基因，采用CP10K→log1p、20个均值箱和Seurat兼容离散度排序。正式原始HVG与最终面板顺序哈希均为`810bed53174adcb51c80b39f00f28a4ac9031ae0e0b1ef7a47a4f7c33b7b1e99`，14个身份锚点均未触发强制替换；GATA3原始名次2073、IL23R原始名次2835，仍按已冻结资格规则不强制纳入。正式产物为`research/state_d2/d2_hvg_raw.json`和`research/state_d2/d2_gene_panel_2000.json`。
-- VERIFIED: 2026-09-06基于正式面板重跑真实D2 Rest试点。固定八个调控靶点（TBX21、GATA3、RORC、STAT4、STAT6、STAT3、BATF、IRF4），集合大小32，输出严格为32×2000，损失4.4689903259且有限，GPU前向、检查点保存和重载均通过；产物为`research/state_d2/d2_state_pilot_contract.json`。IFNG仍因每条件合格细胞过少不进入稳定试点。
+- VERIFIED: 2026-09-06基于正式面板重跑64扰动真实D2试点。固定八个调控靶点并按训练支持盲选补足至64个，集合大小32；200步损失从窗口中位数0.68657降至0.26576，输出严格为8×32×2000，GPU峰值约150 MiB，检查点重载一致，`test_responses_used=false`。产物为`research/state_d2/pilot_manifest.json`、`pilot_metrics.json`和`d2_state_pilot_contract.json`。IFNG仍因每条件合格细胞过少不进入稳定试点。
 - VERIFIED: 2026-09-06官方Replogle检查点迁移审计已按参数语义完成。93/94个目标参数可按键和形状复制，正式面板与官方基因列表重叠220个；官方检查点没有可核实的有序扰动名称，因此扰动投影重叠为0并保持随机初始化，未按整数索引复制。`semantic_assertions_pass=true`，产物为`research/state_d2/transfer_report.json`。
 - VERIFIED: 2026-09-06 Scratch/Transfer三种种子的公平训练合同已按同一面板、词表、划分和40,000步预算冻结，批大小固定为64，验证指标为validation MMD；产物为`research/state_d2/training_contracts.json`。数据冻结交叉校验通过，冻结哈希为`e11fbe4c2375878a1058868c4e4bb221495a51036eece81a9582a88a057f0e1c`，产物为`research/state_d2/d2_freeze_validation.json`。
 - VERIFIED: 2026-09-06正式训练合同已升级为v2，改为锁定真实官方适配器：2,000基因、12,171扰动、集合大小32、隐藏维328、8层Transformer、12头、批大小64、头部学习率0.001、骨干学习率0.0002和Transfer前1,000步冻结阶段；正式模型配置哈希为`a182832b1d3ab5f3e8494e55e61f7c572dfa97812fd5be26f84342ec6bf3469a`。运行入口必须以`--contract-file`逐字段核验合同。
 - VERIFIED: 2026-09-06训练循环已区分Scratch与Transfer：Scratch从第1步训练全部随机参数，Transfer仅在前1,000步冻结Transformer；新增原子`last.ckpt`、优化器/早停/随机数状态保存、合同一致性恢复和`--resume`。远端`e3_state`直接断言确认Scratch骨干更新、Transfer第一阶段骨干不变，且可从第2步恢复到第3步。
-- PENDING: 尚未启动Scratch/Transfer的全量40,000步训练、简单基线对比和D2响应评价；当前结果不能给出Transfer或Scratch模型结论。`train_two_phase`与`D2BatchStream`已提供公平两阶段训练接口，不能把试点损失当作性能指标。
+- VERIFIED: 2026-09-06正式模型冒烟在RTX 4080 SUPER上完成：Scratch与Transfer均实际前向、反向、优化器更新、验证MMD和原子检查点写入；Transfer迁移报告通过，Scratch全参数可更新，Transfer第一阶段骨干冻结。冒烟结果不作为性能结论。
+- VERIFIED: 2026-09-06修正D2训练输入归一化：先以原始CSR的全测量基因总计数执行CP10K→log1p，再截取冻结2,000基因面板；真实行核对与`obs.total_counts`一致。`D2BatchStream`增加有界表达池缓存，避免重复读取同一扰动×条件池，缓存默认上限28 GiB。
+- PENDING: 尚未启动Scratch/Transfer的全量40,000步训练、简单基线对比和D2响应评价；当前结果不能给出Transfer或Scratch模型结论。`train_two_phase`与`D2BatchStream`已提供公平两阶段训练接口，不能把试点或冒烟损失当作性能指标。
 - VERIFIED: 2026-09-06补齐正式HVG检测率审计。训练部分可用细胞数为Rest 1,727,344、Stim8hr 1,843,234、Stim48hr 1,813,531，总数与正式HVG的5,384,109一致；每个HVG统计含Ensembl ID和三条件检测率。最终面板的身份覆盖为Naive 5/5、Th1 3/3、Th2 2/3（缺GATA3，原始名次2073）、Th17 2/3（缺IL23R，原始名次2835）；两者因原始名次未差于5000而不触发强制替换，面板强制数为0。
-- VERIFIED: 2026-09-06新增`D2BatchStream`和`d2-train`入口。流按冻结的基因×背景划分抽取同条件NTC群体背景和扰动响应集合，支持Scratch/Transfer相同批大小64及两阶段优化；Transfer在官方检查点缺少可核实扰动名称时保持扰动投影随机初始化。该入口已完成编译和命令帮助检查，尚未实际启动40,000步全量作业。
+- VERIFIED: 2026-09-06新增`D2BatchStream`和`d2-train`入口。流按冻结的基因×背景划分抽取同条件NTC群体背景和扰动响应集合，支持Scratch/Transfer相同批大小64及两阶段优化；Transfer在官方检查点缺少可核实扰动名称时保持扰动投影随机初始化。正式入口已通过20步Scratch/Transfer冒烟，尚未启动40,000步全量作业。
 - VERIFIED: 2026-09-06在RTX 4080 SUPER上分别完成Scratch与Transfer真实D2训练流干跑；两者均构建并检查64×32×2000表达/目标张量和64×32×12,171扰动张量，全部有限。训练记录为23,609个组合、验证记录1,822个，面板、词表和划分哈希与冻结合同一致；Transfer干跑确认语义迁移已应用。该干跑不更新权重，也不构成模型性能结论。
 - VERIFIED: 2026-09-06远端e3_pipeline测试为`37 passed, 4 warnings`，本地最小环境为`34 passed, 3 skipped`；本地回退近邻实现已消除对scikit-learn的硬依赖。`compileall`和`git diff --check`通过。
 

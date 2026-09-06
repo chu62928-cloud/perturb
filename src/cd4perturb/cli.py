@@ -337,8 +337,10 @@ def main(argv: list[str] | None = None) -> int:
         target = out_root / "research" / "state_d2" / "d2_state_pilot_contract.json"
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
-        print(json.dumps({"output": str(target), "output_shape": result["output_shape"],
-                          "loss": result["loss"]}, ensure_ascii=False, indent=2))
+        print(json.dumps({"output": str(target), "output_shape": result.get("output_shape"),
+                          "loss_descent": result.get("loss_descent"),
+                          "checkpoint_reload": result.get("checkpoint_reload")},
+                         ensure_ascii=False, indent=2))
         return 0
     if args.command == "d2-contract":
         if not args.gene_panel or not args.input or not args.manifest or not args.checkpoint:

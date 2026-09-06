@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import copy
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Callable, Iterable, Mapping
@@ -145,7 +146,10 @@ def validate_frozen_training_contract(frozen: Mapping, panel: Mapping, vocab: Ma
         raise ValueError(f"invalid frozen training contract: {exc}") from exc
     expected = freeze_training_contract(panel, vocab, splits, model_config, mode, seed)
     if actual.as_dict() != expected.as_dict():
-        raise ValueError("frozen training contract mismatch")
+        differences = {key: (actual.as_dict().get(key), expected.as_dict().get(key))
+                       for key in set(actual.as_dict()) | set(expected.as_dict())
+                       if actual.as_dict().get(key) != expected.as_dict().get(key)}
+        raise ValueError(f"frozen training contract mismatch: {differences}")
     return actual
 
 
@@ -172,6 +176,20 @@ def set_mmd(prediction, target):
     return result
 
 
+def restore_state_output(output, batch_size: int, set_len: int, n_genes: int):
+    """Restore the official model's flattened cell-set output explicitly."""
+    expected_cells = int(batch_size) * int(set_len)
+    if output.ndim == 3 and tuple(output.shape) == (batch_size, set_len, n_genes):
+        return output
+    if output.ndim == 3 and tuple(output.shape) == (1, expected_cells, n_genes):
+        return output.reshape(batch_size, set_len, n_genes)
+    if output.ndim == 2 and tuple(output.shape) == (expected_cells, n_genes):
+        return output.reshape(batch_size, set_len, n_genes)
+    raise ValueError(
+        f"official STATE output shape {tuple(output.shape)} cannot be restored to "
+        f"({batch_size}, {set_len}, {n_genes})")
+
+
 def build_official_state_adapter(checkpoint: str | Path, n_genes: int,
                                  n_perturbations: int, cell_set_len: int = 32):
     """Instantiate the pinned official STATE architecture for full training.
@@ -184,7 +202,10 @@ def build_official_state_adapter(checkpoint: str | Path, n_genes: int,
     torch = __import__("torch")
     from state.tx.models.state_transition import StateTransitionPerturbationModel
     payload = torch.load(str(checkpoint), map_location="cpu", weights_only=False)
-    hparams = dict(payload["hyper_parameters"])
+    # The official constructor may normalize nested kwargs in place.  Keep
+    # the payload immutable so the contract hash is stable before and after
+    # model construction.
+    hparams = copy.deepcopy(dict(payload["hyper_parameters"]))
     source_hidden = int(hparams["hidden_dim"])
     kwargs = {key: value for key, value in hparams.items()
               if key not in {"input_dim", "hidden_dim", "output_dim", "pert_dim", "batch_dim",
@@ -206,8 +227,8 @@ def build_official_state_adapter(checkpoint: str | Path, n_genes: int,
                      "batch": torch.zeros(expression.shape[:2], dtype=torch.long,
                                            device=expression.device)}
             output = self.wrapped(batch)
-            if output.ndim == 2:
-                output = output.unsqueeze(0)
+            output = restore_state_output(output, expression.shape[0], expression.shape[1],
+                                          expression.shape[2])
             if not torch.isfinite(output).all():
                 raise FloatingPointError("official STATE adapter produced NaN/Inf")
             return output
