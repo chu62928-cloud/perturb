@@ -105,11 +105,17 @@ def test_d2_training_contract_is_fair_and_budget_locked():
     panel = {"gene_order": [f"G{i}" for i in range(2000)], "gene_order_hash": "g" * 64}
     vocab = {"perturbation_names": ["NTC", "TBX21"], "vocab_hash": "v" * 64}
     splits = {"split_hash": "s" * 64}
-    model = {"config_hash": "m" * 64}
+    model = {"architecture": "official_state_adapter", "checkpoint_hparams_hash": "c" * 64,
+             "n_genes": 2000, "n_perturbations": 2, "cell_set_len": 32,
+             "hidden_dim": 328, "transformer_layers": 8, "attention_heads": 12,
+             "batch_size": 64, "head_learning_rate": 1e-3,
+             "backbone_learning_rate": 2e-4, "phase1_steps": 1000}
     contract = freeze_training_contract(panel, vocab, splits, model, "Transfer", 20260901)
     assert contract.max_steps == 40000 and contract.selection_metric == "validation_mmd"
     with pytest.raises(ValueError):
-        TrainingContract("Transfer", 1, "g", "v", "s", "m", max_steps=1)
+        TrainingContract("Transfer", 1, "g", "v", "s", "m", checkpoint_hparams_hash="c",
+                         n_perturbations=2, hidden_dim=328, transformer_layers=8,
+                         attention_heads=12, max_steps=1)
 
 
 def test_d2_hvg_enrichment_adds_mapping_and_detection_rates():

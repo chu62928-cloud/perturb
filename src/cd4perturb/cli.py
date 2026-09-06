@@ -56,8 +56,12 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("--seed", type=int, default=20260901, help="D2 training seed")
     p.add_argument("--checkpoint", default=None, help="pinned official STATE checkpoint")
     p.add_argument("--transfer-report", default=None, help="audited semantic transfer report")
+    p.add_argument("--contract-file", default=None, help="frozen formal D2 training contracts")
     p.add_argument("--phase1-steps", type=int, default=1000)
     p.add_argument("--validation-steps", type=int, default=32)
+    p.add_argument("--smoke-steps", type=int, default=None,
+                   help="bounded optimizer smoke run; never changes the 40,000-step contract")
+    p.add_argument("--resume", action="store_true", help="resume from a matching last.ckpt")
     p.add_argument("--dry-run", action="store_true",
                    help="only build and validate one real D2 train/validation batch")
     return p
@@ -332,21 +336,25 @@ def main(argv: list[str] | None = None) -> int:
                           "loss": result["loss"]}, ensure_ascii=False, indent=2))
         return 0
     if args.command == "d2-contract":
-        if not args.gene_panel or not args.input or not args.manifest:
-            raise SystemExit("d2-contract requires --gene-panel, --input vocabulary and --manifest splits")
-        from .state_d2_model import D2StateConfig
-        from .state_d2_training import freeze_training_contract
+        if not args.gene_panel or not args.input or not args.manifest or not args.checkpoint:
+            raise SystemExit("d2-contract requires --gene-panel, --input vocabulary, --manifest splits and --checkpoint")
+        import torch
+        from .state_d2_training import formal_model_config, freeze_training_contract
         panel = json.loads(Path(args.gene_panel).read_text(encoding="utf-8"))
         vocab = json.loads(Path(args.input).read_text(encoding="utf-8"))
         splits = json.loads(Path(args.manifest).read_text(encoding="utf-8"))
-        model_config = D2StateConfig(n_genes=len(panel.get("gene_order", [])),
-                                     n_perturbations=len(vocab.get("perturbation_names", [])))
+        checkpoint_payload = torch.load(args.checkpoint, map_location="cpu", weights_only=False)
+        model_config = formal_model_config(checkpoint_payload,
+                                           len(panel.get("gene_order", [])),
+                                           len(vocab.get("perturbation_names", [])),
+                                           phase1_steps=args.phase1_steps)
         contracts = []
         for mode in ("Scratch", "Transfer"):
             for seed in (20260901, 20260902, 20260903):
                 contracts.append(freeze_training_contract(panel, vocab, splits,
-                                                          {"config_hash": model_config.hash()}, mode, seed).as_dict())
-        result = {"version": "d2_state_fair_training_contracts.v1", "contracts": contracts,
+                                                          model_config, mode, seed).as_dict())
+        result = {"version": "d2_state_fair_training_contracts.v2",
+                  "formal_model_config": model_config, "contracts": contracts,
                   "same_data_and_budget_assertion": True, "d2_responses_used": True}
         target = out_root / "research" / "state_d2" / "training_contracts.json"
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -354,12 +362,15 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"output": str(target), "contracts": len(contracts)}, ensure_ascii=False, indent=2))
         return 0
     if args.command == "d2-train":
-        if not all((args.paths, args.gene_panel, args.input, args.manifest, args.checkpoint, args.mode)):
-            raise SystemExit("d2-train requires --paths, --gene-panel, --input, --manifest, --checkpoint and --mode")
+        if not all((args.paths, args.gene_panel, args.input, args.manifest, args.checkpoint,
+                    args.mode, args.contract_file)):
+            raise SystemExit("d2-train requires --paths, --gene-panel, --input, --manifest, --checkpoint, --mode and --contract-file")
         import torch
         from .state_d2_data import D2BatchStream
-        from .state_d2_training import (build_official_state_adapter, freeze_training_contract,
-                                        initialize_transfer_adapter, train_two_phase)
+        from .state_d2_training import (build_official_state_adapter, formal_model_config,
+                                        initialize_transfer_adapter,
+                                        select_frozen_training_contract, train_two_phase,
+                                        validate_frozen_training_contract)
         panel_payload = json.loads(Path(args.gene_panel).read_text(encoding="utf-8"))
         vocab_payload = json.loads(Path(args.input).read_text(encoding="utf-8"))
         splits_payload = json.loads(Path(args.manifest).read_text(encoding="utf-8"))
@@ -379,14 +390,13 @@ def main(argv: list[str] | None = None) -> int:
                 model, checkpoint_payload, panel, names, expected_report=transfer_report)
         device = "cuda" if torch.cuda.is_available() else "cpu"
         model = model.to(device)
-        model_config = {"architecture": "official_state_adapter", "n_genes": len(panel),
-                        "n_perturbations": len(names), "cell_set_len": 32,
-                        "batch_size": 64,
-                        "checkpoint_hparams_hash": hashlib.sha256(
-                            json.dumps(checkpoint_payload.get("hyper_parameters", {}), sort_keys=True).encode()
-                        ).hexdigest()}
-        contract = freeze_training_contract(panel_payload, vocab_payload, splits_payload,
-                                            model_config, args.mode, args.seed)
+        model_config = formal_model_config(checkpoint_payload, len(panel), len(names),
+                                           phase1_steps=args.phase1_steps)
+        contract_payload = json.loads(Path(args.contract_file).read_text(encoding="utf-8"))
+        frozen = select_frozen_training_contract(contract_payload, args.mode, args.seed)
+        contract = validate_frozen_training_contract(
+            frozen, panel_payload, vocab_payload, splits_payload, model_config,
+            args.mode, args.seed)
         train_stream = D2BatchStream(json.loads(Path(args.paths).read_text(encoding="utf-8")),
                                      panel, names, splits_payload, split="train",
                                      batch_size=contract.batch_size, set_len=32, device=device,
@@ -423,8 +433,8 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         target = out_root / "research" / "state_d2" / "training" / args.mode / f"seed_{args.seed}"
         result = train_two_phase(model, train_stream, validation_stream, contract, target,
-                                 phase1_steps=args.phase1_steps,
-                                 validation_steps=args.validation_steps)
+                                 validation_steps=args.validation_steps,
+                                 stop_after_steps=args.smoke_steps, resume=args.resume)
         result["device"] = device
         result["transfer_applied"] = args.mode == "Transfer"
         if transfer_report is not None:

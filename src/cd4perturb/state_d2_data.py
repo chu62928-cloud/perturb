@@ -251,24 +251,35 @@ class D2BatchStream:
             raise ValueError(f"D2 {split} split has no records with {self.set_len}-cell support")
         self._paths_by_condition = {_condition(path): path for path in self.paths}
 
-    def __iter__(self):
+    def _draw_assignments(self, rng) -> list[tuple[int, str, str, np.ndarray, np.ndarray]]:
+        choices = rng.integers(0, len(self.records), size=self.batch_size)
+        assignments = []
+        for batch_index, choice in enumerate(choices):
+            gene, condition = self.records[int(choice)]
+            target_pool = self._rows[(gene, condition)]
+            control_pool = self._rows[("NTC", condition)]
+            target_rows = rng.choice(target_pool, size=self.set_len, replace=False)
+            control_rows = rng.choice(control_pool, size=self.set_len, replace=False)
+            assignments.append((batch_index, gene, condition, control_rows, target_rows))
+        return assignments
+
+    def iter_from(self, completed_batches: int = 0):
+        """Yield the deterministic stream after cheaply replaying RNG draws."""
         try:
             import torch
         except ImportError as exc:  # pragma: no cover
             raise RuntimeError("D2 training stream requires the isolated PyTorch environment") from exc
+        if completed_batches < 0:
+            raise ValueError("completed_batches must be non-negative")
         rng = np.random.default_rng(self.seed)
+        for _ in range(int(completed_batches)):
+            self._draw_assignments(rng)
         while True:
-            choices = rng.integers(0, len(self.records), size=self.batch_size)
             expressions = np.zeros((self.batch_size, self.set_len, len(self.panel)), dtype=np.float32)
             targets = np.zeros_like(expressions)
             perturbations = np.zeros((self.batch_size, self.set_len, len(self.names)), dtype=np.float32)
             grouped: dict[str, list[tuple[int, np.ndarray, np.ndarray]]] = {}
-            for batch_index, choice in enumerate(choices):
-                gene, condition = self.records[int(choice)]
-                target_pool = self._rows[(gene, condition)]
-                control_pool = self._rows[("NTC", condition)]
-                target_rows = rng.choice(target_pool, size=self.set_len, replace=False)
-                control_rows = rng.choice(control_pool, size=self.set_len, replace=False)
+            for batch_index, gene, condition, control_rows, target_rows in self._draw_assignments(rng):
                 grouped.setdefault(condition, []).append((batch_index, control_rows, target_rows))
                 perturbations[batch_index, :, self.name_to_index[gene]] = 1.0
             for condition, entries in grouped.items():
@@ -285,3 +296,6 @@ class D2BatchStream:
                    "perturbation": torch.as_tensor(perturbations, device=self.device),
                    "target": torch.as_tensor(targets, device=self.device),
                    "split": self.split, "d2_responses_used": True}
+
+    def __iter__(self):
+        return self.iter_from(0)
