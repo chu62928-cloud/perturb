@@ -1,6 +1,7 @@
 {
   "version": "state_d2_model.v1",
   "model": "STATE-D2-Scratch or STATE-D2-Transfer",
+  "scope": "pilot contract below; full runs use the pinned official STATE backbone through build_official_state_adapter",
   "cell_set_len": 32,
   "n_genes": 2000,
   "hidden_dim": 128,
@@ -20,6 +21,14 @@
     "new_features": "random initialization",
     "phase_1": "freeze transformer backbone; train new gene and perturbation layers",
     "phase_2": "unfreeze backbone with smaller learning rate"
+  },
+  "full_training_backbone": {
+    "source": "ST-HVG-Replogle/fewshot/hepg2/checkpoints/last.ckpt",
+    "hidden_dim": 328,
+    "transformer_layers": 8,
+    "attention_heads": 12,
+    "cell_set_len": 32,
+    "batch_encoder": false
   },
   "state_validity": "NOT_EVALUABLE until a non-destructive same-cell pre-state endpoint exists"
 }
