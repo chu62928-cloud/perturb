@@ -29,6 +29,7 @@ from cd4perturb.baselines import gene_effect_transfer, pert2state_baseline
 from cd4perturb.state_protocol import decide_state_adaptation, select_adaptation
 from cd4perturb.state_d2_evaluation import (conclude_model, evaluate_d2_predictions,
                                             pseudobulk_pearson)
+from cd4perturb.state_d2_training import TrainingContract, freeze_training_contract
 from cd4perturb.roles import role_payload, seal_role_manifest, validate_role_manifest
 from cd4perturb.state_d2 import (apply_identity_anchor_policy, freeze_d2_splits,
                                  program_coverage, score_programs, validate_lineage_programs,
@@ -94,6 +95,17 @@ def test_d2_evaluation_and_narrow_conclusion():
                                 {"name": "condition_mean"}, True, True)
     assert conclusion["model_conclusion"] == "Transfer"
     assert conclusion["MODEL_STATE_VALID"] == "NOT_EVALUABLE"
+
+
+def test_d2_training_contract_is_fair_and_budget_locked():
+    panel = {"gene_order": [f"G{i}" for i in range(2000)], "gene_order_hash": "g" * 64}
+    vocab = {"perturbation_names": ["NTC", "TBX21"], "vocab_hash": "v" * 64}
+    splits = {"split_hash": "s" * 64}
+    model = {"config_hash": "m" * 64}
+    contract = freeze_training_contract(panel, vocab, splits, model, "Transfer", 20260901)
+    assert contract.max_steps == 40000 and contract.selection_metric == "validation_mmd"
+    with pytest.raises(ValueError):
+        TrainingContract("Transfer", 1, "g", "v", "s", "m", max_steps=1)
 
 
 def _write_audit_fixture(path: Path, indptr, indices, data):
