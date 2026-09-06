@@ -15,6 +15,7 @@
 - VERIFIED: 已在 `d2-state-single-step` 提交 `419821d` 冻结 D2 谱系评分器配置、评分函数、D2 元数据审计、固定 guide 校订词表、基因×背景划分和 STATE 模型契约；随后提交 `f4de8ed` 完成远端 D2 产物同步。远端 `e3_pipeline` 测试为 `33 passed, 4 warnings`。
 - VERIFIED: 2026-09-06 D2 元数据审计已完成并下载至 `research/state_d2/d2_data_audit.json`。三份文件均为 18,130 维 `_CSRDataset`，形状分别为 2,940,194×18,130、3,032,848×18,130、2,863,571×18,130；原始 X 抽样非负、有限且整数样，D2 完整 CSR 通过摘要作为外部证据。Stim48hr 的 PuroR 位于首列，其余条件位于末列；基因集合相同但列顺序不同，正式读取按 Ensembl ID 建立逐文件列映射，未修改 `.h5ad`。
 - VERIFIED: 2026-09-06 使用固定提交 guide 库完成 D2 词表，`unique_observed_guides=24,259`、`eligible_target_count=12,170`，词表哈希 `5c2c29e7f512f0cdf9fdf2ef31a3afeee8b286c76385f622bfe5e6f9065e7cc5`；`NTC=0`，其余扰动按校订目标名称排序，绝不按整数 index 迁移参数。基因×背景划分哈希为 `6debd4dbad36bccc22e47041a1c8461710ecfe5d715d0599740be4f8b809e84b`。
+- VERIFIED: 已用通过的 D2 CSR 汇总 `c7c2f4f7116a625c690e5370b8fcc9ceabac0a3b3ad2eb385b9c4a9a66eee7c5` 激活 `development_D2_v2` 的 D2 角色清单；角色哈希为 `c1be44d5f8c7fe98e756c869b4a17e3e4cd8224a3c9ddb9b693c1a91020054bb`。D2 可用于特征选择、划分、效应和阈值选择，D1 仅一次性二级确认，D3/D4 仅最终外部测试。
 - PRECHECK ONLY: 已用每条件 10,000 个确定性抽样细胞完成流式 CP10K→log1p、20 个均值箱和 Seurat 兼容离散度排序，产物暂不作为正式 2,000 基因面板；正式面板必须在全体允许训练/NTC 细胞上重跑并通过身份锚点替换闸门。
 - VERIFIED PILOT: 在旧的预审计面板上完成一次真实 D2 Rest 试点（TBX21 对 NTC，集合大小 S=32）：8 个候选扰动均完成单 sgRNA/低质量过滤与名称映射检查，输出为 32×2,000，损失有限，GPU 前向、检查点保存和重载均通过。该结果只证明数据读取器和模型接口，待正式全量面板生成后必须按同一合同重跑，不能作为模型性能结论。
 - VERIFIED: `config/programs.json` 中 Naive/Th1/Th2/Th17 及安全程序尚未冻结；当前 Th2、Th17 等列表为空，因此此前不能声称核心评分基因已经被2,000基因面板覆盖。
