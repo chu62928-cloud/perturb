@@ -2,7 +2,7 @@
 
 ## Last verified
 
-- 2026-09-06T21:26+08:00
+- 2026-09-06T21:36+08:00
 
 ## Objective
 
@@ -19,6 +19,7 @@
 - VERIFIED: 2026-09-06训练循环已区分Scratch与Transfer：Scratch从第1步训练全部随机参数，Transfer仅在前1,000步冻结Transformer；新增原子`last.ckpt`、优化器/早停/随机数状态保存、合同一致性恢复和`--resume`。远端`e3_state`直接断言确认Scratch骨干更新、Transfer第一阶段骨干不变，且可从第2步恢复到第3步。
 - VERIFIED: 2026-09-06正式模型冒烟在RTX 4080 SUPER上完成：Scratch与Transfer均实际前向、反向、优化器更新、验证MMD和原子检查点写入；Transfer迁移报告通过，Scratch全参数可更新，Transfer第一阶段骨干冻结。冒烟结果不作为性能结论。
 - VERIFIED: 2026-09-06修正D2训练输入归一化：先以原始CSR的全测量基因总计数执行CP10K→log1p，再截取冻结2,000基因面板；真实行核对与`obs.total_counts`一致。`D2BatchStream`增加有界表达池缓存，避免重复读取同一扰动×条件池，缓存默认上限28 GiB。
+- ACTIVE: 2026-09-06已启动正式Scratch种子20260901（远端进程70219），使用40,000步合同；当前处于训练缓存预热阶段，未读取测试响应。完成后先保存紧凑训练结果，再启动同种子Transfer。
 - PENDING: 尚未启动Scratch/Transfer的全量40,000步训练、简单基线对比和D2响应评价；当前结果不能给出Transfer或Scratch模型结论。`train_two_phase`与`D2BatchStream`已提供公平两阶段训练接口，不能把试点或冒烟损失当作性能指标。
 - VERIFIED: 2026-09-06补齐正式HVG检测率审计。训练部分可用细胞数为Rest 1,727,344、Stim8hr 1,843,234、Stim48hr 1,813,531，总数与正式HVG的5,384,109一致；每个HVG统计含Ensembl ID和三条件检测率。最终面板的身份覆盖为Naive 5/5、Th1 3/3、Th2 2/3（缺GATA3，原始名次2073）、Th17 2/3（缺IL23R，原始名次2835）；两者因原始名次未差于5000而不触发强制替换，面板强制数为0。
 - VERIFIED: 2026-09-06新增`D2BatchStream`和`d2-train`入口。流按冻结的基因×背景划分抽取同条件NTC群体背景和扰动响应集合，支持Scratch/Transfer相同批大小64及两阶段优化；Transfer在官方检查点缺少可核实扰动名称时保持扰动投影随机初始化。正式入口已通过20步Scratch/Transfer冒烟，尚未启动40,000步全量作业。
