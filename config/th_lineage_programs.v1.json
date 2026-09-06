@@ -23,6 +23,7 @@
     "max_forced_genes": 10,
     "required_conditions": ["Rest", "Stim8hr", "Stim48hr"],
     "min_train_conditions_detected": 2,
+    "min_train_detection_rate": 0.005,
     "min_total_detected_cells": 500,
     "raw_hvg_rank_strictly_worse_than": 5000,
     "replacement": "one-lowest-ranked-nonforced-hvg-per-forced-gene",

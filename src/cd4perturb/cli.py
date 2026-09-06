@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import platform
@@ -16,7 +17,7 @@ from .guide_correction import load_guide_library
 
 def _parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="cd4perturb", description="CD4 Perturb-seq auditable pipeline")
-    p.add_argument("command", choices=["preflight", "audit", "audit-csr", "activate-roles", "audit-public", "prepare-pilot", "guide-qc", "gene-order", "ntc-latent", "freeze-data", "effect-matrix", "state-regions", "freeze-splits", "release-d2", "release-confirmation", "fit-baselines", "state-adaptation", "evaluate", "match-composition", "score-composition", "proxy-composition", "plan", "report", "program-validate", "d2-audit", "d2-vocab", "d2-splits", "d2-hvg", "d2-gene-panel", "d2-pilot", "d2-contract", "d2-freeze-check"])
+    p.add_argument("command", choices=["preflight", "audit", "audit-csr", "activate-roles", "audit-public", "prepare-pilot", "guide-qc", "gene-order", "ntc-latent", "freeze-data", "effect-matrix", "state-regions", "freeze-splits", "release-d2", "release-confirmation", "fit-baselines", "state-adaptation", "evaluate", "match-composition", "score-composition", "proxy-composition", "plan", "report", "program-validate", "d2-audit", "d2-vocab", "d2-splits", "d2-hvg", "d2-gene-panel", "d2-pilot", "d2-contract", "d2-freeze-check", "d2-counts", "d2-enrich-hvg", "d2-train"])
     p.add_argument("--config", default="config/config.json")
     p.add_argument("--audit", default=None)
     p.add_argument("--candidate-table", default=None)
@@ -50,6 +51,13 @@ def _parser() -> argparse.ArgumentParser:
                    help="final D2 gene panel JSON used by the real pilot")
     p.add_argument("--max-cells", type=int, default=None,
                    help="optional deterministic per-condition cell cap for HVG pre-audit")
+    p.add_argument("--mode", choices=["Scratch", "Transfer"], default=None,
+                   help="D2 training mode")
+    p.add_argument("--seed", type=int, default=20260901, help="D2 training seed")
+    p.add_argument("--checkpoint", default=None, help="pinned official STATE checkpoint")
+    p.add_argument("--transfer-report", default=None, help="audited semantic transfer report")
+    p.add_argument("--phase1-steps", type=int, default=1000)
+    p.add_argument("--validation-steps", type=int, default=32)
     return p
 
 
@@ -243,6 +251,36 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"output": str(target), "gene_order_hash": result["gene_order_hash"],
                           "forced_count": result["forced_count"]}, ensure_ascii=False, indent=2))
         return 0
+    if args.command == "d2-counts":
+        if not args.paths or not args.input:
+            raise SystemExit("d2-counts requires --paths JSON list and --input splits JSON")
+        from .state_d2 import d2_hvg_eligible_cell_counts
+        paths = json.loads(Path(args.paths).read_text(encoding="utf-8"))
+        splits = json.loads(Path(args.input).read_text(encoding="utf-8"))
+        counts = d2_hvg_eligible_cell_counts(paths, splits)
+        target = out_root / "research" / "state_d2" / "d2_hvg_eligible_cell_counts.json"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps({"version": "d2_hvg_eligible_cell_counts.v1",
+                                      "counts": counts, "split_hash": splits.get("split_hash"),
+                                      "d2_responses_used": False},
+                                     ensure_ascii=False, indent=2), encoding="utf-8")
+        print(json.dumps({"output": str(target), "counts": counts}, ensure_ascii=False, indent=2))
+        return 0
+    if args.command == "d2-enrich-hvg":
+        if not args.hvg_input or not args.audit or not args.input:
+            raise SystemExit("d2-enrich-hvg requires --hvg-input, --audit and --input counts JSON")
+        from .state_d2 import enrich_d2_hvg_artifact
+        hvg = json.loads(Path(args.hvg_input).read_text(encoding="utf-8"))
+        audit = json.loads(Path(args.audit).read_text(encoding="utf-8"))
+        counts_payload = json.loads(Path(args.input).read_text(encoding="utf-8"))
+        result = enrich_d2_hvg_artifact(hvg, audit, counts_payload.get("counts", counts_payload))
+        target = out_root / "research" / "state_d2" / "d2_hvg_raw.json"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(json.dumps({"output": str(target), "n_cells": result["n_cells"],
+                          "eligible_cells_by_condition": result["eligible_cells_by_condition"]},
+                         ensure_ascii=False, indent=2))
+        return 0
     if args.command == "d2-pilot":
         from .state_d2_model import D2StateConfig, build_d2_state_model, pilot_forward_contract
         if args.paths and args.gene_panel and args.input:
@@ -312,6 +350,60 @@ def main(argv: list[str] | None = None) -> int:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
         print(json.dumps({"output": str(target), "contracts": len(contracts)}, ensure_ascii=False, indent=2))
+        return 0
+    if args.command == "d2-train":
+        if not all((args.paths, args.gene_panel, args.input, args.manifest, args.checkpoint, args.mode)):
+            raise SystemExit("d2-train requires --paths, --gene-panel, --input, --manifest, --checkpoint and --mode")
+        import torch
+        from .state_d2_data import D2BatchStream
+        from .state_d2_training import (build_official_state_adapter, freeze_training_contract,
+                                        initialize_transfer_adapter, train_two_phase)
+        panel_payload = json.loads(Path(args.gene_panel).read_text(encoding="utf-8"))
+        vocab_payload = json.loads(Path(args.input).read_text(encoding="utf-8"))
+        splits_payload = json.loads(Path(args.manifest).read_text(encoding="utf-8"))
+        panel = list(panel_payload.get("gene_order", []))
+        names = list(vocab_payload.get("perturbation_names", []))
+        if len(panel) != 2000 or not names or names[0] != "NTC":
+            raise SystemExit("d2-train received an unfrozen panel or vocabulary")
+        torch.manual_seed(args.seed)
+        model, checkpoint_payload = build_official_state_adapter(
+            args.checkpoint, len(panel), len(names), cell_set_len=32)
+        transfer_report = None
+        if args.mode == "Transfer":
+            if not args.transfer_report:
+                raise SystemExit("Transfer training requires --transfer-report")
+            transfer_report = json.loads(Path(args.transfer_report).read_text(encoding="utf-8"))
+            transfer_report = initialize_transfer_adapter(
+                model, checkpoint_payload, panel, names, expected_report=transfer_report)
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        model = model.to(device)
+        model_config = {"architecture": "official_state_adapter", "n_genes": len(panel),
+                        "n_perturbations": len(names), "cell_set_len": 32,
+                        "batch_size": 64,
+                        "checkpoint_hparams_hash": hashlib.sha256(
+                            json.dumps(checkpoint_payload.get("hyper_parameters", {}), sort_keys=True).encode()
+                        ).hexdigest()}
+        contract = freeze_training_contract(panel_payload, vocab_payload, splits_payload,
+                                            model_config, args.mode, args.seed)
+        train_stream = D2BatchStream(json.loads(Path(args.paths).read_text(encoding="utf-8")),
+                                     panel, names, splits_payload, split="train",
+                                     batch_size=contract.batch_size, set_len=32, device=device,
+                                     seed=args.seed)
+        validation_stream = D2BatchStream(json.loads(Path(args.paths).read_text(encoding="utf-8")),
+                                          panel, names, splits_payload, split="validation",
+                                          batch_size=contract.batch_size, set_len=32, device=device,
+                                          seed=args.seed + 1)
+        target = out_root / "research" / "state_d2" / "training" / args.mode / f"seed_{args.seed}"
+        result = train_two_phase(model, train_stream, validation_stream, contract, target,
+                                 phase1_steps=args.phase1_steps,
+                                 validation_steps=args.validation_steps)
+        result["device"] = device
+        result["transfer_applied"] = args.mode == "Transfer"
+        if transfer_report is not None:
+            result["transfer_report_hash"] = transfer_report.get("transfer_hash")
+        (target / "training_result.json").write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(json.dumps({"output": str(target / "training_result.json"), "mode": args.mode,
+                          "seed": args.seed, "best_step": result["best_step"]}, ensure_ascii=False, indent=2))
         return 0
     if args.command == "d2-freeze-check":
         required = {"audit": args.audit, "vocab": args.input, "splits": args.manifest, "panel": args.gene_panel}

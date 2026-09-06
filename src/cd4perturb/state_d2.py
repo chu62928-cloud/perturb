@@ -114,6 +114,9 @@ def validate_lineage_programs(payload: Mapping) -> bool:
     policy = payload["anchor_policy"]
     if int(policy.get("max_forced_genes", 0)) > 10:
         raise ValueError("at most ten identity anchors may be forced")
+    detection_rate = float(policy.get("min_train_detection_rate", 0.005))
+    if not 0.0 <= detection_rate <= 1.0:
+        raise ValueError("minimum train detection rate must be between zero and one")
     if tuple(policy.get("required_conditions", ())) != REQUIRED_CONDITIONS:
         raise ValueError("required D2 conditions are not frozen")
     return True
@@ -228,6 +231,7 @@ def audit_d2_data(paths: Iterable[str | Path], csr_summary: Mapping | None = Non
         raise RuntimeError("D2 metadata audit requires anndata") from exc
     files = []
     axes = []
+    symbol_maps = []
     for path in paths:
         obj = ad.read_h5ad(path, backed="r")
         try:
@@ -237,6 +241,7 @@ def audit_d2_data(paths: Iterable[str | Path], csr_summary: Mapping | None = Non
             if len(set(ids)) != len(ids) or len(set(symbols)) != len(symbols):
                 raise ValueError(f"D2 gene axis is not unique: {path}")
             axes.append(ids)
+            symbol_maps.append(dict(zip(ids, symbols)))
             sample = obj.X[: min(64, obj.n_obs), : min(256, obj.n_vars)]
             sample = sample.toarray() if hasattr(sample, "toarray") else np.asarray(sample)
             files.append({"path": str(path), "file_name": path.name,
@@ -260,6 +265,15 @@ def audit_d2_data(paths: Iterable[str | Path], csr_summary: Mapping | None = Non
     if any(set(axis) != set(axes[0]) for axis in axes[1:]):
         raise ValueError("D2 files do not share the same gene ID set")
     canonical_ids = sorted(axes[0])
+    # The first file defines the auditable symbol↔Ensembl mapping.  All files
+    # are required to expose the same one-to-one mapping, even when their
+    # physical column order differs.
+    mapping = symbol_maps[0]
+    if any(current != mapping for current in symbol_maps[1:]):
+        raise ValueError("D2 files do not share the same Ensembl↔symbol mapping")
+    if len(mapping) != len(axes[0]) or len(set(mapping.values())) != len(mapping):
+        raise ValueError("D2 Ensembl↔symbol mapping is not one-to-one")
+    canonical_symbols = {gene_id: mapping[gene_id] for gene_id in canonical_ids}
     order_equal = all(axis == axes[0] for axis in axes[1:])
     required = {"guide_id", "guide_type", "guide_group", "low_quality",
                 "perturbed_gene_name", "perturbed_gene_id"}
@@ -269,6 +283,7 @@ def audit_d2_data(paths: Iterable[str | Path], csr_summary: Mapping | None = Non
     return {"version": "d2_data_audit.v1", "donor_id": "D2",
             "conditions": list(REQUIRED_CONDITIONS), "files": files,
             "common_n_vars": len(canonical_ids), "common_gene_axis_hash": _hash_payload(canonical_ids),
+            "gene_id_to_symbol": canonical_symbols,
             "gene_axis_order_equal": order_equal,
             "canonical_gene_axis": "sorted Ensembl gene IDs; per-file column maps are applied at read time",
             "raw_count_semantics": "sampled_nonnegative_integer_like; full CSR validity is supplied by the external audit",
@@ -376,16 +391,40 @@ def apply_identity_anchor_policy(raw_hvg: Sequence[str], gene_stats: Mapping[str
         raise ValueError("raw_hvg must contain exactly 2,000 unique genes")
     definitions = (programs or {"identity_programs": IDENTITY_PROGRAMS})["identity_programs"]
     anchors = [gene for genes in definitions.values() for gene in genes]
+    policy = (programs or {}).get("anchor_policy", {})
+    min_detection_rate = float(policy.get("min_train_detection_rate", 0.005))
+    min_train_conditions = int(policy.get("min_train_conditions_detected", 2))
+    anchor_audit = []
     eligible = []
     for position, gene in enumerate(anchors):
         stats = gene_stats.get(gene, {})
         detected = stats.get("detected_by_condition", {})
-        train_detected = int(sum(bool(detected.get(condition, 0)) for condition in REQUIRED_CONDITIONS[:2]))
+        rates = stats.get("detected_rate_by_condition", {})
+        train_rates = [float(rates.get(condition, 0.0)) for condition in REQUIRED_CONDITIONS[:2]]
+        train_detected = int(sum(rate >= min_detection_rate for rate in train_rates))
         detected_all = all(int(detected.get(condition, 0)) > 0 for condition in REQUIRED_CONDITIONS)
-        if (gene not in raw_hvg and (stats.get("measured_in_all_conditions", False) or detected_all) and
-                detected_all and
-                train_detected >= 2 and int(stats.get("total_detected_cells", 0)) >= 500 and
-                int(stats.get("raw_hvg_rank", 10**9)) > 5000):
+        reasons = []
+        if gene in raw_hvg:
+            reasons.append("already_in_raw_hvg")
+        if not (stats.get("measured_in_all_conditions", False) or detected_all):
+            reasons.append("not_measured_in_all_conditions")
+        if not detected_all:
+            reasons.append("zero_detection_in_condition")
+        if train_detected < min_train_conditions:
+            reasons.append("training_detection_rate_below_threshold")
+        if int(stats.get("total_detected_cells", 0)) < 500:
+            reasons.append("fewer_than_500_detected_cells")
+        if int(stats.get("raw_hvg_rank", 10**9)) <= 5000:
+            reasons.append("raw_hvg_rank_not_worse_than_5000")
+        eligible_flag = not reasons
+        anchor_audit.append({"gene_symbol": gene, "gene_id": stats.get("gene_id"),
+                             "raw_hvg_rank": stats.get("raw_hvg_rank"),
+                             "detected_by_condition": dict(detected),
+                             "detected_rate_by_condition": dict(rates),
+                             "total_detected_cells": stats.get("total_detected_cells"),
+                             "eligible_for_forcing": eligible_flag,
+                             "reasons": reasons})
+        if eligible_flag:
             eligible.append((position, gene))
     eligible = eligible[: int(max_forced_genes)]
     panel = list(raw_hvg)
@@ -401,13 +440,25 @@ def apply_identity_anchor_policy(raw_hvg: Sequence[str], gene_stats: Mapping[str
         substitutions.append((replaced, gene))
     if len(panel) != 2000 or len(set(panel)) != 2000:
         raise AssertionError("identity anchor substitution changed panel cardinality")
+    gene_order_ensembl = [gene_stats.get(gene, {}).get("gene_id") for gene in panel]
+    identity_panel_coverage = {
+        name: {"measured_in_panel": [gene for gene in genes if gene in panel],
+               "missing_from_panel": [gene for gene in genes if gene not in panel],
+               "fraction": sum(gene in panel for gene in genes) / len(genes)}
+        for name, genes in definitions.items()
+    }
     return {"version": "d2_gene_panel_2000.v1", "gene_order": panel,
+            "gene_order_ensembl": gene_order_ensembl,
+            "gene_symbol_to_ensembl": {gene: gene_stats.get(gene, {}).get("gene_id")
+                                        for gene in panel},
             "gene_order_hash": _hash_payload(panel), "raw_hvg": list(raw_hvg),
             "raw_hvg_hash": _hash_payload(list(raw_hvg)),
             "forced_identity_anchors": [new for _, new in substitutions],
             "substitutions": [{"replaced": old, "forced": new} for old, new in substitutions],
             "forced_count": len(substitutions), "max_forced_genes": int(max_forced_genes),
-            "policy": "only measured, unique, two training-condition detected, >=500 cells, raw rank >5000; one-for-one tail replacement"}
+            "identity_anchor_audit": anchor_audit,
+            "identity_program_panel_coverage": identity_panel_coverage,
+            "policy": "only measured, unique, two training-condition detection rates >=0.5%, >=500 cells, raw rank >5000; one-for-one tail replacement"}
 
 
 def validate_d2_freeze_artifacts(audit: Mapping, vocab: Mapping, splits: Mapping,
@@ -530,6 +581,7 @@ def compute_d2_hvg_panel(paths: Iterable[str | Path], output: str | Path | None 
     detected = np.zeros(n_vars, dtype=np.int64)
     detected_by_condition = {condition: np.zeros(n_vars, dtype=np.int64)
                              for condition in REQUIRED_CONDITIONS}
+    cells_by_condition = {condition: 0 for condition in REQUIRED_CONDITIONS}
     n_cells = 0
     for path in paths:
         rows = selected[path]
@@ -574,6 +626,7 @@ def compute_d2_hvg_panel(paths: Iterable[str | Path], output: str | Path | None 
                 squares += np.square(values).sum(axis=0)
                 detected += np.count_nonzero(values, axis=0)
                 detected_by_condition[_condition(path)] += np.count_nonzero(values, axis=0)
+                cells_by_condition[_condition(path)] += len(values)
                 n_cells += len(values)
     if n_cells < 2:
         raise ValueError("not enough eligible D2 cells for HVG computation")
@@ -592,18 +645,22 @@ def compute_d2_hvg_panel(paths: Iterable[str | Path], output: str | Path | None 
         normalized[group] = (dispersion[group] - center) / (scale if scale > 1e-12 else 1.0)
     ranking = sorted(range(n_vars), key=lambda i: (-normalized[i], -dispersion[i], symbols[i]))
     raw_hvg = [symbols[i] for i in ranking[:2000]]
-    stats = {symbols[i]: {"mean": float(means[i]), "variance": float(variances[i]),
+    stats = {symbols[i]: {"gene_id": active_ids[i], "mean": float(means[i]), "variance": float(variances[i]),
                           "dispersion": float(dispersion[i]), "normalized_dispersion": float(normalized[i]),
                           "raw_hvg_rank": int(ranking.index(i) + 1),
                           "total_detected_cells": int(detected[i]),
                           "detected_by_condition": {condition: int(detected_by_condition[condition][i])
                                                     for condition in REQUIRED_CONDITIONS},
+                          "detected_rate_by_condition": {condition: float(detected_by_condition[condition][i] /
+                                                                            max(cells_by_condition[condition], 1))
+                                                          for condition in REQUIRED_CONDITIONS},
                           "measured_in_all_conditions": True} for i in range(n_vars)}
     result = {"version": "d2_gene_panel_2000.v1" if max_cells is None else "d2_hvg_precheck.v1",
               "method": "streaming_scanpy_seurat_compatible",
               "scanpy_parameters": {"target_sum": 10000, "log1p": True, "flavor": "seurat", "n_bins": 20},
               "block_rows": int(block_rows), "max_cells_per_condition": max_cells,
-              "n_cells": int(n_cells), "n_vars": int(n_vars), "conditions": list(REQUIRED_CONDITIONS),
+              "n_cells": int(n_cells), "eligible_cells_by_condition": cells_by_condition,
+              "n_vars": int(n_vars), "conditions": list(REQUIRED_CONDITIONS),
               "raw_hvg": raw_hvg, "gene_statistics": stats,
               "raw_hvg_hash": _hash_payload(raw_hvg),
               "split_hash": (splits or {}).get("split_hash"),
@@ -613,4 +670,84 @@ def compute_d2_hvg_panel(paths: Iterable[str | Path], output: str | Path | None 
         target = Path(output)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    return result
+
+
+def d2_hvg_eligible_cell_counts(paths: Iterable[str | Path], splits: Mapping | None = None) -> dict[str, int]:
+    """Count metadata-eligible training cells without opening the expression matrix.
+
+    This is a cheap audit companion to the full HVG pass.  It uses the same
+    single-sgRNA/low-quality and gene×background holdout masks, so detection
+    rates in the identity-anchor report have an explicit denominator.
+    """
+    paths = _require_d2_paths(paths)
+    heldout_pairs = {(str(row["perturbation_name"]), str(row["condition"]))
+                     for row in (splits or {}).get("records", [])
+                     if row.get("split") != "train" and row.get("perturbation_name") != "NTC"}
+    try:
+        import anndata as ad
+    except ImportError as exc:  # pragma: no cover
+        raise RuntimeError("D2 metadata counts require anndata") from exc
+    counts = {condition: 0 for condition in REQUIRED_CONDITIONS}
+    for path in paths:
+        obj = ad.read_h5ad(path, backed="r")
+        try:
+            mask = _obs_equals(obj.obs["guide_group"], SINGLE_GUIDE_GROUP)
+            quality = obj.obs["low_quality"].to_numpy()
+            if quality.dtype != bool:
+                quality = np.asarray([_bool_value(value) for value in quality])
+            mask &= ~quality
+            if heldout_pairs:
+                condition = _condition(path)
+                name_categories, name_codes = _obs_category_values(obj.obs["perturbed_gene_name"])
+                id_categories, id_codes = _obs_category_values(obj.obs["perturbed_gene_id"])
+                heldout = np.zeros(len(mask), dtype=bool)
+                if name_categories is not None:
+                    hits = {i for i, value in enumerate(name_categories)
+                            if (value, condition) in heldout_pairs}
+                    heldout |= np.isin(name_codes, list(hits))
+                else:
+                    heldout |= np.asarray([(value, condition) in heldout_pairs for value in name_codes])
+                if id_categories is not None:
+                    hits = {i for i, value in enumerate(id_categories)
+                            if (value, condition) in heldout_pairs}
+                    heldout |= np.isin(id_codes, list(hits))
+                else:
+                    heldout |= np.asarray([(value, condition) in heldout_pairs for value in id_codes])
+                mask &= ~heldout
+            counts[_condition(path)] = int(mask.sum())
+        finally:
+            if getattr(obj, "file", None) is not None:
+                obj.file.close()
+    return counts
+
+
+def enrich_d2_hvg_artifact(hvg: Mapping, audit: Mapping, eligible_counts: Mapping[str, int]) -> dict:
+    """Attach auditable Ensembl IDs and detection rates to a completed HVG run."""
+    if hvg.get("version") != "d2_gene_panel_2000.v1" or hvg.get("max_cells_per_condition") is not None:
+        raise ValueError("only the formal all-cell HVG artifact can be enriched")
+    mapping = dict(audit.get("gene_id_to_symbol", {}))
+    if not mapping or len(mapping) != int(audit.get("common_n_vars", 0)):
+        raise ValueError("D2 audit is missing the complete gene ID↔symbol mapping")
+    symbol_to_id = {symbol: gene_id for gene_id, symbol in mapping.items()}
+    counts = {condition: int(eligible_counts.get(condition, 0)) for condition in REQUIRED_CONDITIONS}
+    if any(value <= 0 for value in counts.values()) or sum(counts.values()) != int(hvg.get("n_cells", -1)):
+        raise ValueError("eligible-cell denominators do not match the formal HVG cell count")
+    result = dict(hvg)
+    result["eligible_cells_by_condition"] = counts
+    stats = {}
+    for symbol, raw_stats in hvg.get("gene_statistics", {}).items():
+        current = dict(raw_stats)
+        gene_id = symbol_to_id.get(symbol)
+        if gene_id is None:
+            raise ValueError(f"HVG symbol is absent from D2 audit mapping: {symbol}")
+        detected = current.get("detected_by_condition", {})
+        current["gene_id"] = gene_id
+        current["detected_rate_by_condition"] = {
+            condition: float(detected.get(condition, 0)) / counts[condition]
+            for condition in REQUIRED_CONDITIONS
+        }
+        stats[symbol] = current
+    result["gene_statistics"] = stats
+    result["enrichment"] = "D2 audit Ensembl↔symbol mapping and formal eligible-cell denominators"
     return result

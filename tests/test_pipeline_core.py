@@ -33,7 +33,8 @@ from cd4perturb.state_d2_training import TrainingContract, freeze_training_contr
 from cd4perturb.roles import role_payload, seal_role_manifest, validate_role_manifest
 from cd4perturb.state_d2 import (apply_identity_anchor_policy, freeze_d2_splits,
                                  program_coverage, score_programs, validate_lineage_programs,
-                                 validate_program_scores, validate_d2_freeze_artifacts)
+                                 validate_program_scores, validate_d2_freeze_artifacts,
+                                 enrich_d2_hvg_artifact)
 from scripts.audit_csr_full import audit_file
 import scripts.audit_csr_full as audit_csr_module
 
@@ -70,12 +71,14 @@ def test_d2_split_and_anchor_policy_are_deterministic():
     raw = [f"G{i}" for i in range(2000)]
     stats = {"TBX21": {"measured_in_all_conditions": True,
                          "detected_by_condition": {"Rest": 1, "Stim8hr": 1, "Stim48hr": 0},
+                         "detected_rate_by_condition": {"Rest": 0.01, "Stim8hr": 0.01, "Stim48hr": 0.0},
                          "total_detected_cells": 600, "raw_hvg_rank": 7000}}
     panel = apply_identity_anchor_policy(raw, stats,
                                          programs={"identity_programs": {"Th1": ["TBX21"]}},
                                          max_forced_genes=10)
     assert panel["forced_identity_anchors"] == []
     stats["TBX21"]["detected_by_condition"]["Stim48hr"] = 1
+    stats["TBX21"]["detected_rate_by_condition"]["Stim48hr"] = 0.01
     panel = apply_identity_anchor_policy(raw, stats,
                                          programs={"identity_programs": {"Th1": ["TBX21"]}},
                                          max_forced_genes=10)
@@ -106,6 +109,18 @@ def test_d2_training_contract_is_fair_and_budget_locked():
     assert contract.max_steps == 40000 and contract.selection_metric == "validation_mmd"
     with pytest.raises(ValueError):
         TrainingContract("Transfer", 1, "g", "v", "s", "m", max_steps=1)
+
+
+def test_d2_hvg_enrichment_adds_mapping_and_detection_rates():
+    hvg = {"version": "d2_gene_panel_2000.v1", "max_cells_per_condition": None,
+           "n_cells": 6, "gene_statistics": {
+               "A": {"detected_by_condition": {"Rest": 1, "Stim8hr": 2, "Stim48hr": 3}},
+           }}
+    audit = {"common_n_vars": 1, "gene_id_to_symbol": {"ENSG_A": "A"}}
+    enriched = enrich_d2_hvg_artifact(hvg, audit,
+                                       {"Rest": 1, "Stim8hr": 2, "Stim48hr": 3})
+    assert enriched["gene_statistics"]["A"]["gene_id"] == "ENSG_A"
+    assert enriched["gene_statistics"]["A"]["detected_rate_by_condition"]["Stim8hr"] == 1.0
 
 
 def test_d2_freeze_cross_artifact_validation():

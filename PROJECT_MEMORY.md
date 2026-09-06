@@ -2,7 +2,7 @@
 
 ## Last verified
 
-- 2026-09-06T18:10+08:00
+- 2026-09-06T19:05+08:00
 
 ## Objective
 
@@ -15,7 +15,10 @@
 - VERIFIED: 2026-09-06基于正式面板重跑真实D2 Rest试点。固定八个调控靶点（TBX21、GATA3、RORC、STAT4、STAT6、STAT3、BATF、IRF4），集合大小32，输出严格为32×2000，损失4.4689903259且有限，GPU前向、检查点保存和重载均通过；产物为`research/state_d2/d2_state_pilot_contract.json`。IFNG仍因每条件合格细胞过少不进入稳定试点。
 - VERIFIED: 2026-09-06官方Replogle检查点迁移审计已按参数语义完成。93/94个目标参数可按键和形状复制，正式面板与官方基因列表重叠220个；官方检查点没有可核实的有序扰动名称，因此扰动投影重叠为0并保持随机初始化，未按整数索引复制。`semantic_assertions_pass=true`，产物为`research/state_d2/transfer_report.json`。
 - VERIFIED: 2026-09-06 Scratch/Transfer三种种子的公平训练合同已按同一面板、词表、划分和40,000步预算冻结，批大小固定为64，验证指标为validation MMD；产物为`research/state_d2/training_contracts.json`。数据冻结交叉校验通过，冻结哈希为`e11fbe4c2375878a1058868c4e4bb221495a51036eece81a9582a88a057f0e1c`，产物为`research/state_d2/d2_freeze_validation.json`。
-- PENDING: 尚未启动Scratch/Transfer的全量40,000步训练、简单基线对比和D2响应评价；当前结果不能给出Transfer或Scratch模型结论。现有`train_two_phase`提供公平两阶段训练循环，但完整D2细胞批流和训练运行器仍需在下一阶段接入，不能把试点损失当作性能指标。
+- PENDING: 尚未启动Scratch/Transfer的全量40,000步训练、简单基线对比和D2响应评价；当前结果不能给出Transfer或Scratch模型结论。`train_two_phase`与`D2BatchStream`已提供公平两阶段训练接口，不能把试点损失当作性能指标。
+- VERIFIED: 2026-09-06补齐正式HVG检测率审计。训练部分可用细胞数为Rest 1,727,344、Stim8hr 1,843,234、Stim48hr 1,813,531，总数与正式HVG的5,384,109一致；每个HVG统计含Ensembl ID和三条件检测率。最终面板的身份覆盖为Naive 5/5、Th1 3/3、Th2 2/3（缺GATA3，原始名次2073）、Th17 2/3（缺IL23R，原始名次2835）；两者因原始名次未差于5000而不触发强制替换，面板强制数为0。
+- VERIFIED: 2026-09-06新增`D2BatchStream`和`d2-train`入口。流按冻结的基因×背景划分抽取同条件NTC群体背景和扰动响应集合，支持Scratch/Transfer相同批大小64及两阶段优化；Transfer在官方检查点缺少可核实扰动名称时保持扰动投影随机初始化。该入口已完成编译和命令帮助检查，尚未实际启动40,000步全量作业。
+- VERIFIED: 2026-09-06远端e3_pipeline测试为`37 passed, 4 warnings`，本地最小环境为`34 passed, 3 skipped`；本地回退近邻实现已消除对scikit-learn的硬依赖。`compileall`和`git diff --check`通过。
 
 - VERIFIED: Git仓库已安全初始化并推送；远端为 `https://github.com/chu62928-cloud/perturb.git`，基线提交 `3cf0df4`，当前唯一大目标分支为 `d2-state-single-step`。`connect_server.py`、`remote_config.json`、原始数据、模型权重、缓存和大型生成物已由 `.gitignore` 排除。
 - VERIFIED: 已在 `d2-state-single-step` 提交 `419821d` 冻结 D2 谱系评分器配置、评分函数、D2 元数据审计、固定 guide 校订词表、基因×背景划分和 STATE 模型契约；随后提交 `f4de8ed` 完成远端 D2 产物同步。远端 `e3_pipeline` 测试为 `33 passed, 4 warnings`。

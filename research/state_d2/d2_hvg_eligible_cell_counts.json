@@ -1,0 +1,10 @@
+{
+  "version": "d2_hvg_eligible_cell_counts.v1",
+  "counts": {
+    "Rest": 1727344,
+    "Stim8hr": 1843234,
+    "Stim48hr": 1813531
+  },
+  "split_hash": "6debd4dbad36bccc22e47041a1c8461710ecfe5d715d0599740be4f8b809e84b",
+  "d2_responses_used": false
+}

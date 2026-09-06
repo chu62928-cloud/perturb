@@ -27,6 +27,8 @@ class TrainingContract:
     def __post_init__(self):
         if self.mode not in {"Scratch", "Transfer"}:
             raise ValueError("training mode must be Scratch or Transfer")
+        if self.batch_size <= 0:
+            raise ValueError("training batch size must be positive")
         if self.max_steps != 40000:
             raise ValueError("D2 training budget is frozen at 40,000 steps")
         if self.selection_metric != "validation_mmd":
@@ -52,7 +54,8 @@ def freeze_training_contract(panel: Mapping, vocab: Mapping, splits: Mapping,
     return TrainingContract(mode=mode, seed=int(seed), gene_order_hash=gene_hash,
                             perturbation_vocab_hash=vocab_hash, split_hash=split_hash,
                             model_config_hash=model_config.get("config_hash") or
-                            hashlib.sha256(json.dumps(model_config, sort_keys=True).encode()).hexdigest())
+                            hashlib.sha256(json.dumps(model_config, sort_keys=True).encode()).hexdigest(),
+                            batch_size=int(model_config.get("batch_size", 64)))
 
 
 def set_mmd(prediction, target):
@@ -113,12 +116,57 @@ def build_official_state_adapter(checkpoint: str | Path, n_genes: int,
     return _Adapter(base), payload
 
 
+def initialize_transfer_adapter(adapter, checkpoint_payload: Mapping,
+                                target_gene_names, target_perturbation_names,
+                                expected_report: Mapping | None = None) -> dict:
+    """Apply the audited semantic transfer to an official STATE adapter.
+
+    The checkpoint's perturbation width is intentionally not treated as an
+    ordered vocabulary.  When names are unavailable, that projection remains
+    at its random target initialization, exactly as recorded by the audit.
+    """
+    from .state_d2_model import make_transfer_report
+    source_hparams = dict(checkpoint_payload.get("hyper_parameters", {}))
+    source_genes = list(source_hparams.get("gene_names", []))
+    source_perturbations = list(source_hparams.get("perturbation_names", []))
+    wrapped = getattr(adapter, "wrapped", adapter)
+    transferred, report = make_transfer_report(
+        checkpoint_payload["state_dict"], wrapped.state_dict(), source_genes,
+        list(target_gene_names), source_perturbations, list(target_perturbation_names))
+    if expected_report is not None:
+        if expected_report.get("semantic_assertions_pass") is not True:
+            raise ValueError("transfer report did not pass semantic assertions")
+        for key in ("target_gene_order_hash", "target_perturbation_vocab_hash"):
+            if key in expected_report and key in report and expected_report[key] != report[key]:
+                raise ValueError(f"transfer report mismatch: {key}")
+    wrapped.load_state_dict(transferred)
+    return report
+
+
 def _set_phase(model, phase: int):
     for name, parameter in model.named_parameters():
         if "transformer" in name:
             parameter.requires_grad = phase >= 2
         else:
             parameter.requires_grad = True
+
+
+def _optimizer_for_phase(model, phase: int, head_lr: float, backbone_lr: float):
+    torch = __import__("torch")
+    if phase == 1:
+        parameters = [p for p in model.parameters() if p.requires_grad]
+        return torch.optim.AdamW(parameters, lr=head_lr, weight_decay=5e-4)
+    head, backbone = [], []
+    for name, parameter in model.named_parameters():
+        if not parameter.requires_grad:
+            continue
+        (backbone if "transformer" in name else head).append(parameter)
+    groups = []
+    if head:
+        groups.append({"params": head, "lr": head_lr})
+    if backbone:
+        groups.append({"params": backbone, "lr": backbone_lr})
+    return torch.optim.AdamW(groups, weight_decay=5e-4)
 
 
 def train_two_phase(model, train_batches: Iterable[Mapping], validation_batches: Iterable[Mapping],
@@ -140,14 +188,13 @@ def train_two_phase(model, train_batches: Iterable[Mapping], validation_batches:
     target_dir.mkdir(parents=True, exist_ok=True)
     torch.manual_seed(contract.seed)
     _set_phase(model, 1)
-    optimizer = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=learning_rate,
-                                  weight_decay=5e-4)
+    optimizer = _optimizer_for_phase(model, 1, learning_rate, finetune_learning_rate)
     train_iter = iter(train_batches)
     best = float("inf")
     best_step = 0
     patience = 0
     history = []
-    validation_steps = validation_steps or contract.validation_every
+    validation_steps = 32 if validation_steps is None else int(validation_steps)
 
     def evaluate(step: int) -> float:
         model.eval()
@@ -166,8 +213,7 @@ def train_two_phase(model, train_batches: Iterable[Mapping], validation_batches:
     for step in range(1, contract.max_steps + 1):
         if step == phase1_steps + 1:
             _set_phase(model, 2)
-            optimizer = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad],
-                                          lr=finetune_learning_rate, weight_decay=5e-4)
+            optimizer = _optimizer_for_phase(model, 2, learning_rate, finetune_learning_rate)
         try:
             batch = next(train_iter)
         except StopIteration:

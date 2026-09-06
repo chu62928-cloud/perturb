@@ -170,3 +170,92 @@ def make_pilot_batch(paths: Iterable[str | Path], panel: Sequence[str], perturba
             "target_rows": target_rows.tolist(), "control_rows": control_rows.tolist(),
             "target_expression": target[None, :, :], "control_expression": control[None, :, :],
             "perturbation_names": list(perturbations), "d2_responses_used": True}
+
+
+class D2BatchStream:
+    """Re-iterable, bounded CSR stream for fair STATE train/validation batches.
+
+    Each example pairs a perturbation response set with an independently
+    sampled NTC set from the same biological background.  The NTC set is a
+    population background region, not a claim about a cell's true pre-state.
+    Only rows whose `(perturbation, condition)` record belongs to ``split``
+    are sampled, so the same stream can be used for Scratch and Transfer.
+    """
+
+    def __init__(self, paths: Iterable[str | Path], panel: Sequence[str],
+                 perturbation_names: Sequence[str], splits: Mapping, *,
+                 split: str = "train", batch_size: int = 64, set_len: int = 32,
+                 max_rows_per_gene: int = 128, seed: int = 20260901,
+                 device: str | None = None):
+        if split not in {"train", "validation", "test"}:
+            raise ValueError("D2 split must be train, validation or test")
+        if batch_size <= 0 or set_len <= 0 or max_rows_per_gene < set_len:
+            raise ValueError("batch_size, set_len and max_rows_per_gene are inconsistent")
+        self.paths = [Path(path) for path in paths]
+        self.panel = list(panel)
+        self.names = list(map(str, perturbation_names))
+        if not self.names or self.names[0] != "NTC" or len(set(self.names)) != len(self.names):
+            raise ValueError("D2 vocabulary must start with unique NTC")
+        self.name_to_index = {name: i for i, name in enumerate(self.names)}
+        self.batch_size = int(batch_size)
+        self.set_len = int(set_len)
+        self.split = split
+        self.seed = int(seed)
+        self.device = device
+        records = [row for row in splits.get("records", []) if str(row.get("split")) == split]
+        if not records:
+            raise ValueError(f"D2 split has no {split} records")
+        self._rows: dict[tuple[str, str], np.ndarray] = {}
+        wanted = self.names
+        for path in self.paths:
+            condition = _condition(path)
+            found = eligible_rows_by_gene(path, wanted, max_rows=max_rows_per_gene)
+            for gene, rows in found.items():
+                self._rows[(str(gene), condition)] = np.asarray(rows, dtype=np.int64)
+        self.records = []
+        for row in records:
+            gene, condition = str(row.get("perturbation_name")), str(row.get("condition"))
+            target_rows = self._rows.get((gene, condition), np.zeros(0, dtype=np.int64))
+            control_rows = self._rows.get(("NTC", condition), np.zeros(0, dtype=np.int64))
+            if len(target_rows) >= self.set_len and len(control_rows) >= self.set_len:
+                if gene not in self.name_to_index:
+                    raise ValueError(f"D2 record is absent from perturbation vocabulary: {gene}")
+                self.records.append((gene, condition))
+        if not self.records:
+            raise ValueError(f"D2 {split} split has no records with {self.set_len}-cell support")
+        self._paths_by_condition = {_condition(path): path for path in self.paths}
+
+    def __iter__(self):
+        try:
+            import torch
+        except ImportError as exc:  # pragma: no cover
+            raise RuntimeError("D2 training stream requires the isolated PyTorch environment") from exc
+        rng = np.random.default_rng(self.seed)
+        while True:
+            choices = rng.integers(0, len(self.records), size=self.batch_size)
+            expressions = np.zeros((self.batch_size, self.set_len, len(self.panel)), dtype=np.float32)
+            targets = np.zeros_like(expressions)
+            perturbations = np.zeros((self.batch_size, self.set_len, len(self.names)), dtype=np.float32)
+            grouped: dict[str, list[tuple[int, np.ndarray, np.ndarray]]] = {}
+            for batch_index, choice in enumerate(choices):
+                gene, condition = self.records[int(choice)]
+                target_pool = self._rows[(gene, condition)]
+                control_pool = self._rows[("NTC", condition)]
+                target_rows = rng.choice(target_pool, size=self.set_len, replace=False)
+                control_rows = rng.choice(control_pool, size=self.set_len, replace=False)
+                grouped.setdefault(condition, []).append((batch_index, control_rows, target_rows))
+                perturbations[batch_index, :, self.name_to_index[gene]] = 1.0
+            for condition, entries in grouped.items():
+                path = self._paths_by_condition[condition]
+                controls = np.concatenate([entry[1] for entry in entries])
+                responses = np.concatenate([entry[2] for entry in entries])
+                control_values = read_log_expression(path, controls, self.panel)
+                response_values = read_log_expression(path, responses, self.panel)
+                for local, (batch_index, _, _) in enumerate(entries):
+                    left, right = local * self.set_len, (local + 1) * self.set_len
+                    expressions[batch_index] = control_values[left:right]
+                    targets[batch_index] = response_values[left:right]
+            yield {"expression": torch.as_tensor(expressions, device=self.device),
+                   "perturbation": torch.as_tensor(perturbations, device=self.device),
+                   "target": torch.as_tensor(targets, device=self.device),
+                   "split": self.split, "d2_responses_used": True}

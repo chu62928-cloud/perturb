@@ -95,6 +95,39 @@ def _farthest_anchors(points: np.ndarray, n: int, seed: int) -> list[int]:
     return chosen
 
 
+def _kth_neighbor_distances(points: np.ndarray, n_neighbors: int, block_size: int = 512) -> np.ndarray:
+    """Return each point's kth neighbour distance without an n×n allocation.
+
+    This NumPy fallback keeps the continuous-state split usable in the small
+    pipeline environment where scikit-learn is unavailable.  Distances are
+    evaluated in bounded matrix blocks; the production environment uses the
+    equivalent ``NearestNeighbors`` implementation.
+    """
+    points = np.asarray(points, dtype=float)
+    n = len(points)
+    if n == 0:
+        return np.zeros(0, dtype=float)
+    k = min(max(1, int(n_neighbors)), n)
+    norms = np.einsum("ij,ij->i", points, points)
+    output = np.empty(n, dtype=float)
+    for start in range(0, n, block_size):
+        stop = min(start + block_size, n)
+        distances = (norms[start:stop, None] + norms[None, :]
+                     - 2.0 * points[start:stop] @ points.T)
+        distances = np.maximum(distances, 0.0)
+        nearest = np.partition(distances, k - 1, axis=1)[:, :k]
+        output[start:stop] = np.sqrt(nearest.max(axis=1))
+    return output
+
+
+def _point_kth_neighbor_distance(points: np.ndarray, index: int, n_neighbors: int) -> float:
+    points = np.asarray(points, dtype=float)
+    norms = np.einsum("ij,ij->i", points, points)
+    distances = np.maximum(norms[index] + norms - 2.0 * (points @ points[index]), 0.0)
+    k = min(max(1, int(n_neighbors)), len(points))
+    return float(np.sqrt(np.partition(distances, k - 1)[k - 1]))
+
+
 def continuous_state_regions(latent: np.ndarray, conditions: Iterable[str], *, n_anchors: int = 10,
                              k_neighbors: int = 200, n_folds: int = 5, seed: int = 20260901,
                              density_quantile: float = .10, buffer_scale: float = 1.25) -> ContinuousStateSplit:
@@ -114,7 +147,10 @@ def continuous_state_regions(latent: np.ndarray, conditions: Iterable[str], *, n
     # Nearest-neighbour queries are O(n*k) in memory.  The previous
     # implementation constructed a dense n×n distance matrix and was not
     # usable for the real NTC sample (tens of thousands of cells).
-    from sklearn.neighbors import NearestNeighbors
+    try:
+        from sklearn.neighbors import NearestNeighbors
+    except ModuleNotFoundError:  # pragma: no cover - exercised in minimal local env
+        NearestNeighbors = None
 
     regions: list[StateRegion] = []
     for condition in sorted(set(cond)):
@@ -122,19 +158,25 @@ def continuous_state_regions(latent: np.ndarray, conditions: Iterable[str], *, n
         pts = x[idx]
         kk = min(k_neighbors, max(1, len(idx) - 1))
         n_query = min(len(idx), kk + 1)
-        nn = NearestNeighbors(n_neighbors=n_query, algorithm="auto")
-        nn.fit(pts)
-        distances, _ = nn.kneighbors(pts, return_distance=True)
-        kth = distances[:, -1]
+        if NearestNeighbors is None:
+            kth = _kth_neighbor_distances(pts, n_query)
+        else:
+            nn = NearestNeighbors(n_neighbors=n_query, algorithm="auto")
+            nn.fit(pts)
+            distances, _ = nn.kneighbors(pts, return_distance=True)
+            kth = distances[:, -1]
         local_density = 1.0 / (kth + 1e-8)
         eligible = np.flatnonzero(local_density >= np.quantile(local_density, density_quantile))
         anchors = _farthest_anchors(pts[eligible], n_anchors, seed + len(regions))
         for rank, local_anchor in enumerate(anchors):
             anchor_local = int(eligible[local_anchor])
             anchor_global = int(idx[anchor_local])
-            radius = float(nn.kneighbors(pts[anchor_local:anchor_local + 1],
-                                         n_neighbors=n_query,
-                                         return_distance=True)[0][0, -1])
+            if NearestNeighbors is None:
+                radius = _point_kth_neighbor_distance(pts, anchor_local, n_query)
+            else:
+                radius = float(nn.kneighbors(pts[anchor_local:anchor_local + 1],
+                                             n_neighbors=n_query,
+                                             return_distance=True)[0][0, -1])
             regions.append(StateRegion(condition, anchor_global, tuple(x[anchor_global]),
                                        max(radius, 1e-8), rank % n_folds,
                                        float(local_density[anchor_local])))
