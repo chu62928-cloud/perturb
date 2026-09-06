@@ -2,7 +2,7 @@
 
 ## Last verified
 
-- 2026-09-06T19:18+08:00
+- 2026-09-06T20:24+08:00
 
 ## Objective
 
@@ -15,6 +15,8 @@
 - VERIFIED: 2026-09-06基于正式面板重跑真实D2 Rest试点。固定八个调控靶点（TBX21、GATA3、RORC、STAT4、STAT6、STAT3、BATF、IRF4），集合大小32，输出严格为32×2000，损失4.4689903259且有限，GPU前向、检查点保存和重载均通过；产物为`research/state_d2/d2_state_pilot_contract.json`。IFNG仍因每条件合格细胞过少不进入稳定试点。
 - VERIFIED: 2026-09-06官方Replogle检查点迁移审计已按参数语义完成。93/94个目标参数可按键和形状复制，正式面板与官方基因列表重叠220个；官方检查点没有可核实的有序扰动名称，因此扰动投影重叠为0并保持随机初始化，未按整数索引复制。`semantic_assertions_pass=true`，产物为`research/state_d2/transfer_report.json`。
 - VERIFIED: 2026-09-06 Scratch/Transfer三种种子的公平训练合同已按同一面板、词表、划分和40,000步预算冻结，批大小固定为64，验证指标为validation MMD；产物为`research/state_d2/training_contracts.json`。数据冻结交叉校验通过，冻结哈希为`e11fbe4c2375878a1058868c4e4bb221495a51036eece81a9582a88a057f0e1c`，产物为`research/state_d2/d2_freeze_validation.json`。
+- VERIFIED: 2026-09-06正式训练合同已升级为v2，改为锁定真实官方适配器：2,000基因、12,171扰动、集合大小32、隐藏维328、8层Transformer、12头、批大小64、头部学习率0.001、骨干学习率0.0002和Transfer前1,000步冻结阶段；正式模型配置哈希为`a182832b1d3ab5f3e8494e55e61f7c572dfa97812fd5be26f84342ec6bf3469a`。运行入口必须以`--contract-file`逐字段核验合同。
+- VERIFIED: 2026-09-06训练循环已区分Scratch与Transfer：Scratch从第1步训练全部随机参数，Transfer仅在前1,000步冻结Transformer；新增原子`last.ckpt`、优化器/早停/随机数状态保存、合同一致性恢复和`--resume`。远端`e3_state`直接断言确认Scratch骨干更新、Transfer第一阶段骨干不变，且可从第2步恢复到第3步。
 - PENDING: 尚未启动Scratch/Transfer的全量40,000步训练、简单基线对比和D2响应评价；当前结果不能给出Transfer或Scratch模型结论。`train_two_phase`与`D2BatchStream`已提供公平两阶段训练接口，不能把试点损失当作性能指标。
 - VERIFIED: 2026-09-06补齐正式HVG检测率审计。训练部分可用细胞数为Rest 1,727,344、Stim8hr 1,843,234、Stim48hr 1,813,531，总数与正式HVG的5,384,109一致；每个HVG统计含Ensembl ID和三条件检测率。最终面板的身份覆盖为Naive 5/5、Th1 3/3、Th2 2/3（缺GATA3，原始名次2073）、Th17 2/3（缺IL23R，原始名次2835）；两者因原始名次未差于5000而不触发强制替换，面板强制数为0。
 - VERIFIED: 2026-09-06新增`D2BatchStream`和`d2-train`入口。流按冻结的基因×背景划分抽取同条件NTC群体背景和扰动响应集合，支持Scratch/Transfer相同批大小64及两阶段优化；Transfer在官方检查点缺少可核实扰动名称时保持扰动投影随机初始化。该入口已完成编译和命令帮助检查，尚未实际启动40,000步全量作业。
@@ -120,7 +122,7 @@
 ## External systems and background jobs
 
 - VERIFIED: AutoDL 服务器可通过本地 `connect_server.py --cmd '<只读命令>'` 检查；连接配置仅保留在该脚本。
-- VERIFIED: effect matrix 后台 PID `167116` 已退出且无产物；前台诊断分别以 segmentation fault (exit 139) 退出，后续完整命令以 exit 1 的输入损坏错误退出；当前无运行中的 effect/训练作业。
+- VERIFIED: effect matrix 后台 PID `167116` 已退出且无产物；前台诊断分别以 segmentation fault (exit 139) 退出，后续完整命令以 exit 1 的输入损坏错误退出；2026-09-06T20:24+08:00当前无运行中的D2训练作业。
 - VERIFIED: 独立两条件 smoke PID `173671` 已正常退出；远端产物 `/root/autodl-tmp/CRISPR_perturb_runtime/pipeline/effect_smoke_stim_only/results/d1_effect_matrix_v2.json` 为 140,890,154 bytes，文件 SHA-256 `2b4e0a5a33a475552e723e48f0ee917994e062928233a439d35f5be6163b9b37`、内容 effect_hash `ebca45c13129f0e1be2c4b373261f93ba7a9cc59096bc37578ea616a20497436`；主三条件结果仍不存在。
 - VERIFIED: 证据驱动契约复核已执行，远端新文件 `metadata/data_contract_frozen_v4.json`（1,265 bytes，SHA-256 `018d88043e81e978ad5df9ab75dcf7fae4651fe01050d449138dd1dad12dd854`）保持 `DATA_CONTRACT_READY`，原因明确为正式三条件 effect matrix 缺失及 D1 CSR integrity 无效；本地副本位于 `research/pipeline_outputs/data_contract_frozen_v4.json`。
 - 安全复查：`df -h /root/autodl-tmp`、`nvidia-smi`、`conda env list`。
@@ -128,9 +130,9 @@
 
 ## Immediate continuation
 
-1. 在读取D2模型结果前冻结Naive/Th1/Th2/Th17身份锚点、效应确认和混杂程序；确认少量身份锚点强制纳入规则后，在冻结训练部分执行正式流式HVG计算并逐基因输出检测率、均值、离散度、名次和替换理由。
-2. 先用独立的人初始CD4 Naive/Th0/Th1/Th2/Th17极化参考验收评分器，再用D2的TBX21、GATA3、RORC等实测单基因CRISPRi响应做方向验证；两者均不得被表述为真实Th2→Th17转换实验。
-3. D2 三条件完整 CSR 闸门已通过；使用 2026-09-05 汇总运行 `activate-roles`，再依次完成 D2 guide 校订、primary/challenge 冻结、2,000 基因顺序、NTC 潜空间、状态区域、三类划分和 D2 effect matrix。
+1. 从冻结词表和训练组合中确定64个技术试点扰动，优先八个机制靶点，其余按至少两个训练背景各有32个细胞及最小细胞数排序补齐；不得读取验证或测试性能。
+2. 在轻量128维、4/4层、8头模型上运行200步训练试点；通过损失下降、有限值、形状、显存、名称映射和重载一致性硬断言后，再运行Scratch/Transfer正式328维架构各20步优化冒烟。
+3. 冒烟全部通过后，按Scratch/Transfer交替顺序依次运行三个种子的正式训练；所有检查点仅用验证MMD选择，六个最佳检查点冻结前不得评价测试响应。
 4. 要求数据提供方修复或重新提供 `D4_Stim48hr.assigned_guide.h5ad`；保持当前原始文件只读，修复后按同一 `audit-csr` 命令复跑。继续保留 D4 为外部测试供者，但该条件在通过前不得使用。
 5. 获取缺失的 `D3_Rest.assigned_guide.h5ad` 后，先做登记和完整 CSR 审计，再考虑 D3 三条件外部测试。
 6. 用 `state-regions` 冻结连续潜空间区域及缓冲，完成基因、状态、基因×状态三类留出及三层评价空间。
@@ -141,9 +143,11 @@
 - VERIFIED: STATE 与 STACK 权重均已从官方 Hugging Face 仓库下载并完成实际 GPU 加载；许可文件已保存，未记录令牌。
 - VERIFIED: 当前 D1 96 基因结构试点和 4,661 候选已生成；指南校订、共享特征顺序、真实 50 维 NTC 潜空间和三类划分已有证据。
 - BLOCKED: effect matrix 完成后的 guide/gene QC 汇总、证据驱动 `DATA_VALID` 验证、简单 baseline、模型双闸门和 naive→Th1 fate evaluator 尚未开始；D4_Stim48hr 的 `X/indices` 越界和 D3_Rest 缺失是当前外部数据阻塞。
-- BLOCKED: D4_Stim48hr 在修复或重新下载前不能用于最终外部测试；D2 虽已通过完整 CSR 闸门，角色激活仍需单独执行并保留不可变记录。
+- BLOCKED: D4_Stim48hr 在修复或重新下载前不能用于最终外部测试；D2开发角色、数据审计、划分和正式面板已冻结，不受该外部测试阻塞影响。
 
 ## Update history
+
+- 2026-09-06T20:24+08:00: 提交并推送`83c4f3c`，修正正式模型合同、Scratch/Transfer阶段语义和可恢复检查点；远端e3_pipeline为38项通过、3项因无PyTorch跳过，e3_state直接优化断言全部通过。重新生成v2合同，正式模型配置哈希为`a182832b1d3ab5f3e8494e55e61f7c572dfa97812fd5be26f84342ec6bf3469a`；尚未启动模型训练。
 
 - 2026-09-06T19:10+08:00: 提交`0339ee5`完善正式HVG映射、检测率审计、D2批流和`d2-train`入口；提交`9c930a5`加强迁移报告目标哈希/重叠断言并加入批流合成数据测试；提交`5a1cd9d`完成真实D2 Scratch/Transfer批流干跑产物；提交`f30c52f`更新连续性记录。最终远端测试为37项通过、1项因e3_pipeline无PyTorch跳过，`pip check`、`compileall`和项目记忆检查通过；所有提交均已推送到唯一分支`d2-state-single-step`。
 
