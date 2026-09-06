@@ -94,4 +94,6 @@ python -m cd4perturb.cli d2-gene-panel --config config/config.json \
 
 外部评分器输入必须是独立参考数据的 `expression/gene_names/labels/donors` NPZ，使用 `scripts/validate_lineage_programs.py`；该命令拒绝把 D2 当作外部标签数据。
 
+真实细胞试点的八个调控靶点和排除 IFNG 的原因固定在 `config/state_d2_pilot.v1.json`；`d2-pilot` 同时检查实际 D2 行、扰动名称、面板哈希、32×2,000 输出、有限损失和检查点重载。
+
 当 D2 的固定基因顺序与状态空间准备好后，使用 `effect-matrix`（`--input` 为 D2 路径 JSON，`--genes` 为基因顺序 JSON）生成逐 guide 与稳健基因级效应；新命令通过角色清单拒绝错误供者路径，并以文件为单位、只读取选定列。使用 `state-regions`（紧凑 NPZ，包含 `latent`、`conditions`）生成连续状态区域；如果同一输入还包含组合性数据，状态条件可放在 `latent_conditions`。基线、评价、组合性和规划阶段均要求显式输入，缺失输入时直接失败，不会伪造模型通过状态。

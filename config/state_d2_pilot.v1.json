@@ -1,0 +1,19 @@
+{
+  "version": "state_d2_pilot.v1",
+  "set_size": 32,
+  "targets": ["TBX21", "GATA3", "RORC", "STAT4", "STAT6", "STAT3", "BATF", "IRF4"],
+  "excluded_unstable_targets": {
+    "IFNG": "每个条件合格细胞过少，不进入稳定试点"
+  },
+  "eligible_cell_rule": "targeting single sgRNA and low_quality=false",
+  "backgrounds": ["Rest", "Stim8hr", "Stim48hr"],
+  "hard_assertions": [
+    "dataloader succeeds",
+    "all eight perturbation names map without fallback",
+    "gene order hash equals frozen panel",
+    "output shape is 32×2000",
+    "loss and output are finite",
+    "checkpoint save and reload succeed",
+    "GPU memory remains stable"
+  ]
+}
