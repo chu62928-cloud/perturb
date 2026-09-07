@@ -2,7 +2,7 @@
 
 ## Last verified
 
-- 2026-09-07T15:04+08:00
+- 2026-09-07T15:08+08:00
 
 ## Objective
 
@@ -20,7 +20,8 @@
 - VERIFIED: 2026-09-06正式模型冒烟在RTX 4080 SUPER上完成：Scratch与Transfer均实际前向、反向、优化器更新、验证MMD和原子检查点写入；Transfer迁移报告通过，Scratch全参数可更新，Transfer第一阶段骨干冻结。冒烟结果不作为性能结论。
 - VERIFIED: 2026-09-06修正D2训练输入归一化：先以原始CSR的全测量基因总计数执行CP10K→log1p，再截取冻结2,000基因面板；真实行核对与`obs.total_counts`一致。`D2BatchStream`增加有界表达池缓存，避免重复读取同一扰动×条件池，缓存默认上限28 GiB。
 - VERIFIED: 2026-09-07种子20260901的Scratch/Transfer全量训练均按合同完成。Scratch运行40,000步，最佳验证MMD为0.01172845898（第38,000步）；Transfer在第19,500步按连续8次无改善早停，最佳验证MMD为0.01342692965（第15,500步）；两者均使用同一面板、词表、划分和批大小，测试集尚未读取。紧凑记录为`research/state_d2/training_result_scratch_20260901.json`和`training_result_transfer_20260901.json`。
-- PENDING: 尚未启动种子20260902/20260903的Scratch/Transfer训练、简单基线对比和D2响应评价；当前不能据此给出最终Transfer或Scratch模型结论。`train_two_phase`与`D2BatchStream`已提供公平两阶段训练接口，不能把验证MMD直接当作测试性能。
+- ACTIVE: 2026-09-07已启动正式Scratch种子20260902（远端进程96165），使用同一40,000步合同；远端监控器会在其结果`complete=true`后自动启动同种子Transfer，异常退出则保持停止。测试集仍封存。
+- PENDING: 尚未启动种子20260903的Scratch/Transfer训练、简单基线对比和D2响应评价；当前不能据此给出最终Transfer或Scratch模型结论。`train_two_phase`与`D2BatchStream`已提供公平两阶段训练接口，不能把验证MMD直接当作测试性能。
 - VERIFIED: 2026-09-06补齐正式HVG检测率审计。训练部分可用细胞数为Rest 1,727,344、Stim8hr 1,843,234、Stim48hr 1,813,531，总数与正式HVG的5,384,109一致；每个HVG统计含Ensembl ID和三条件检测率。最终面板的身份覆盖为Naive 5/5、Th1 3/3、Th2 2/3（缺GATA3，原始名次2073）、Th17 2/3（缺IL23R，原始名次2835）；两者因原始名次未差于5000而不触发强制替换，面板强制数为0。
 - VERIFIED: 2026-09-06新增`D2BatchStream`和`d2-train`入口。流按冻结的基因×背景划分抽取同条件NTC群体背景和扰动响应集合，支持Scratch/Transfer相同批大小64及两阶段优化；Transfer在官方检查点缺少可核实扰动名称时保持扰动投影随机初始化。正式入口已通过20步Scratch/Transfer冒烟，并完成种子20260901全量训练。
 - VERIFIED: 2026-09-06在RTX 4080 SUPER上分别完成Scratch与Transfer真实D2训练流干跑；两者均构建并检查64×32×2000表达/目标张量和64×32×12,171扰动张量，全部有限。训练记录为23,609个组合、验证记录1,822个，面板、词表和划分哈希与冻结合同一致；Transfer干跑确认语义迁移已应用。该干跑不更新权重，也不构成模型性能结论。
@@ -150,7 +151,7 @@
 
 ## Update history
 
-- 2026-09-07T15:04+08:00: 种子20260901的Scratch完成40,000步，Transfer在19,500步按验证MMD早停；下载两份紧凑训练记录，测试集仍封存。下一步为提交该种子结果并启动种子20260902。
+- 2026-09-07T15:08+08:00: 种子20260901的Scratch完成40,000步，Transfer在19,500步按验证MMD早停；结果已提交为`c5fdf60`，测试集仍封存。已启动种子20260902 Scratch，并设置完成后自动串联Transfer。
 
 - 2026-09-06T20:24+08:00: 提交并推送`83c4f3c`，修正正式模型合同、Scratch/Transfer阶段语义和可恢复检查点；远端e3_pipeline为38项通过、3项因无PyTorch跳过，e3_state直接优化断言全部通过。重新生成v2合同，正式模型配置哈希为`a182832b1d3ab5f3e8494e55e61f7c572dfa97812fd5be26f84342ec6bf3469a`；尚未启动模型训练。
 
