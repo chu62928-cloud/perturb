@@ -354,6 +354,7 @@ class D2BatchStream:
                  split: str = "train", batch_size: int = 64, set_len: int = 32,
                  max_rows_per_gene: int = 128, seed: int = 20260901,
                  device: str | None = None, cache_expression: bool = True,
+                 pin_memory: bool = False,
                  cache_max_bytes: int = 28 * 1024**3):
         if split not in {"train", "validation", "test"}:
             raise ValueError("D2 split must be train, validation or test")
@@ -370,6 +371,7 @@ class D2BatchStream:
         self.split = split
         self.seed = int(seed)
         self.device = device
+        self.pin_memory = bool(pin_memory)
         self.cache_expression = bool(cache_expression)
         self.cache_max_bytes = int(cache_max_bytes)
         if self.cache_max_bytes < 0:
@@ -486,9 +488,24 @@ class D2BatchStream:
                         raise RuntimeError("D2 expression pool rows are not sorted or missing")
                     expressions[batch_index] = control_values[control_indices]
                     targets[batch_index] = target_values[target_indices]
-            yield {"expression": torch.as_tensor(expressions, device=self.device),
-                   "perturbation": torch.as_tensor(perturbations, device=self.device),
-                   "target": torch.as_tensor(targets, device=self.device),
+            tensors = {
+                "expression": torch.from_numpy(expressions),
+                "perturbation": torch.from_numpy(perturbations),
+                "target": torch.from_numpy(targets),
+            }
+            if self.pin_memory:
+                for key, value in tensors.items():
+                    try:
+                        tensors[key] = value.pin_memory()
+                    except RuntimeError:
+                        # CPU-only environments and restricted containers may
+                        # not expose a pin-memory allocator; correctness does
+                        # not depend on it.
+                        pass
+            if self.device is not None:
+                tensors = {key: value.to(self.device, non_blocking=self.pin_memory)
+                           for key, value in tensors.items()}
+            yield {**tensors,
                    "perturbation_names": batch_genes,
                    "split": self.split, "d2_responses_used": True}
 

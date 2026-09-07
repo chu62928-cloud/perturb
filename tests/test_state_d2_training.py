@@ -6,11 +6,42 @@ import numpy as np
 from cd4perturb.state_d2_data import _normalize_panel_counts, select_pilot_perturbations
 from cd4perturb.state_d2_model import D2StateConfig, train_d2_pilot
 from cd4perturb.state_d2_training import (
+    PrefetchBatchIterator,
     restore_state_output,
     freeze_training_contract,
     train_two_phase,
     validate_frozen_training_contract,
 )
+
+
+def test_prefetch_iterator_preserves_order_and_propagates_errors():
+    produced = []
+
+    def source():
+        for value in range(6):
+            produced.append(value)
+            yield value
+
+    iterator = PrefetchBatchIterator(source(), max_prefetch=2)
+    try:
+        assert [next(iterator) for _ in range(6)] == list(range(6))
+        with pytest.raises(StopIteration):
+            next(iterator)
+    finally:
+        iterator.close()
+    assert produced == list(range(6))
+
+    def failing_source():
+        yield "first"
+        raise RuntimeError("prefetch failure")
+
+    iterator = PrefetchBatchIterator(failing_source(), max_prefetch=2)
+    try:
+        assert next(iterator) == "first"
+        with pytest.raises(RuntimeError, match="prefetch failure"):
+            next(iterator)
+    finally:
+        iterator.close()
 
 
 def _artifacts():

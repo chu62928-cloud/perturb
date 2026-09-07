@@ -404,13 +404,19 @@ def main(argv: list[str] | None = None) -> int:
         contract = validate_frozen_training_contract(
             frozen, panel_payload, vocab_payload, splits_payload, model_config,
             args.mode, args.seed)
+        # Keep host-side batch construction separate from model execution so
+        # the training loop can prefetch and overlap CSR assembly with CUDA.
+        stream_device = None if device.startswith("cuda") else device
+        stream_pin_memory = device.startswith("cuda")
         train_stream = D2BatchStream(json.loads(Path(args.paths).read_text(encoding="utf-8")),
                                      panel, names, splits_payload, split="train",
-                                     batch_size=contract.batch_size, set_len=32, device=device,
+                                     batch_size=contract.batch_size, set_len=32,
+                                     device=stream_device, pin_memory=stream_pin_memory,
                                      seed=args.seed)
         validation_stream = D2BatchStream(json.loads(Path(args.paths).read_text(encoding="utf-8")),
                                           panel, names, splits_payload, split="validation",
-                                          batch_size=contract.batch_size, set_len=32, device=device,
+                                          batch_size=contract.batch_size, set_len=32,
+                                          device=stream_device, pin_memory=stream_pin_memory,
                                           seed=args.seed + 1)
         if args.dry_run:
             train_batch = next(iter(train_stream))

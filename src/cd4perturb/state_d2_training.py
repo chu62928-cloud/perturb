@@ -5,6 +5,8 @@ from __future__ import annotations
 import hashlib
 import json
 import copy
+import queue
+import threading
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Callable, Iterable, Mapping
@@ -326,11 +328,98 @@ def _training_iterator(stream, completed_steps: int):
     return iterator
 
 
+class _PrefetchError:
+    """Internal queue marker used to propagate producer exceptions."""
+
+    def __init__(self, error: BaseException):
+        self.error = error
+
+
+class _PrefetchDone:
+    """Internal queue marker used when a finite producer is exhausted."""
+
+
+class PrefetchBatchIterator:
+    """Prefetch batches without changing order or the source RNG sequence."""
+
+    def __init__(self, source: Iterable[Mapping], max_prefetch: int = 2):
+        if int(max_prefetch) <= 0:
+            raise ValueError("max_prefetch must be positive")
+        self._source = iter(source)
+        self._queue = queue.Queue(maxsize=int(max_prefetch))
+        self._stop = threading.Event()
+        self._closed = False
+        self._thread = threading.Thread(target=self._produce,
+                                        name="d2-batch-prefetch", daemon=True)
+        self._thread.start()
+
+    def _put(self, item) -> bool:
+        while not self._stop.is_set():
+            try:
+                self._queue.put(item, timeout=0.1)
+                return True
+            except queue.Full:
+                continue
+        return False
+
+    def _produce(self) -> None:
+        try:
+            for item in self._source:
+                if not self._put(item):
+                    return
+        except BaseException as exc:  # propagated by __next__
+            self._put(_PrefetchError(exc))
+        finally:
+            self._put(_PrefetchDone())
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self._closed:
+            raise StopIteration
+        marker = self._queue.get()
+        if isinstance(marker, _PrefetchError):
+            self.close()
+            raise marker.error
+        if isinstance(marker, _PrefetchDone):
+            self.close()
+            raise StopIteration
+        return marker
+
+    def close(self) -> None:
+        if self._closed:
+            return
+        self._closed = True
+        self._stop.set()
+        if self._thread is not threading.current_thread():
+            self._thread.join(timeout=5.0)
+
+
+def _model_device(model):
+    torch = __import__("torch")
+    try:
+        return next(model.parameters()).device
+    except StopIteration:
+        return torch.device("cpu")
+
+
+def _move_batch_to_device(batch: Mapping, device):
+    """Move tensor fields with non-blocking copies when pinned memory is available."""
+    moved = dict(batch)
+    for key in ("expression", "perturbation", "target"):
+        value = moved.get(key)
+        if value is not None and hasattr(value, "to"):
+            moved[key] = value.to(device, non_blocking=True)
+    return moved
+
+
 def train_two_phase(model, train_batches: Iterable[Mapping], validation_batches: Iterable[Mapping],
                     contract: TrainingContract, output_dir: str | Path,
                     phase1_steps: int | None = None, validation_steps: int | None = None,
                     learning_rate: float | None = None, finetune_learning_rate: float | None = None,
                     stop_after_steps: int | None = None, resume: bool = False,
+                    prefetch_batches: int = 2,
                     log_fn: Callable[[Mapping], None] | None = None) -> dict:
     """Run the identical bounded loop for Scratch and Transfer.
 
@@ -386,18 +475,26 @@ def train_two_phase(model, train_batches: Iterable[Mapping], validation_batches:
     if resume_payload is not None:
         optimizer.load_state_dict(resume_payload["optimizer_state_dict"])
         _restore_rng_state(torch, resume_payload.get("rng_state", {}))
-    train_iter = _training_iterator(train_batches, start_step)
+    model_device = _model_device(model)
+    train_iter = PrefetchBatchIterator(_training_iterator(train_batches, start_step),
+                                       max_prefetch=prefetch_batches)
     validation_steps = 32 if validation_steps is None else int(validation_steps)
 
     def evaluate(step: int) -> float:
         model.eval()
         values = []
-        with torch.no_grad():
-            for index, batch in enumerate(validation_batches):
-                prediction = model(batch["expression"], batch["perturbation"])
-                values.append(float(set_mmd(prediction, batch["target"]).detach().cpu()))
-                if index + 1 >= validation_steps:
-                    break
+        validation_iter = PrefetchBatchIterator(iter(validation_batches),
+                                                max_prefetch=prefetch_batches)
+        try:
+            with torch.no_grad():
+                for index, batch in enumerate(validation_iter):
+                    batch = _move_batch_to_device(batch, model_device)
+                    prediction = model(batch["expression"], batch["perturbation"])
+                    values.append(float(set_mmd(prediction, batch["target"]).detach().cpu()))
+                    if index + 1 >= validation_steps:
+                        break
+        finally:
+            validation_iter.close()
         model.train()
         if not values:
             raise ValueError("validation stream is empty")
@@ -411,8 +508,11 @@ def train_two_phase(model, train_batches: Iterable[Mapping], validation_batches:
         try:
             batch = next(train_iter)
         except StopIteration:
-            train_iter = iter(train_batches)
+            train_iter.close()
+            train_iter = PrefetchBatchIterator(iter(train_batches),
+                                               max_prefetch=prefetch_batches)
             batch = next(train_iter)
+        batch = _move_batch_to_device(batch, model_device)
         optimizer.zero_grad(set_to_none=True)
         prediction = model(batch["expression"], batch["perturbation"])
         loss = set_mmd(prediction, batch["target"])
@@ -446,6 +546,7 @@ def train_two_phase(model, train_batches: Iterable[Mapping], validation_batches:
             }, last_path)
             if patience >= contract.early_stop_patience:
                 break
+    train_iter.close()
     result = {"version": "d2_state_training_result.v2", "contract": contract.as_dict(),
               "contract_hash": contract.hash(), "best_validation_mmd": best,
               "best_step": best_step, "stopped_step": history[-1]["step"] if history else 0,
