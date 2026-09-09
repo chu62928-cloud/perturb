@@ -1,0 +1,33 @@
+{
+  "version": "state_cell_eval_reanalysis.v1",
+  "scope": "D2 frozen test re-analysis without retraining",
+  "test_stream_seed": 20260909,
+  "set_len": 32,
+  "fixed_ntc_cells_per_condition": 128,
+  "conditions": ["Rest", "Stim8hr", "Stim48hr"],
+  "cell_eval_version": "0.8.2",
+  "cell_eval_full_skip": ["pearson_edistance", "clustering_agreement"],
+  "paper_core_metrics": [
+    "pds_l1_paper",
+    "pearson_delta",
+    "pr_auc",
+    "de_spearman_lfc_sig",
+    "overlap_at_N",
+    "de_spearman_sig"
+  ],
+  "paper_pds": {
+    "effect": "absolute",
+    "distance": "l1",
+    "target_gene_excluded": true,
+    "score": "1-2*rank/T"
+  },
+  "pearson_delta": {
+    "primary": "signed_delta",
+    "sensitivity": "absolute_delta_text_variant"
+  },
+  "aggregation": "condition_macro_then_equal_condition_mean",
+  "baseline_fit_split": "train_only",
+  "old_metric_validity": "INVALID_FOR_STATE_COMPARISON",
+  "prediction_matrices_committed": false,
+  "raw_h5ad_modified": false
+}
