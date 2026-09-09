@@ -92,11 +92,15 @@ python -m cd4perturb.cli d2-gene-panel --config config/config.json \
 
 正式HVG完成后，可用`d2-counts`只读取元数据生成训练条件检测率分母，再用`d2-enrich-hvg`把Ensembl映射和检测率写入正式HVG审计。`d2-train`要求固定面板、词表、划分、官方检查点和明确的`Scratch`/`Transfer`模式；它通过`D2BatchStream`按相同条件抽取NTC群体背景与扰动响应集合，使用相同批大小64、三种种子和两阶段验证MMD训练。Transfer模式必须同时提供已通过断言的`transfer_report.json`，官方检查点没有有序扰动词表时扰动投影保持随机初始化。训练检查点只保留在服务器，结果JSON可按种子同步到`research/state_d2/training/`。
 
-本次冻结阶段已完成正式面板、真实D2接口试点、迁移语义审计和公平训练合同；尚未启动三种子×两模式的40,000步全量训练，也未生成模型性能或基线比较结论。
+本次冻结阶段已完成正式面板、真实D2接口试点、迁移语义审计和公平训练合同；三种子×两模式的正式训练和封存测试评价均已完成。最终报告位于 `research/state_d2/D2_STATE_FINAL_REPORT.md`，机器可读汇总位于 `research/state_d2/d2_state_final_summary.v1.json`。
 
 模型阶段使用 `config/state_d2_model.v1.json` 和 `state_d2_training.py` 中的冻结训练合同：三个种子、最多 40,000 步、同一批次和划分、验证 MMD 选最佳检查点。Transfer 报告由 `scripts/state_d2_transfer_audit.py` 生成；官方检查点没有可核实的有序扰动名称时，扰动投影保持随机初始化，绝不按整数索引复制。评价结果只能通过 `state_d2_evaluation.py` 给出 Transfer、Scratch、未超过简单基线或谱系方向不可评价四种结论，`MODEL_STATE_VALID` 固定为 `NOT_EVALUABLE`。
 
 外部评分器输入必须是独立参考数据的 `expression/gene_names/labels/donors` NPZ，使用 `scripts/validate_lineage_programs.py`；该命令拒绝把 D2 当作外部标签数据。
+
+### D2 最终评价与复现
+
+运行 `scripts/summarize_state_d2_evaluation.py` 可从封存的 `d2_state_test_evaluation.json` 重新生成三种子均值、标准差、固定百分位自助法 95% 区间及 Markdown 报告。该脚本不读取原始 `.h5ad` 或模型权重，也不会改变测试划分。报告采用唯一分支 `d2-state-single-step` 的六个冻结检查点；当前结论为 `STATE未超过简单基线`，`MODEL_STATE_VALID` 保持 `NOT_EVALUABLE`。
 
 真实细胞试点的八个调控靶点和排除 IFNG 的原因固定在 `config/state_d2_pilot.v1.json`；`d2-pilot` 同时检查实际 D2 行、扰动名称、面板哈希、32×2,000 输出、有限损失和检查点重载。
 

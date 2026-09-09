@@ -2,12 +2,12 @@
 
 ## Last verified
 
-- 2026-09-09T11:26+08:00
+- 2026-09-09T12:43+08:00
 
 ## Objective
 
 - VERIFIED: 利用原代人 CD4 T 细胞全基因组 Perturb-seq，评估多个单步扰动执行器的可组合性，并构建不确定性感知的短程序贯扰动规划器；最终目标是提出并实验验证 Th2→Th17 的顺序性 CRISPR 干扰方案。
-- VERIFIED: 当前已完成正式训练前的合同修正、64扰动试点、Scratch/Transfer正式架构20步冒烟和三种子六个正式训练任务；测试集评价尚未开始。
+- VERIFIED: D2 专属 STATE 单步阶段已完成合同修正、64扰动试点、正式架构冒烟、三种子六个正式训练任务、封存测试评价和三种子汇总报告；当前不进入双扰动、序贯规划或组合搜索。
 
 ## Current state
 
@@ -26,8 +26,9 @@
 - VERIFIED: 2026-09-08种子20260902 Transfer已完成33,000步并按早停规则停止，最佳验证MMD为0.01279209289（第29,000步）；结果已下载至`research/state_d2/training_result_transfer_20260902.json`，迁移报告哈希为`75f0b63c91fe010153b4784f89e14dc3f3baa9e4a5660ca554bfd843b642fde6`，测试集仍封存。
 - VERIFIED: 2026-09-08种子20260903 Scratch已完成31,000步并按连续8次无改善早停，最佳验证MMD为0.01192633060（第27,000步）；结果已下载至`research/state_d2/training_result_scratch_20260903.json`，测试集仍封存。
 - VERIFIED: 2026-09-09种子20260903 Transfer已完成38,500步并按连续8次无改善早停，最佳验证MMD为0.01289544898（第34,500步）；结果已下载至`research/state_d2/training_result_transfer_20260903.json`，三种子六个最佳检查点均已冻结，测试集仍封存。
-- VERIFIED: 2026-09-09 已冻结一次性D2测试评价入口。`D2BatchStream.iter_records`按冻结测试组合各读取一次并返回固定批次元数据，六个模型和简单基线复用同一批次；基线只从训练/验证流拟合，验证集选择对角低秩线性残差的正则强度。新增`scripts/evaluate_state_d2_test.py`，本地38项通过、8项因依赖隔离跳过，提交`66005f6`已推送。测试响应已在远端评价作业中读取，但尚未生成最终评价JSON，不能据此给出最终Transfer或Scratch模型结论。
-- VERIFIED: 2026-09-09 远端一次性评价作业已启动（远端进程68146，日志`/tmp/d2_state_test_evaluation.log`）。截至11:26，进程仍在读取训练/验证CSR并拟合基线，累计读取约444 GiB、常驻内存约13.5 GiB；GPU上的其他进程与D2评价进程分离，D2尚未进入模型前向，评价JSON尚未生成。作业继续在远端后台运行，测试划分和六个检查点保持冻结。
+- VERIFIED: 2026-09-09 已冻结一次性D2测试评价入口。`D2BatchStream.iter_records`按冻结测试组合各读取一次并返回固定批次元数据，六个模型和简单基线复用同一批次；基线只从训练/验证流拟合，验证集选择对角低秩线性残差的正则强度。新增`scripts/evaluate_state_d2_test.py`，本地38项通过、8项因依赖隔离跳过，提交`66005f6`已推送。
+- VERIFIED: 2026-09-09 远端一次性评价作业已完成；共1,793个基因×背景测试组合、57,376个测试细胞，六个最佳检查点均完成统一评价。紧凑结果为`research/state_d2/d2_state_test_evaluation.json`，提交`f1df646`已推送。最佳简单基线`condition_mean`的伪总体Pearson为0.999985、MAE为0.183522；六个STATE模型Pearson为0.999496–0.999696、MAE为0.217425–0.219921，全部未通过预注册全局闸门。
+- VERIFIED: 2026-09-09 生成三种子最终汇总脚本`scripts/summarize_state_d2_evaluation.py`、机器可读汇总`research/state_d2/d2_state_final_summary.v1.json`和Markdown报告`research/state_d2/D2_STATE_FINAL_REPORT.md`。报告使用固定种子、20,000次百分位自助法汇总Scratch/Transfer均值、标准差、背景分层和程序方向诊断；`MODEL_STATE_VALID`仍为`NOT_EVALUABLE`，结论为`STATE未超过简单基线`。
 - VERIFIED: 2026-09-06补齐正式HVG检测率审计。训练部分可用细胞数为Rest 1,727,344、Stim8hr 1,843,234、Stim48hr 1,813,531，总数与正式HVG的5,384,109一致；每个HVG统计含Ensembl ID和三条件检测率。最终面板的身份覆盖为Naive 5/5、Th1 3/3、Th2 2/3（缺GATA3，原始名次2073）、Th17 2/3（缺IL23R，原始名次2835）；两者因原始名次未差于5000而不触发强制替换，面板强制数为0。
 - VERIFIED: 2026-09-06新增`D2BatchStream`和`d2-train`入口。流按冻结的基因×背景划分抽取同条件NTC群体背景和扰动响应集合，支持Scratch/Transfer相同批大小64及两阶段优化；Transfer在官方检查点缺少可核实扰动名称时保持扰动投影随机初始化。正式入口已通过20步Scratch/Transfer冒烟，并完成种子20260901全量训练。
 - VERIFIED: 2026-09-06在RTX 4080 SUPER上分别完成Scratch与Transfer真实D2训练流干跑；两者均构建并检查64×32×2000表达/目标张量和64×32×12,171扰动张量，全部有限。训练记录为23,609个组合、验证记录1,822个，面板、词表和划分哈希与冻结合同一致；Transfer干跑确认语义迁移已应用。该干跑不更新权重，也不构成模型性能结论。
@@ -140,19 +141,16 @@
 
 ## Immediate continuation
 
-1. 从冻结词表和训练组合中确定64个技术试点扰动，优先八个机制靶点，其余按至少两个训练背景各有32个细胞及最小细胞数排序补齐；不得读取验证或测试性能。
-2. 在轻量128维、4/4层、8头模型上运行200步训练试点；通过损失下降、有限值、形状、显存、名称映射和重载一致性硬断言后，再运行Scratch/Transfer正式328维架构各20步优化冒烟。
-3. 冒烟全部通过后，按Scratch/Transfer交替顺序依次运行三个种子的正式训练；所有检查点仅用验证MMD选择，六个最佳检查点冻结前不得评价测试响应。
-4. 要求数据提供方修复或重新提供 `D4_Stim48hr.assigned_guide.h5ad`；保持当前原始文件只读，修复后按同一 `audit-csr` 命令复跑。继续保留 D4 为外部测试供者，但该条件在通过前不得使用。
-5. 获取缺失的 `D3_Rest.assigned_guide.h5ad` 后，先做登记和完整 CSR 审计，再考虑 D3 三条件外部测试。
-6. 用 `state-regions` 冻结连续潜空间区域及缓冲，完成基因、状态、基因×状态三类留出及三层评价空间。
-7. 依次评价 `MODEL_GLOBAL_VALID` 与 `MODEL_STATE_VALID`；至少两个执行器通过后，再运行 `match-composition → score-composition` 和支持度闸门。
+1. 复核 `research/state_d2/D2_STATE_FINAL_REPORT.md` 与 `d2_state_final_summary.v1.json`，保留本轮测试集、面板、词表、划分和检查点哈希作为不可变证据。
+2. 不根据测试结果调整模型、训练预算或划分；本轮不进入双扰动、序贯规划或组合搜索。若要尝试改进，必须先建立新的协议版本并重新完成完整训练和评价。
+3. 若继续扩展外部验证，先要求数据提供方修复或重新提供 `D4_Stim48hr.assigned_guide.h5ad`，并获取缺失的 `D3_Rest.assigned_guide.h5ad`；两者均须重新完成登记和完整 CSR 审计。
+4. 只有在新的模型或外部供者证据满足对应闸门后，才考虑 `match-composition → score-composition` 及序贯规划；当前保持 `MODEL_STATE_VALID=NOT_EVALUABLE`。
 
 ## Blockers and unknowns
 
 - VERIFIED: STATE 与 STACK 权重均已从官方 Hugging Face 仓库下载并完成实际 GPU 加载；许可文件已保存，未记录令牌。
 - VERIFIED: 当前 D1 96 基因结构试点和 4,661 候选已生成；指南校订、共享特征顺序、真实 50 维 NTC 潜空间和三类划分已有证据。
-- BLOCKED: effect matrix 完成后的 guide/gene QC 汇总、证据驱动 `DATA_VALID` 验证、简单 baseline、模型双闸门和 naive→Th1 fate evaluator 尚未开始；D4_Stim48hr 的 `X/indices` 越界和 D3_Rest 缺失是当前外部数据阻塞。
+- BLOCKED: D1/D3/D4 外部数据的 effect matrix、guide/gene QC 和证据驱动 `DATA_VALID` 仍未完成；D2 的简单基线与六个 STATE 检查点评价已经完成，但模型全局闸门未通过，且 D2 无法评价真实 naive→Th1 fate。D4_Stim48hr 的 `X/indices` 越界和 D3_Rest 缺失是当前外部数据阻塞。
 - BLOCKED: D4_Stim48hr 在修复或重新下载前不能用于最终外部测试；D2开发角色、数据审计、划分和正式面板已冻结，不受该外部测试阻塞影响。
 
 ## Update history
@@ -175,6 +173,7 @@
 - 2026-09-09T10:02+08:00: 新增有限测试流、统一模型/基线评价脚本和大规模扰动区分指标的有界抽样；本地测试38项通过、8项已知依赖跳过，提交`66005f6`已推送。远端一次性评价作业已启动，仍需等待其完成并下载紧凑JSON结果。
 - 2026-09-09T11:26+08:00: 远端一次性评价作业仍在后台运行，未生成最终JSON；记录进程、I/O和GPU归属，确认未发生测试泄漏、模型重训或检查点变更。
 - 2026-09-09T12:34+08:00: 远端封存测试集评价完成，结果下载为`research/state_d2/d2_state_test_evaluation.json`。共1,793个基因×背景测试组合、57,376个测试细胞；六个Scratch/Transfer检查点均完成统一评价。最佳简单基线为`condition_mean`（伪总体Pearson 0.999985、MAE 0.183522）；六个STATE模型Pearson为0.999496–0.999696、MAE为0.217425–0.219921，均未达到预注册全局闸门，且相对基线MAE恶化约18.5%–19.8%。扰动区分指标均为1.0；`MODEL_STATE_VALID`仍为`NOT_EVALUABLE`，谱系程序方向仅作内部诊断，不能宣称谱系转换。
+- 2026-09-09T12:44+08:00: 新增`scripts/summarize_state_d2_evaluation.py`，从封存评价JSON生成三种子均值、标准差、20,000次固定百分位自助法95%区间、背景分层、程序诊断、基线比较和闸门汇总；生成`research/state_d2/d2_state_final_summary.v1.json`与`D2_STATE_FINAL_REPORT.md`，并新增根目录`README.md`、更新`README_PIPELINE.md`。待运行测试后提交推送。
 
 - 2026-09-06T20:24+08:00: 提交并推送`83c4f3c`，修正正式模型合同、Scratch/Transfer阶段语义和可恢复检查点；远端e3_pipeline为38项通过、3项因无PyTorch跳过，e3_state直接优化断言全部通过。重新生成v2合同，正式模型配置哈希为`a182832b1d3ab5f3e8494e55e61f7c572dfa97812fd5be26f84342ec6bf3469a`；尚未启动模型训练。
 
