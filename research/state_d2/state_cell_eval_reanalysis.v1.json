@@ -26,6 +26,19 @@
     "sensitivity": "absolute_delta_text_variant"
   },
   "aggregation": "condition_macro_then_equal_condition_mean",
+  "cli_phases": ["infer", "metrics", "summarize"],
+  "cell_eval_expression_support": {
+    "domain": "nonnegative_natural_or_log1p_expression",
+    "clip_negative_baseline_predictions": true,
+    "model_predictions_clipped": false,
+    "clipping_counts_recorded_per_method_condition": true
+  },
+  "prediction_file_schema": [
+    "prediction", "target", "expression", "ntc", "perturbation_names",
+    "conditions", "record_keys", "cell_ids", "gene_order", "protocol_hash",
+    "checkpoint_hash", "protocol_version"
+  ],
+  "historical_test_hash_field": "legacy_finite_test_record_hash",
   "baseline_fit_split": "train_only",
   "old_metric_validity": "INVALID_FOR_STATE_COMPARISON",
   "prediction_matrices_committed": false,

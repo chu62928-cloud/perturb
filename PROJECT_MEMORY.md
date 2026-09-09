@@ -2,7 +2,7 @@
 
 ## Last verified
 
-- 2026-09-09T12:45+08:00
+- 2026-09-09T23:50+08:00
 
 ## Objective
 
@@ -29,10 +29,13 @@
 - VERIFIED: 2026-09-09 已冻结一次性D2测试评价入口。`D2BatchStream.iter_records`按冻结测试组合各读取一次并返回固定批次元数据，六个模型和简单基线复用同一批次；基线只从训练/验证流拟合，验证集选择对角低秩线性残差的正则强度。新增`scripts/evaluate_state_d2_test.py`，本地38项通过、8项因依赖隔离跳过，提交`66005f6`已推送。
 - VERIFIED: 2026-09-09 远端一次性评价作业已完成；共1,793个基因×背景测试组合、57,376个测试细胞，六个最佳检查点均完成统一评价。紧凑结果为`research/state_d2/d2_state_test_evaluation.json`，提交`f1df646`已推送。最佳简单基线`condition_mean`的伪总体Pearson为0.999985、MAE为0.183522；六个STATE模型Pearson为0.999496–0.999696、MAE为0.217425–0.219921，全部未通过预注册全局闸门。
 - VERIFIED: 2026-09-09 生成三种子最终汇总脚本`scripts/summarize_state_d2_evaluation.py`、机器可读汇总`research/state_d2/d2_state_final_summary.v1.json`和Markdown报告`research/state_d2/D2_STATE_FINAL_REPORT.md`。报告使用固定种子、20,000次百分位自助法汇总Scratch/Transfer均值、标准差、背景分层和程序方向诊断；`MODEL_STATE_VALID`仍为`NOT_EVALUABLE`，结论为`STATE未超过简单基线`。
-- VERIFIED: 2026-09-09 已完成 STATE/Cell-Eval 指标审计并冻结 `state_cell_eval_reanalysis.v1`。确认历史全局 Pearson、非零距离区分指标和细胞级 MAE 不符合 STATE 官方口径；新增论文兼容 PDS、Pearson Delta、Cell-Eval 0.8.2 适配入口、测试和协议说明，尚未读取新的测试响应或重新训练。
-- VERIFIED: 2026-09-09 新增 `scripts/evaluate_state_d2_cell_eval.py` 的三阶段评价入口及 `src/cd4perturb/state_d2_cell_eval.py` 纯函数指标实现；本地测试为 43 passed、8 skipped，预测缓存和 Cell-Eval 正式结果尚未生成。
+- VERIFIED: 2026-09-09 已完成 STATE/Cell-Eval 指标审计并冻结 `state_cell_eval_reanalysis.v1`。确认历史全局 Pearson、非零距离区分指标和细胞级 MAE 不符合 STATE 官方口径；新增论文兼容 PDS、Pearson Delta、Cell-Eval 0.8.2 适配入口、测试和协议说明。
+- VERIFIED: 2026-09-09 新增 `scripts/evaluate_state_d2_cell_eval.py` 的 `infer`、`metrics`、`summarize` 三阶段入口及 `src/cd4perturb/state_d2_cell_eval.py` 纯函数指标实现；本地回归为 46 passed、9 skipped，脚本编译和差异检查通过。
 - VERIFIED: 2026-09-09 已将重分析入口扩展为 A/B/C 三组对照：新版官方训练集基线、按历史 train+validation 规则重建的旧均值基线，以及六个冻结检查点；增加 PDS/Pearson 主指标的分层自助法证据和 `SUPPORTED/PARTIAL/NOT_SUPPORTED` 诊断。新增构造数据测试覆盖反向效应、条件均值的 PDS 退化和面板外靶基因排除规则。
-- RUNNING: 2026-09-09 已在远端 e3_state 启动一次性六检查点冻结测试流推理；只写入被忽略的预测缓存，不改动权重、合同、面板或划分。推理完成后才运行 Cell-Eval 0.8.2 和正式 A/B/C 汇总。
+- VERIFIED: 2026-09-09 远端一次性重推理缓存已完成并通过元数据、形状、有限值和哈希核验；使用固定测试流种子 `20260909`、每条件128个训练部分 NTC 对照和每组合32个测试输入细胞。18个模型—条件预测文件及三种子六个检查点均未改变。
+- VERIFIED: 2026-09-09 远端 Cell-Eval 0.8.2 全部方法已完成，结果为 `research/state_d2/d2_state_cell_eval_reanalysis.v1.json`、`research/state_d2/D2_STATE_CELL_EVAL_REANALYSIS.md`。正式结果含11个方法、28项指标、1,793个测试组合；JSON严格解析且不含 NaN/Inf。修正后的扰动均值基线有明确的非负截断计数（Rest/Stim8hr/Stim48hr：6,758,913/6,720,367/6,423,652），没有改变模型或真实响应。
+- VERIFIED: 2026-09-09 官方指标重分析结论为 Scratch=`SUPPORTED`、Transfer=`SUPPORTED`：Scratch PDS-L1/Pearson Delta/PR-AUC 为 0.4183/0.5377/0.2262，Transfer 为 0.2550/0.4677/0.0992；两者相对校正条件均值和扰动均值在主要扰动特异性指标上均稳定领先。历史指标有效性固定为 `INVALID_FOR_STATE_COMPARISON`；总体表达误差仍不优于条件均值，`MODEL_STATE_VALID=NOT_EVALUABLE`。
+- VERIFIED: 2026-09-09 远端 `e3_pipeline` 集成测试因该环境未安装 `cell_eval` 跳过；e3_state 已完成同一合成 Cell-Eval 0.8.2 冒烟验证，历史正式评价和新版评价文件均保留，不提交预测矩阵、AnnData、权重或缓存。
 - VERIFIED: 2026-09-06补齐正式HVG检测率审计。训练部分可用细胞数为Rest 1,727,344、Stim8hr 1,843,234、Stim48hr 1,813,531，总数与正式HVG的5,384,109一致；每个HVG统计含Ensembl ID和三条件检测率。最终面板的身份覆盖为Naive 5/5、Th1 3/3、Th2 2/3（缺GATA3，原始名次2073）、Th17 2/3（缺IL23R，原始名次2835）；两者因原始名次未差于5000而不触发强制替换，面板强制数为0。
 - VERIFIED: 2026-09-06新增`D2BatchStream`和`d2-train`入口。流按冻结的基因×背景划分抽取同条件NTC群体背景和扰动响应集合，支持Scratch/Transfer相同批大小64及两阶段优化；Transfer在官方检查点缺少可核实扰动名称时保持扰动投影随机初始化。正式入口已通过20步Scratch/Transfer冒烟，并完成种子20260901全量训练。
 - VERIFIED: 2026-09-06在RTX 4080 SUPER上分别完成Scratch与Transfer真实D2训练流干跑；两者均构建并检查64×32×2000表达/目标张量和64×32×12,171扰动张量，全部有限。训练记录为23,609个组合、验证记录1,822个，面板、词表和划分哈希与冻结合同一致；Transfer干跑确认语义迁移已应用。该干跑不更新权重，也不构成模型性能结论。
