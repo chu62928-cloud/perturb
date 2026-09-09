@@ -31,6 +31,8 @@
 - VERIFIED: 2026-09-09 生成三种子最终汇总脚本`scripts/summarize_state_d2_evaluation.py`、机器可读汇总`research/state_d2/d2_state_final_summary.v1.json`和Markdown报告`research/state_d2/D2_STATE_FINAL_REPORT.md`。报告使用固定种子、20,000次百分位自助法汇总Scratch/Transfer均值、标准差、背景分层和程序方向诊断；`MODEL_STATE_VALID`仍为`NOT_EVALUABLE`，结论为`STATE未超过简单基线`。
 - VERIFIED: 2026-09-09 已完成 STATE/Cell-Eval 指标审计并冻结 `state_cell_eval_reanalysis.v1`。确认历史全局 Pearson、非零距离区分指标和细胞级 MAE 不符合 STATE 官方口径；新增论文兼容 PDS、Pearson Delta、Cell-Eval 0.8.2 适配入口、测试和协议说明，尚未读取新的测试响应或重新训练。
 - VERIFIED: 2026-09-09 新增 `scripts/evaluate_state_d2_cell_eval.py` 的三阶段评价入口及 `src/cd4perturb/state_d2_cell_eval.py` 纯函数指标实现；本地测试为 43 passed、8 skipped，预测缓存和 Cell-Eval 正式结果尚未生成。
+- VERIFIED: 2026-09-09 已将重分析入口扩展为 A/B/C 三组对照：新版官方训练集基线、按历史 train+validation 规则重建的旧均值基线，以及六个冻结检查点；增加 PDS/Pearson 主指标的分层自助法证据和 `SUPPORTED/PARTIAL/NOT_SUPPORTED` 诊断。新增构造数据测试覆盖反向效应、条件均值的 PDS 退化和面板外靶基因排除规则。
+- RUNNING: 2026-09-09 已在远端 e3_state 启动一次性六检查点冻结测试流推理；只写入被忽略的预测缓存，不改动权重、合同、面板或划分。推理完成后才运行 Cell-Eval 0.8.2 和正式 A/B/C 汇总。
 - VERIFIED: 2026-09-06补齐正式HVG检测率审计。训练部分可用细胞数为Rest 1,727,344、Stim8hr 1,843,234、Stim48hr 1,813,531，总数与正式HVG的5,384,109一致；每个HVG统计含Ensembl ID和三条件检测率。最终面板的身份覆盖为Naive 5/5、Th1 3/3、Th2 2/3（缺GATA3，原始名次2073）、Th17 2/3（缺IL23R，原始名次2835）；两者因原始名次未差于5000而不触发强制替换，面板强制数为0。
 - VERIFIED: 2026-09-06新增`D2BatchStream`和`d2-train`入口。流按冻结的基因×背景划分抽取同条件NTC群体背景和扰动响应集合，支持Scratch/Transfer相同批大小64及两阶段优化；Transfer在官方检查点缺少可核实扰动名称时保持扰动投影随机初始化。正式入口已通过20步Scratch/Transfer冒烟，并完成种子20260901全量训练。
 - VERIFIED: 2026-09-06在RTX 4080 SUPER上分别完成Scratch与Transfer真实D2训练流干跑；两者均构建并检查64×32×2000表达/目标张量和64×32×12,171扰动张量，全部有限。训练记录为23,609个组合、验证记录1,822个，面板、词表和划分哈希与冻结合同一致；Transfer干跑确认语义迁移已应用。该干跑不更新权重，也不构成模型性能结论。

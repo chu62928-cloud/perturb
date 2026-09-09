@@ -8,11 +8,15 @@
 
 三种随机种子下的 Scratch 与 Transfer 共六个检查点已经完成训练和封存测试评价。测试集包含 1,793 个组合、57,376 个细胞。最终按预注册闸门得到的结论是：**STATE 未超过最佳简单基线 `condition_mean`**。这表示本协议下的总体表达预测没有达到预设优势，不代表可以据此宣称或否定谱系转换；`MODEL_STATE_VALID` 仍为 `NOT_EVALUABLE`。
 
+由于历史评价把所有测试细胞混合后计算 Pearson，并使用了不符合 STATE 官方定义的区分指标，本仓库新增独立的 `state_cell_eval_reanalysis.v1` 重分析入口。历史 JSON 和报告仍保留为“历史自定义评价”，不得与论文指标直接比较。新版按“扰动×条件”形成伪总体、共享固定 NTC 对照，并调用 `cell-eval==0.8.2` 的官方指标配置；不重新训练，也不改变冻结测试划分。
+
 最终报告与机器可读汇总：
 
 - [D2 STATE 最终评价报告](research/state_d2/D2_STATE_FINAL_REPORT.md)
 - [D2 STATE 汇总 JSON](research/state_d2/d2_state_final_summary.v1.json)
 - [封存测试评价 JSON](research/state_d2/d2_state_test_evaluation.json)
+- [STATE 官方指标审计](research/state_d2/STATE_METRICS_AUDIT.md)
+- [官方指标重分析协议](research/state_d2/state_cell_eval_reanalysis.v1.json)
 - [完整流水线说明](README_PIPELINE.md)
 
 ## 重新生成汇总报告
@@ -25,6 +29,31 @@ python scripts/summarize_state_d2_evaluation.py `
   --input research/state_d2/d2_state_test_evaluation.json `
   --output-json research/state_d2/d2_state_final_summary.v1.json `
   --output-md research/state_d2/D2_STATE_FINAL_REPORT.md
+```
+
+官方指标重分析分为一次推理缓存和指标评价两个阶段。下面的路径示例使用远端 `e3_state` 环境；完整参数必须与冻结协议中的面板、词表、划分、合同和检查点一致：
+
+```powershell
+$env:PYTHONPATH = "src"
+python scripts/evaluate_state_d2_cell_eval.py --phase infer `
+  --paths config/d2_paths.json --gene-panel research/state_d2/d2_gene_panel_2000.json `
+  --vocab research/state_d2/d2_perturbation_vocab.json --splits research/state_d2/splits/d2_splits.json `
+  --training-root <冻结检查点目录> --official-checkpoint <官方检查点> `
+  --transfer-report research/state_d2/transfer_report.json `
+  --contracts research/state_d2/training_contracts.json `
+  --prediction-root <被.gitignore忽略的预测缓存> `
+  --output research/state_d2/d2_state_cell_eval_reanalysis.v1.json
+
+python scripts/evaluate_state_d2_cell_eval.py --phase metrics `
+  --paths config/d2_paths.json --gene-panel research/state_d2/d2_gene_panel_2000.json `
+  --vocab research/state_d2/d2_perturbation_vocab.json --splits research/state_d2/splits/d2_splits.json `
+  --training-root <冻结检查点目录> --official-checkpoint <官方检查点> `
+  --transfer-report research/state_d2/transfer_report.json `
+  --contracts research/state_d2/training_contracts.json `
+  --prediction-root <同一预测缓存> `
+  --output research/state_d2/d2_state_cell_eval_reanalysis.v1.json `
+  --old-evaluation research/state_d2/d2_state_test_evaluation.json `
+  --report-md research/state_d2/D2_STATE_CELL_EVAL_REANALYSIS.md
 ```
 
 报告中的三种子区间采用固定随机种子和 20,000 次百分位自助法重采样；重采样单位是三个冻结随机种子，因此应理解为种子稳定性区间，而不是供者或细胞总体的置信区间。

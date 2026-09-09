@@ -330,6 +330,47 @@ def _fit_official_mean_baselines(args: argparse.Namespace, panel: Sequence[str],
     }
 
 
+def _fit_historical_mean_baselines(args: argparse.Namespace, panel: Sequence[str], names: Sequence[str], splits: Mapping[str, Any], paths: Sequence[str]) -> dict[str, Any]:
+    """Reconstruct the historical v1 mean baselines without test responses.
+
+    The old evaluator fitted target-expression means on train *and* validation
+    records and included NTC records in the condition mean.  These methods are
+    intentionally kept under separate names: they are only the B-comparison
+    control for the metric audit and are not the corrected official baselines.
+    """
+    condition_sum: dict[str, np.ndarray] = {}
+    condition_count: dict[str, int] = {}
+    gene_sum: dict[str, np.ndarray] = {}
+    gene_count: dict[str, int] = {}
+    streams = []
+    try:
+        for split, seed in (("train", 20260901), ("validation", 20260902)):
+            stream = D2BatchStream(
+                paths, panel, names, splits, split=split, batch_size=args.batch_size,
+                set_len=32, seed=seed, device=None, cache_expression=True,
+                cache_max_bytes=args.cache_max_bytes,
+            )
+            streams.append(stream)
+            for batch in stream.iter_records(seed=seed):
+                target = batch["target"].cpu().numpy().astype(np.float64, copy=False)
+                for index, (gene, condition) in enumerate(zip(batch["perturbation_names"], batch["conditions"])):
+                    cells = target[index]
+                    condition = str(condition)
+                    gene = str(gene)
+                    condition_sum[condition] = condition_sum.get(condition, np.zeros(len(panel))) + cells.sum(axis=0)
+                    condition_count[condition] = condition_count.get(condition, 0) + cells.shape[0]
+                    gene_sum[gene] = gene_sum.get(gene, np.zeros(len(panel))) + cells.sum(axis=0)
+                    gene_count[gene] = gene_count.get(gene, 0) + cells.shape[0]
+    finally:
+        for stream in streams:
+            stream.close()
+    return {
+        "condition_mean": {key: condition_sum[key] / condition_count[key] for key in condition_sum},
+        "perturbation_mean": {key: gene_sum[key] / gene_count[key] for key in gene_sum},
+        "fit_split": "train_plus_validation_historical_v1",
+    }
+
+
 def _build_anndata(real: np.ndarray, pred: np.ndarray, ntc: np.ndarray, genes: Sequence[str], perts: Sequence[str]):
     import anndata as ad
     import pandas as pd
@@ -405,7 +446,14 @@ def run_metrics(args: argparse.Namespace) -> dict[str, Any]:
     names = list(vocab_payload["perturbation_names"])
     entries = _load_entries(cache_root / "test_entries.json")
     official_baselines = _fit_official_mean_baselines(args, panel, names, splits, paths)
-    results: dict[str, Any] = {"protocol": protocol, "models": {}, "baselines": {}, "official_baseline_fit": official_baselines["fit_split"]}
+    historical_baselines = _fit_historical_mean_baselines(args, panel, names, splits, paths)
+    results: dict[str, Any] = {
+        "protocol": protocol,
+        "models": {},
+        "baselines": {},
+        "official_baseline_fit": official_baselines["fit_split"],
+        "historical_baseline_fit": historical_baselines["fit_split"],
+    }
     per_condition_cache: dict[str, dict[str, Any]] = {}
     for condition in CONDITIONS:
         condition_entries = [entry for entry in entries if entry["condition"] == condition]
@@ -416,7 +464,10 @@ def run_metrics(args: argparse.Namespace) -> dict[str, Any]:
         per_condition_cache[condition] = {"real": real, "ntc": ntc, "perts": perts}
 
     methods = [f"{mode}_seed_{seed}" for mode in MODES for seed in SEEDS]
-    methods.extend(["condition_mean", "perturbation_mean", "no_change"])
+    methods.extend([
+        "condition_mean", "perturbation_mean", "no_change",
+        "old_condition_mean", "old_perturbation_mean",
+    ])
     for method in methods:
         results["models"][method] = {"conditions": {}, "macro": {}}
         for condition in CONDITIONS:
@@ -424,10 +475,14 @@ def run_metrics(args: argparse.Namespace) -> dict[str, Any]:
             real = payload["real"]
             ntc = payload["ntc"]
             perts = payload["perts"]
-            if method in {"condition_mean", "perturbation_mean", "no_change"}:
+            if method in {
+                "condition_mean", "perturbation_mean", "no_change",
+                "old_condition_mean", "old_perturbation_mean",
+            }:
                 expression = np.load(cache_root / f"real_{condition}.npz", allow_pickle=False)["expression"]
-                if method == "condition_mean":
-                    condition_mean = official_baselines["condition_mean"].get(condition)
+                if method in {"condition_mean", "old_condition_mean"}:
+                    baseline_source = official_baselines if method == "condition_mean" else historical_baselines
+                    condition_mean = baseline_source["condition_mean"].get(condition)
                     if condition_mean is None:
                         raise ValueError(f"missing train condition mean for {condition}")
                     pred = np.repeat(condition_mean[None, None, :], len(perts), axis=0)
@@ -437,6 +492,15 @@ def run_metrics(args: argparse.Namespace) -> dict[str, Any]:
                     for index, gene in enumerate(perts):
                         offset = official_baselines["perturbation_delta"].get(gene, np.zeros(len(panel)))
                         pred[index] = expression[index] + offset[None, :]
+                elif method == "old_perturbation_mean":
+                    pred = np.empty_like(expression)
+                    for index, gene in enumerate(perts):
+                        mean = historical_baselines["perturbation_mean"].get(gene)
+                        if mean is None:
+                            mean = historical_baselines["condition_mean"].get(condition)
+                        if mean is None:
+                            raise ValueError(f"missing historical baseline for {gene} / {condition}")
+                        pred[index] = mean[None, :]
                 else:
                     pred = expression.copy()
             else:
@@ -477,6 +541,18 @@ def run_metrics(args: argparse.Namespace) -> dict[str, Any]:
             values = [results["models"][method]["conditions"][condition]["macro_metrics"].get(metric, float("nan")) for condition in CONDITIONS]
             finite = [value for value in values if np.isfinite(value)]
             results["models"][method]["macro"][metric] = float(np.mean(finite)) if finite else float("nan")
+    results["baseline_fit_hashes"] = {
+        "official": _json_hash({
+            "fit_split": official_baselines["fit_split"],
+            "conditions": sorted(official_baselines["condition_mean"]),
+            "perturbations": sorted(official_baselines["perturbation_delta"]),
+        }),
+        "historical": _json_hash({
+            "fit_split": historical_baselines["fit_split"],
+            "conditions": sorted(historical_baselines["condition_mean"]),
+            "perturbations": sorted(historical_baselines["perturbation_mean"]),
+        }),
+    }
     return results
 
 
@@ -496,6 +572,192 @@ def _bootstrap_mean(values: Sequence[float], seed: int, reps: int = 20000) -> di
     }
 
 
+def _hierarchical_ci(matrix: Sequence[Sequence[float]], seed: int, reps: int = 20000) -> list[float] | None:
+    """Seed→condition bootstrap over already perturbation-macro-averaged values."""
+    values = np.asarray(matrix, dtype=float)
+    if values.ndim != 2 or values.size == 0:
+        return None
+    if not np.isfinite(values).any():
+        return None
+    values = np.where(np.isfinite(values), values, np.nan)
+    rng = np.random.default_rng(seed)
+    sampled = np.empty(reps, dtype=float)
+    n_seed, n_condition = values.shape
+    for index in range(reps):
+        seed_indices = rng.integers(0, n_seed, size=n_seed)
+        draw = []
+        for seed_index in seed_indices:
+            condition_indices = rng.integers(0, n_condition, size=n_condition)
+            draw.extend(values[seed_index, condition_indices].tolist())
+        draw = np.asarray(draw, dtype=float)
+        sampled[index] = np.nanmean(draw) if np.isfinite(draw).any() else np.nan
+    sampled = sampled[np.isfinite(sampled)]
+    if sampled.size == 0:
+        return None
+    return [float(np.quantile(sampled, 0.025)), float(np.quantile(sampled, 0.975))]
+
+
+_HIGHER_IS_BETTER = {
+    "pds_l1_paper", "pearson_delta", "pearson_delta_absolute_text",
+    "pr_auc", "roc_auc", "de_spearman_sig", "de_spearman_lfc_sig",
+    "overlap_at_N", "overlap_at_50", "overlap_at_100", "overlap_at_200", "overlap_at_500",
+    "precision_at_N", "precision_at_50", "precision_at_100", "precision_at_200", "precision_at_500",
+    "de_direction_match", "de_sig_genes_recall",
+    "discrimination_score_l1", "discrimination_score_l2", "discrimination_score_cosine",
+}
+_STATE_CORE_METRICS = (
+    "pds_l1_paper", "pearson_delta", "pr_auc", "de_spearman_lfc_sig",
+    "overlap_at_N", "de_spearman_sig",
+)
+_OLD_METRICS = ("pseudobulk_pearson", "perturbation_discrimination", "mae")
+
+
+def _condition_matrix(payload: Mapping[str, Any], method: str, metric: str) -> list[list[float]]:
+    """Return seed×condition values, repeating a fixed baseline across seeds."""
+    if method in payload["models"] and method.startswith(("Scratch_seed_", "Transfer_seed_")):
+        mode, seed_text = method.split("_seed_")
+        seed = int(seed_text)
+        return [[float(payload["models"][method]["conditions"][condition]["macro_metrics"].get(metric, np.nan))
+                 for condition in CONDITIONS] for _ in [seed]]
+    return [[float(payload["models"][method]["conditions"][condition]["macro_metrics"].get(metric, np.nan))
+             for condition in CONDITIONS] for _ in SEEDS]
+
+
+def _state_mode_matrix(payload: Mapping[str, Any], mode: str, metric: str) -> np.ndarray:
+    return np.asarray([
+        [payload["models"][f"{mode}_seed_{seed}"]["conditions"][condition]["macro_metrics"].get(metric, np.nan)
+         for condition in CONDITIONS]
+        for seed in SEEDS
+    ], dtype=float)
+
+
+def _baseline_condition_vector(payload: Mapping[str, Any], method: str, metric: str) -> np.ndarray:
+    return np.asarray([
+        payload["models"][method]["conditions"][condition]["macro_metrics"].get(metric, np.nan)
+        for condition in CONDITIONS
+    ], dtype=float)
+
+
+def _oriented_advantage(metric: str, state: float, baseline: float) -> float:
+    """Positive means that STATE is better for this metric."""
+    if not (np.isfinite(state) and np.isfinite(baseline)):
+        return float("nan")
+    return float(state - baseline) if metric in _HIGHER_IS_BETTER else float(baseline - state)
+
+
+def _official_evidence(payload: Mapping[str, Any], mode: str, baseline: str, metric: str, seed: int) -> dict[str, Any]:
+    state = _state_mode_matrix(payload, mode, metric)
+    base = _baseline_condition_vector(payload, baseline, metric)
+    differences = state - base[None, :]
+    if metric not in _HIGHER_IS_BETTER:
+        differences = -differences
+    condition_means = np.nanmean(differences, axis=0)
+    seed_means = np.nanmean(differences, axis=1)
+    finite_condition = condition_means[np.isfinite(condition_means)]
+    finite_seed = seed_means[np.isfinite(seed_means)]
+    ci = _hierarchical_ci(differences, seed=seed)
+    return {
+        "mode": mode,
+        "baseline": baseline,
+        "metric": metric,
+        "condition_advantage": {condition: (float(value) if np.isfinite(value) else None)
+                                for condition, value in zip(CONDITIONS, condition_means)},
+        "positive_conditions": int(np.sum(finite_condition > 0)),
+        "n_conditions": int(finite_condition.size),
+        "seed_advantage": [float(value) for value in finite_seed],
+        "seed_ci95": _bootstrap_mean(finite_seed.tolist(), seed + 1),
+        "hierarchical_ci95": ci,
+        "supported": bool(
+            finite_condition.size == len(CONDITIONS)
+            and int(np.sum(finite_condition > 0)) >= 2
+            and ci is not None
+            and ci[0] > 0
+        ),
+    }
+
+
+def _historical_comparison(old_payload: Mapping[str, Any] | None) -> dict[str, Any] | None:
+    if not old_payload:
+        return None
+    baseline_name = str(old_payload.get("best_baseline", "condition_mean"))
+    baseline = old_payload.get("baseline_results", {}).get(baseline_name, {})
+    comparisons: dict[str, Any] = {}
+    for mode in MODES:
+        rows = []
+        for seed in SEEDS:
+            key = f"{mode}_seed_{seed}"
+            model = old_payload.get("models", {}).get(key)
+            if not model:
+                continue
+            row = {metric: _oriented_advantage(metric, float(model.get(metric, np.nan)), float(baseline.get(metric, np.nan)))
+                   for metric in _OLD_METRICS}
+            row["model"] = key
+            rows.append(row)
+        comparisons[mode] = rows
+    return {
+        "baseline": baseline_name,
+        "state_minus_baseline_oriented": comparisons,
+        "source_version": old_payload.get("version"),
+        "validity": "historical_custom_metrics_only",
+    }
+
+
+def _diagnose_metric_mismatch(payload: Mapping[str, Any], old_payload: Mapping[str, Any] | None) -> dict[str, Any]:
+    evidence: dict[str, Any] = {}
+    for mode_index, mode in enumerate(MODES):
+        evidence[mode] = {}
+        for metric_index, metric in enumerate(("pds_l1_paper", "pearson_delta")):
+            evidence[mode][metric] = {
+                baseline: _official_evidence(payload, mode, baseline, metric, 20262000 + mode_index * 100 + metric_index * 10)
+                for baseline in ("condition_mean", "perturbation_mean")
+            }
+    de_evidence: dict[str, Any] = {}
+    for mode_index, mode in enumerate(MODES):
+        de_evidence[mode] = {}
+        for metric_index, metric in enumerate(("pr_auc", "de_spearman_lfc_sig", "overlap_at_N", "de_spearman_sig")):
+            de_evidence[mode][metric] = _official_evidence(
+                payload, mode, "condition_mean", metric, 20262500 + mode_index * 100 + metric_index
+            )
+    labels: dict[str, str] = {}
+    details: dict[str, Any] = {}
+    historical = _historical_comparison(old_payload)
+    for mode in MODES:
+        old_rows = (historical or {}).get("state_minus_baseline_oriented", {}).get(mode, [])
+        old_leads = any(
+            row.get("pseudobulk_pearson", float("nan")) < 0
+            or row.get("mae", float("nan")) < 0
+            for row in old_rows
+        )
+        primary_supported = any(
+            all(evidence[mode][metric][baseline]["supported"] for baseline in ("condition_mean", "perturbation_mean"))
+            for metric in ("pds_l1_paper", "pearson_delta")
+        )
+        de_supported = any(de_evidence[mode][metric]["supported"] for metric in de_evidence[mode])
+        reversal = any(
+            any(value["positive_conditions"] > 0 for value in evidence[mode][metric].values())
+            for metric in evidence[mode]
+        ) or de_supported
+        if old_leads and primary_supported:
+            labels[mode] = "SUPPORTED"
+        elif reversal:
+            labels[mode] = "PARTIAL"
+        else:
+            labels[mode] = "NOT_SUPPORTED"
+        details[mode] = {
+            "old_metric_baseline_lead": old_leads,
+            "primary_metric_supported_after_correction": primary_supported,
+            "de_metric_supported_against_condition_mean": de_supported,
+        }
+    return {
+        "labels": labels,
+        "details": details,
+        "primary_evidence": evidence,
+        "de_evidence": de_evidence,
+        "historical_comparison": historical,
+        "old_metric_validity": "INVALID_FOR_STATE_COMPARISON",
+    }
+
+
 def summarize_results(payload: Mapping[str, Any], old_payload: Mapping[str, Any] | None = None) -> dict[str, Any]:
     methods = list(payload["models"])
     metrics = sorted({metric for method in methods for metric in payload["models"][method]["macro"]})
@@ -508,14 +770,17 @@ def summarize_results(payload: Mapping[str, Any], old_payload: Mapping[str, Any]
             )
             for metric_index, metric in enumerate(metrics)
         }
-    state_methods = [f"{mode}_seed_{seed}" for mode in MODES for seed in SEEDS]
     mode_summary: dict[str, Any] = {}
     for mode in MODES:
         keys = [f"{mode}_seed_{seed}" for seed in SEEDS]
         mode_summary[mode] = {}
         for metric in metrics:
             values = [payload["models"][key]["macro"].get(metric, float("nan")) for key in keys]
-            mode_summary[mode][metric] = _bootstrap_mean(values, 20261000 + len(mode_summary[mode]))
+            summary = _bootstrap_mean(values, 20261000 + len(mode_summary[mode]))
+            summary["hierarchical_ci95"] = _hierarchical_ci(
+                _state_mode_matrix(payload, mode, metric), 20261100 + len(mode_summary[mode])
+            )
+            mode_summary[mode][metric] = summary
     baseline_names = ["condition_mean", "perturbation_mean"]
     comparisons: dict[str, Any] = {}
     for mode in MODES:
@@ -527,6 +792,18 @@ def summarize_results(payload: Mapping[str, Any], old_payload: Mapping[str, Any]
                 if state_value is not None and np.isfinite(payload["models"][baseline]["macro"].get(metric, float("nan"))) else None
                 for baseline in baseline_names
             }
+    baseline_summary = {
+        name: {
+            metric: {
+                "mean": payload["models"][name]["macro"].get(metric),
+                "condition_values": [payload["models"][name]["conditions"][condition]["macro_metrics"].get(metric, np.nan)
+                                     for condition in CONDITIONS],
+            }
+            for metric in metrics
+        }
+        for name in baseline_names
+    }
+    diagnosis = _diagnose_metric_mismatch(payload, old_payload)
     return {
         "version": "state_cell_eval_reanalysis_summary.v1",
         "protocol": payload["protocol"],
@@ -534,11 +811,97 @@ def summarize_results(payload: Mapping[str, Any], old_payload: Mapping[str, Any]
         "aggregate_by_method": aggregate,
         "aggregate_by_mode": mode_summary,
         "official_baselines": {name: payload["models"][name]["macro"] for name in baseline_names},
+        "historical_baselines": {
+            name: payload["models"][name]["macro"]
+            for name in ("old_condition_mean", "old_perturbation_mean")
+            if name in payload["models"]
+        },
+        "baseline_summary": baseline_summary,
         "state_minus_baseline": comparisons,
         "old_metric_validity": "INVALID_FOR_STATE_COMPARISON",
-        "metric_mismatch_diagnosis": "PENDING_FORMAL_COMPARISON",
+        "metric_mismatch_diagnosis": diagnosis,
         "historical_evaluation_version": "d2_state_test_evaluation.v1" if old_payload else None,
     }
+
+
+def render_report(document: Mapping[str, Any]) -> str:
+    """Render a compact, source-grounded Markdown report from the JSON result."""
+    evaluation = document["evaluation"]
+    summary = document["summary"]
+    protocol = summary["protocol"]
+    lines = [
+        "# D2 STATE 官方指标重分析报告",
+        "",
+        "本报告只重新推理和评价六个已冻结检查点；没有重新训练，也没有修改面板、扰动词表、划分或历史评价文件。",
+        "",
+        f"- 协议：`{protocol.get('version')}`；Cell-Eval：`{protocol.get('cell_eval_version')}`",
+        f"- 测试记录：{protocol.get('test_records')} 个组合；固定测试流种子：`{protocol.get('test_stream_seed')}`",
+        f"- 基因顺序哈希：`{protocol.get('gene_order_hash')}`",
+        f"- 扰动词表哈希：`{protocol.get('perturbation_vocab_hash')}`",
+        f"- 划分哈希：`{protocol.get('split_hash')}`",
+        f"- 固定对照：每条件 {protocol.get('fixed_ntc_cells_per_condition')} 个训练部分 NTC 细胞；每个测试组合 {protocol.get('set_len')} 个测试输入细胞",
+        "",
+        "## 评价口径",
+        "",
+        "论文主指标按扰动形成伪总体后，在条件内对扰动宏平均，再对三个条件等权平均。PDS 使用绝对扰动效应、L1 距离并排除靶基因，报告 `1−2×rank/T`；Pearson Delta 主分析使用带符号的扰动−NTC变化。Cell-Eval 0.8.2 完整配置同时保留差异表达、误差、重叠和当前版 PDS 指标；按官方预测入口跳过 `pearson_edistance` 与 `clustering_agreement`。",
+        "",
+        "## 三种子结果",
+        "",
+        "| 方法 | PDS-L1（均值） | Pearson Delta（均值） | PR-AUC（均值） | DE LFC Spearman（均值） |",
+        "|---|---:|---:|---:|---:|",
+    ]
+    for method in ("Scratch", "Transfer"):
+        values = summary["aggregate_by_mode"][method]
+        cells = []
+        for metric in ("pds_l1_paper", "pearson_delta", "pr_auc", "de_spearman_lfc_sig"):
+            item = values.get(metric, {})
+            ci = item.get("hierarchical_ci95") or item.get("ci95")
+            cells.append("NA" if item.get("mean") is None else f"{item['mean']:.4f} [{ci[0]:.4f}, {ci[1]:.4f}]" if ci else f"{item['mean']:.4f}")
+        lines.append(f"| {method} | " + " | ".join(cells) + " |")
+    for name in ("condition_mean", "perturbation_mean"):
+        base = summary["official_baselines"].get(name, {})
+        cells = ["NA" if base.get(metric) is None else f"{base[metric]:.4f}" for metric in ("pds_l1_paper", "pearson_delta", "pr_auc", "de_spearman_lfc_sig")]
+        lines.append(f"| {name}（校正） | " + " | ".join(cells) + " |")
+    lines.extend([
+        "",
+        "区间是固定三个种子的分层自助法区间：先在扰动层做条件内宏平均，再按种子和条件重采样；它不是供者泛化区间。每个条件的有限扰动数和全部 Cell-Eval 指标保存在机器可读 JSON 及远端缓存中。",
+        "",
+        "## A/B/C 原因分解",
+        "",
+        "- **A：历史自定义指标＋历史基线。** 历史全局 Pearson、非零距离区分指标和细胞级 MAE 仅作旧结果对照，不能解释为 STATE 论文指标。",
+        "- **B：官方指标＋历史基线。** `old_condition_mean` 和 `old_perturbation_mean` 按旧版 train+validation 拟合规则单独重建，和新版指标并行计算。",
+        "- **C：官方指标＋校正基线。** `condition_mean` 和 `perturbation_mean` 只使用训练部分，作为最终公平比较。",
+        "",
+        f"历史指标有效性固定为：`{summary.get('old_metric_validity')}`。",
+        "",
+        "| 模式 | 结论 | 解释摘要 |",
+        "|---|---|---|",
+    ])
+    diagnosis = summary["metric_mismatch_diagnosis"]
+    for mode in MODES:
+        detail = diagnosis["details"][mode]
+        label = diagnosis["labels"][mode]
+        text = (
+            f"历史基线领先={detail['old_metric_baseline_lead']}；"
+            f"PDS/Pearson 经校正后稳定支持={detail['primary_metric_supported_after_correction']}；"
+            f"差异表达指标支持={detail['de_metric_supported_against_condition_mean']}"
+        )
+        lines.append(f"| {mode} | **{label}** | {text} |")
+    lines.extend([
+        "",
+        "如果新版主扰动特异性指标仍未稳定超过校正基线，本轮只能判定为 `NOT_SUPPORTED`，不能根据测试集结果修改训练或重新选择检查点。`MODEL_STATE_VALID` 仍保持 `NOT_EVALUABLE`。",
+        "",
+        "## 复现",
+        "",
+        "```powershell",
+        "$env:PYTHONPATH = 'src'",
+        "python scripts/evaluate_state_d2_cell_eval.py --phase infer ...",
+        "python scripts/evaluate_state_d2_cell_eval.py --phase metrics ... --report-md research/state_d2/D2_STATE_CELL_EVAL_REANALYSIS.md",
+        "```",
+        "",
+        "历史文件 `research/state_d2/d2_state_test_evaluation.json` 和 `D2_STATE_FINAL_REPORT.md` 未覆盖。",
+    ])
+    return "\n".join(lines) + "\n"
 
 
 def main() -> int:
@@ -554,6 +917,7 @@ def main() -> int:
     parser.add_argument("--contracts", required=True)
     parser.add_argument("--prediction-root", required=True)
     parser.add_argument("--output", required=True)
+    parser.add_argument("--report-md", default=None)
     parser.add_argument("--old-evaluation", default=None)
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--control-cells", type=int, default=128)
@@ -569,7 +933,12 @@ def main() -> int:
         summary = summarize_results(result, old_payload)
         output = Path(args.output)
         output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(json.dumps({"evaluation": result, "summary": summary}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        document = {"evaluation": result, "summary": summary}
+        output.write_text(json.dumps(document, ensure_ascii=False, indent=2, allow_nan=True) + "\n", encoding="utf-8")
+        if args.report_md:
+            report_path = Path(args.report_md)
+            report_path.parent.mkdir(parents=True, exist_ok=True)
+            report_path.write_text(render_report(document), encoding="utf-8")
         print(json.dumps({"output": str(output), "version": PROTOCOL_VERSION, "methods": sorted(result["models"])}, ensure_ascii=False, indent=2))
     return 0
 

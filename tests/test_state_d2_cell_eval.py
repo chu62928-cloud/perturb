@@ -62,3 +62,39 @@ def test_context_summary_reports_finite_counts():
     assert summary.n_perturbations == 2
     assert summary.finite_counts == {"pearson_delta": 1}
     assert summary.macro_metrics["pearson_delta"] == pytest.approx(1.0)
+
+
+def test_absolute_pds_and_signed_delta_separate_opposite_direction():
+    genes = ["A", "B", "C"]
+    perts = ["A", "B"]
+    control = np.zeros((2, 3), dtype=float)
+    real = np.asarray([[0.0, 2.0, 0.0], [0.0, 0.0, 3.0]])
+    opposite = -real
+    pds = paper_pds_l1(real, opposite, control, control, genes, perts)
+    signed = paper_pearson_delta(real, opposite, control, control, genes, perts)
+    # Paper-era PDS is deliberately absolute; the operational Pearson Delta
+    # remains signed and therefore catches the direction reversal.
+    assert pds["A"] == pytest.approx(1.0)
+    assert pds["B"] == pytest.approx(1.0)
+    assert signed["A"] == pytest.approx(-1.0)
+    assert signed["B"] == pytest.approx(-1.0)
+
+
+def test_condition_mean_like_zero_effect_does_not_get_fake_perfect_pds():
+    genes = ["A", "B", "C", "D"]
+    perts = ["A", "B", "C"]
+    control = np.zeros((3, 4), dtype=float)
+    real = np.asarray([[0.0, 2.0, 0.0, 0.0], [0.0, 0.0, 3.0, 0.0], [0.0, 0.0, 0.0, 4.0]])
+    predicted = np.zeros_like(real)
+    pds = paper_pds_l1(real, predicted, control, control, genes, perts)
+    assert any(value < 1.0 for value in pds.values())
+
+
+def test_target_exclusion_only_applies_to_a_measured_target_gene():
+    genes = ["A", "B", "C"]
+    perts = ["NOT_IN_PANEL"]
+    real = np.asarray([[0.0, 2.0, 0.0]])
+    pred = real.copy()
+    control = np.zeros_like(real)
+    result = paper_pds_l1(real, pred, control, control, genes, perts)
+    assert result["NOT_IN_PANEL"] == pytest.approx(1.0)
