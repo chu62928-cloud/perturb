@@ -22,7 +22,8 @@ def pseudobulk_pearson(real: np.ndarray, predicted: np.ndarray) -> float:
 
 
 def perturbation_discrimination(real: np.ndarray, predicted: np.ndarray,
-                                perturbations: Sequence[str]) -> float:
+                                perturbations: Sequence[str], *,
+                                max_pairs: int | None = 10000) -> float:
     """Fraction of perturbation pairs whose predicted separation has correct order."""
     real, predicted = map(lambda x: np.asarray(x, dtype=float), (real, predicted))
     labels = np.asarray(perturbations, dtype=str)
@@ -33,13 +34,18 @@ def perturbation_discrimination(real: np.ndarray, predicted: np.ndarray,
         return 1.0
     true_means = {group: real[labels == group].mean(axis=0) for group in groups}
     pred_means = {group: predicted[labels == group].mean(axis=0) for group in groups}
+    pairs = [(i, j) for i, _ in enumerate(groups) for j in range(i + 1, len(groups))]
+    if max_pairs is not None and len(pairs) > int(max_pairs):
+        rng = np.random.default_rng(20260901)
+        selected = rng.choice(len(pairs), size=int(max_pairs), replace=False)
+        pairs = [pairs[int(index)] for index in selected]
     outcomes = []
-    for i, left in enumerate(groups):
-        for right in groups[i + 1:]:
-            true_gap = np.linalg.norm(true_means[left] - true_means[right])
-            pred_gap = np.linalg.norm(pred_means[left] - pred_means[right])
-            outcomes.append(float((true_gap <= 1e-12 and pred_gap <= 1e-12) or
-                                  (true_gap > 1e-12 and pred_gap > 0.0)))
+    for left_index, right_index in pairs:
+        left, right = groups[left_index], groups[right_index]
+        true_gap = np.linalg.norm(true_means[left] - true_means[right])
+        pred_gap = np.linalg.norm(pred_means[left] - pred_means[right])
+        outcomes.append(float((true_gap <= 1e-12 and pred_gap <= 1e-12) or
+                              (true_gap > 1e-12 and pred_gap > 0.0)))
     return float(np.mean(outcomes)) if outcomes else 1.0
 
 
@@ -52,10 +58,18 @@ def evaluate_d2_predictions(real: np.ndarray, predicted: np.ndarray,
     cond = np.asarray(conditions, dtype=str)
     if real.shape != predicted.shape or len(labels) != len(real) or len(cond) != len(real):
         raise ValueError("D2 evaluation arrays do not align")
+    distribution_real, distribution_predicted = real, predicted
+    distribution_sample_n = min(len(real), 10000)
+    if len(real) > distribution_sample_n:
+        sample = np.random.default_rng(20260901).choice(len(real), size=distribution_sample_n,
+                                                         replace=False)
+        distribution_real = real[sample]
+        distribution_predicted = predicted[sample]
     result = {"pseudobulk_pearson": pseudobulk_pearson(real, predicted),
               "perturbation_discrimination": perturbation_discrimination(real, predicted, labels),
               "summary": summarize(real, predicted).__dict__,
-              "distribution": distribution_metrics(real, predicted),
+              "distribution": distribution_metrics(distribution_real, distribution_predicted),
+              "distribution_sample_n": int(distribution_sample_n),
               "by_condition": {}}
     for condition in sorted(set(cond)):
         mask = cond == condition

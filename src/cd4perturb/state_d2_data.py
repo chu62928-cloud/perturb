@@ -509,6 +509,84 @@ class D2BatchStream:
                    "perturbation_names": batch_genes,
                    "split": self.split, "d2_responses_used": True}
 
+    def iter_records(self, *, seed: int | None = None,
+                     batch_size: int | None = None,
+                     records: Iterable[tuple[str, str]] | None = None):
+        """Yield each frozen record once in a deterministic finite stream.
+
+        Training uses :meth:`iter_from`, which deliberately samples records
+        with replacement.  Test evaluation must instead cover the same
+        held-out gene-by-background combinations for every model and every
+        baseline.  This iterator keeps the sampling of the 32 cells per
+        combination deterministic while never sampling a test combination
+        twice.  ``records`` is restricted to this stream's split and is
+        useful for constructing a train/validation-only baseline fit.
+        """
+        try:
+            import torch
+        except ImportError as exc:  # pragma: no cover
+            raise RuntimeError("finite D2 evaluation requires PyTorch") from exc
+        size = int(batch_size or self.batch_size)
+        if size <= 0:
+            raise ValueError("batch_size must be positive")
+        allowed = set(self.records)
+        selected = list(records) if records is not None else list(self.records)
+        selected = [(str(gene), str(condition)) for gene, condition in selected]
+        if any(record not in allowed for record in selected):
+            raise ValueError("finite records must belong to the selected D2 split")
+        rng = np.random.default_rng(self.seed if seed is None else int(seed))
+        for start in range(0, len(selected), size):
+            chunk = selected[start:start + size]
+            expressions = np.zeros((len(chunk), self.set_len, len(self.panel)), dtype=np.float32)
+            targets = np.zeros_like(expressions)
+            perturbations = np.zeros((len(chunk), self.set_len, len(self.names)), dtype=np.float32)
+            grouped: dict[str, list[tuple[int, str, np.ndarray, np.ndarray]]] = {}
+            batch_genes = [gene for gene, _ in chunk]
+            batch_conditions = [condition for _, condition in chunk]
+            record_keys = [f"{gene}|{condition}" for gene, condition in chunk]
+            for batch_index, (gene, condition) in enumerate(chunk):
+                target_pool = self._rows[(gene, condition)]
+                control_pool = self._rows[("NTC", condition)]
+                target_rows = rng.choice(target_pool, size=self.set_len, replace=False)
+                control_rows = rng.choice(control_pool, size=self.set_len, replace=False)
+                grouped.setdefault(condition, []).append(
+                    (batch_index, gene, control_rows, target_rows))
+                perturbations[batch_index, :, self.name_to_index[gene]] = 1.0
+            for condition, entries in grouped.items():
+                control_rows, control_values = self._expression_pool("NTC", condition)
+                target_pools = {
+                    gene: self._expression_pool(gene, condition)
+                    for gene in {entry[1] for entry in entries}
+                }
+                for batch_index, gene, selected_controls, selected_targets in entries:
+                    control_indices = np.searchsorted(control_rows, selected_controls)
+                    target_rows, target_values = target_pools[gene]
+                    target_indices = np.searchsorted(target_rows, selected_targets)
+                    if (np.any(control_indices >= len(control_rows)) or
+                            np.any(control_rows[control_indices] != selected_controls) or
+                            np.any(target_indices >= len(target_rows)) or
+                            np.any(target_rows[target_indices] != selected_targets)):
+                        raise RuntimeError("D2 expression pool rows are not sorted or missing")
+                    expressions[batch_index] = control_values[control_indices]
+                    targets[batch_index] = target_values[target_indices]
+            tensors = {
+                "expression": torch.from_numpy(expressions),
+                "perturbation": torch.from_numpy(perturbations),
+                "target": torch.from_numpy(targets),
+            }
+            if self.pin_memory:
+                for key, value in tensors.items():
+                    try:
+                        tensors[key] = value.pin_memory()
+                    except RuntimeError:
+                        pass
+            if self.device is not None:
+                tensors = {key: value.to(self.device, non_blocking=self.pin_memory)
+                           for key, value in tensors.items()}
+            yield {**tensors, "perturbation_names": batch_genes,
+                   "conditions": batch_conditions, "record_keys": record_keys,
+                   "split": self.split, "d2_responses_used": True}
+
     def __iter__(self):
         return self.iter_from(0)
 
