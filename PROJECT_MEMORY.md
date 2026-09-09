@@ -2,7 +2,7 @@
 
 ## Last verified
 
-- 2026-09-09T12:43+08:00
+- 2026-09-09T12:45+08:00
 
 ## Objective
 
@@ -173,7 +173,7 @@
 - 2026-09-09T10:02+08:00: 新增有限测试流、统一模型/基线评价脚本和大规模扰动区分指标的有界抽样；本地测试38项通过、8项已知依赖跳过，提交`66005f6`已推送。远端一次性评价作业已启动，仍需等待其完成并下载紧凑JSON结果。
 - 2026-09-09T11:26+08:00: 远端一次性评价作业仍在后台运行，未生成最终JSON；记录进程、I/O和GPU归属，确认未发生测试泄漏、模型重训或检查点变更。
 - 2026-09-09T12:34+08:00: 远端封存测试集评价完成，结果下载为`research/state_d2/d2_state_test_evaluation.json`。共1,793个基因×背景测试组合、57,376个测试细胞；六个Scratch/Transfer检查点均完成统一评价。最佳简单基线为`condition_mean`（伪总体Pearson 0.999985、MAE 0.183522）；六个STATE模型Pearson为0.999496–0.999696、MAE为0.217425–0.219921，均未达到预注册全局闸门，且相对基线MAE恶化约18.5%–19.8%。扰动区分指标均为1.0；`MODEL_STATE_VALID`仍为`NOT_EVALUABLE`，谱系程序方向仅作内部诊断，不能宣称谱系转换。
-- 2026-09-09T12:44+08:00: 新增`scripts/summarize_state_d2_evaluation.py`，从封存评价JSON生成三种子均值、标准差、20,000次固定百分位自助法95%区间、背景分层、程序诊断、基线比较和闸门汇总；生成`research/state_d2/d2_state_final_summary.v1.json`与`D2_STATE_FINAL_REPORT.md`，并新增根目录`README.md`、更新`README_PIPELINE.md`。待运行测试后提交推送。
+- 2026-09-09T12:45+08:00: 新增`scripts/summarize_state_d2_evaluation.py`，从封存评价JSON生成三种子均值、标准差、20,000次固定百分位自助法95%区间、背景分层、程序诊断、基线比较和闸门汇总；生成`research/state_d2/d2_state_final_summary.v1.json`与`D2_STATE_FINAL_REPORT.md`，并新增根目录`README.md`、更新`README_PIPELINE.md`。脚本重复运行结果哈希稳定；本地`PYTHONPATH=.;src python -m pytest -q`为38通过、8跳过，代码检查通过，提交`434c0ff`已推送。
 
 - 2026-09-06T20:24+08:00: 提交并推送`83c4f3c`，修正正式模型合同、Scratch/Transfer阶段语义和可恢复检查点；远端e3_pipeline为38项通过、3项因无PyTorch跳过，e3_state直接优化断言全部通过。重新生成v2合同，正式模型配置哈希为`a182832b1d3ab5f3e8494e55e61f7c572dfa97812fd5be26f84342ec6bf3469a`；尚未启动模型训练。
 
