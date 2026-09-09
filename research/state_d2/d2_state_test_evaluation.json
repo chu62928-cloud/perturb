@@ -1,0 +1,1090 @@
+{
+  "version": "d2_state_test_evaluation.v1",
+  "evaluation_scope": "D2_test_gene_x_background_holdout",
+  "test_responses_used": true,
+  "test_stream_seed": 20260909,
+  "test_records": 1793,
+  "test_cells": 57376,
+  "gene_order_hash": "810bed53174adcb51c80b39f00f28a4ac9031ae0e0b1ef7a47a4f7c33b7b1e99",
+  "perturbation_vocab_hash": "5c2c29e7f512f0cdf9fdf2ef31a3afeee8b286c76385f622bfe5e6f9065e7cc5",
+  "split_hash": "6debd4dbad36bccc22e47041a1c8461710ecfe5d715d0599740be4f8b809e84b",
+  "finite_test_record_hash": "a3ae5daf047e902038a15abafdbcdaed0b2f608e335bbcb3ee0a4e7bbf4206b4",
+  "baseline_alpha_selection": {
+    "candidates": {
+      "0.001": 0.20403026044368744,
+      "0.01": 0.20403026044368744,
+      "0.1": 0.20403026044368744,
+      "1.0": 0.20403026044368744,
+      "10.0": 0.20403039455413818
+    },
+    "selected": 0.001,
+    "selection_split": "validation",
+    "fit_split": "train"
+  },
+  "baseline_results": {
+    "no_change": {
+      "pseudobulk_pearson": 0.9984838329587165,
+      "perturbation_discrimination": 1.0,
+      "summary": {
+        "rmse": 0.5303138855399951,
+        "standardized_rmse": 1.170890116396409,
+        "mae": 0.2220778293586664,
+        "direction_accuracy": 0.8449828325432236,
+        "n": 114752000
+      },
+      "distribution": {
+        "mean_gap": 0.8678245350820077,
+        "variance_gap": 1.0801571060631256,
+        "sliced_wasserstein": 0.027251567465035473
+      },
+      "distribution_sample_n": 10000,
+      "by_condition": {
+        "Rest": {
+          "n": 18624,
+          "pseudobulk_pearson": 0.9969165764188789,
+          "summary": {
+            "rmse": 0.5126785880246244,
+            "standardized_rmse": 1.5236727854035341,
+            "mae": 0.20859429728540574,
+            "direction_accuracy": 0.8538077749140893,
+            "n": 37248000
+          }
+        },
+        "Stim48hr": {
+          "n": 19904,
+          "pseudobulk_pearson": 0.9960595130042323,
+          "summary": {
+            "rmse": 0.5779909212022268,
+            "standardized_rmse": 1.2024018859604766,
+            "mae": 0.2537425179321714,
+            "direction_accuracy": 0.8297335962620579,
+            "n": 39808000
+          }
+        },
+        "Stim8hr": {
+          "n": 18848,
+          "pseudobulk_pearson": 0.9971806407632972,
+          "summary": {
+            "rmse": 0.4935650917521277,
+            "standardized_rmse": 1.1149030763042795,
+            "mae": 0.20196234442474037,
+            "direction_accuracy": 0.8523663783955857,
+            "n": 37696000
+          }
+        }
+      },
+      "model": "no_change"
+    },
+    "condition_mean": {
+      "pseudobulk_pearson": 0.999985311317604,
+      "perturbation_discrimination": 0.662,
+      "summary": {
+        "rmse": 0.37242359511225237,
+        "standardized_rmse": 0.8598887468482649,
+        "mae": 0.18352221719145667,
+        "direction_accuracy": 0.2538982065672058,
+        "n": 114752000
+      },
+      "distribution": {
+        "mean_gap": 0.18083164388993755,
+        "variance_gap": 11.094485136861111,
+        "sliced_wasserstein": 0.20857126792783853
+      },
+      "distribution_sample_n": 10000,
+      "by_condition": {
+        "Rest": {
+          "n": 18624,
+          "pseudobulk_pearson": 0.9999649267854627,
+          "summary": {
+            "rmse": 0.36162272025323816,
+            "standardized_rmse": 0.8328019832047222,
+            "mae": 0.1762517069082188,
+            "direction_accuracy": 0.2575417740549828,
+            "n": 37248000
+          }
+        },
+        "Stim48hr": {
+          "n": 19904,
+          "pseudobulk_pearson": 0.999950330379246,
+          "summary": {
+            "rmse": 0.4029502445536514,
+            "standardized_rmse": 0.8735401132352507,
+            "mae": 0.20732397571915684,
+            "direction_accuracy": 0.24317031752411575,
+            "n": 39808000
+          }
+        },
+        "Stim8hr": {
+          "n": 18848,
+          "pseudobulk_pearson": 0.9999635609616203,
+          "summary": {
+            "rmse": 0.34862264381337,
+            "standardized_rmse": 0.8310031296066729,
+            "mae": 0.16557101715854483,
+            "direction_accuracy": 0.26162688348896435,
+            "n": 37696000
+          }
+        }
+      },
+      "model": "condition_mean"
+    },
+    "perturbation_mean": {
+      "pseudobulk_pearson": 0.9998949946453182,
+      "perturbation_discrimination": 0.9998,
+      "summary": {
+        "rmse": 0.4703029079626021,
+        "standardized_rmse": 0.9504111094335982,
+        "mae": 0.2346725847529383,
+        "direction_accuracy": 0.6683897709843837,
+        "n": 114752000
+      },
+      "distribution": {
+        "mean_gap": 0.23741971735448994,
+        "variance_gap": 13.10111696788785,
+        "sliced_wasserstein": 0.2314260588870086
+      },
+      "distribution_sample_n": 10000,
+      "by_condition": {
+        "Rest": {
+          "n": 18624,
+          "pseudobulk_pearson": 0.6272594839355932,
+          "summary": {
+            "rmse": 0.4882103428110041,
+            "standardized_rmse": 1.3941761615838886,
+            "mae": 0.24615582722443863,
+            "direction_accuracy": 0.6525714132302406,
+            "n": 37248000
+          }
+        },
+        "Stim48hr": {
+          "n": 19904,
+          "pseudobulk_pearson": 0.7972888287511134,
+          "summary": {
+            "rmse": 0.47467459367713416,
+            "standardized_rmse": 1.0271414984078338,
+            "mae": 0.23485127387322616,
+            "direction_accuracy": 0.6943240052250804,
+            "n": 39808000
+          }
+        },
+        "Stim8hr": {
+          "n": 18848,
+          "pseudobulk_pearson": 0.7286137427360568,
+          "summary": {
+            "rmse": 0.4470589482430136,
+            "standardized_rmse": 1.1432372396434438,
+            "mae": 0.2231371148866697,
+            "direction_accuracy": 0.656632878820034,
+            "n": 37696000
+          }
+        }
+      },
+      "model": "perturbation_mean"
+    },
+    "low_rank_linear_residual": {
+      "pseudobulk_pearson": 0.9999506313603049,
+      "perturbation_discrimination": 1.0,
+      "summary": {
+        "rmse": 0.40228423460179386,
+        "standardized_rmse": 0.8886051409985026,
+        "mae": 0.20469943014047376,
+        "direction_accuracy": 0.19116561802844395,
+        "n": 114752000
+      },
+      "distribution": {
+        "mean_gap": 0.1903952644249487,
+        "variance_gap": 13.055538549108615,
+        "sliced_wasserstein": 0.23308387779114498
+      },
+      "distribution_sample_n": 10000,
+      "by_condition": {
+        "Rest": {
+          "n": 18624,
+          "pseudobulk_pearson": 0.9342488761796623,
+          "summary": {
+            "rmse": 0.39448368052985305,
+            "standardized_rmse": 0.9826701253275592,
+            "mae": 0.20459774452146345,
+            "direction_accuracy": 0.17404241838487972,
+            "n": 37248000
+          }
+        },
+        "Stim48hr": {
+          "n": 19904,
+          "pseudobulk_pearson": 0.9604587255131857,
+          "summary": {
+            "rmse": 0.42999144192555105,
+            "standardized_rmse": 0.9185317999986654,
+            "mae": 0.21844510160636116,
+            "direction_accuracy": 0.20817076969453377,
+            "n": 39808000
+          }
+        },
+        "Stim8hr": {
+          "n": 18848,
+          "pseudobulk_pearson": 0.9451156928530147,
+          "summary": {
+            "rmse": 0.37897486500346383,
+            "standardized_rmse": 0.9112129117686459,
+            "mae": 0.190284104806827,
+            "direction_accuracy": 0.190127414049236,
+            "n": 37696000
+          }
+        }
+      },
+      "model": "low_rank_linear_residual"
+    }
+  },
+  "best_baseline": "condition_mean",
+  "models": {
+    "Scratch_seed_20260901": {
+      "pseudobulk_pearson": 0.9996920527359113,
+      "perturbation_discrimination": 1.0,
+      "summary": {
+        "rmse": 0.517413751582611,
+        "standardized_rmse": 1.0777952421471813,
+        "mae": 0.2197029475806463,
+        "direction_accuracy": 0.8397031860011155,
+        "n": 114752000
+      },
+      "distribution": {
+        "mean_gap": 0.4039245531604733,
+        "variance_gap": 0.6553126856223737,
+        "sliced_wasserstein": 0.104888927242552
+      },
+      "distribution_sample_n": 10000,
+      "by_condition": {
+        "Rest": {
+          "n": 18624,
+          "pseudobulk_pearson": 0.999610971106358,
+          "summary": {
+            "rmse": 0.5025027091994714,
+            "standardized_rmse": 1.0678945119127428,
+            "mae": 0.20715389609210666,
+            "direction_accuracy": 0.8452729274054983,
+            "n": 37248000
+          }
+        },
+        "Stim48hr": {
+          "n": 19904,
+          "pseudobulk_pearson": 0.9995185503411435,
+          "summary": {
+            "rmse": 0.5607529929107299,
+            "standardized_rmse": 1.1141487906659853,
+            "mae": 0.25034512337570675,
+            "direction_accuracy": 0.8262550241157556,
+            "n": 39808000
+          }
+        },
+        "Stim8hr": {
+          "n": 18848,
+          "pseudobulk_pearson": 0.9996024055441358,
+          "summary": {
+            "rmse": 0.483114232238471,
+            "standardized_rmse": 1.0682007722343712,
+            "mae": 0.19974388921358763,
+            "direction_accuracy": 0.8484012627334465,
+            "n": 37696000
+          }
+        }
+      },
+      "baseline": {
+        "pseudobulk_pearson": 0.999985311317604,
+        "summary": {
+          "rmse": 0.37242359511225237,
+          "standardized_rmse": 0.8598887468482649,
+          "mae": 0.18352221719145667,
+          "direction_accuracy": 0.2538982065672058,
+          "n": 114752000
+        },
+        "distribution": {
+          "mean_gap": 0.08228719788946919,
+          "variance_gap": 11.143350591771831,
+          "sliced_wasserstein": 0.20858424579185647
+        }
+      },
+      "relative_mae_improvement": -0.19714632344183514,
+      "model": "Scratch_seed_20260901",
+      "bootstrap_mae_improvement": {
+        "estimate": -0.19742198346713746,
+        "lower": -0.19899406423448276,
+        "median": -0.19744214781674457,
+        "upper": -0.19579943038122377,
+        "n_boot": 1000,
+        "scope": "D2_test_gene_x_condition_cell_sets",
+        "levels": 2
+      },
+      "program_direction": {
+        "Naive": {
+          "n_genes": 5,
+          "n_records": 1793,
+          "accuracy": 0.8025655326268823,
+          "genes": [
+            "TCF7",
+            "LEF1",
+            "CCR7",
+            "SELL",
+            "MAL"
+          ]
+        },
+        "Th1": {
+          "n_genes": 3,
+          "n_records": 1793,
+          "accuracy": 0.7702175125488009,
+          "genes": [
+            "TBX21",
+            "IL12RB2",
+            "CXCR3"
+          ]
+        },
+        "Th2": {
+          "n_genes": 2,
+          "n_records": 1793,
+          "accuracy": 0.7847183491355271,
+          "genes": [
+            "CCR4",
+            "PTGDR2"
+          ]
+        },
+        "Th17": {
+          "n_genes": 2,
+          "n_records": 1000,
+          "accuracy": 0.797,
+          "genes": [
+            "RORC",
+            "CCR6"
+          ]
+        }
+      },
+      "test_records": 1793,
+      "test_cells": 57376,
+      "evaluation_scope": "D2_test_gene_x_background_holdout",
+      "checkpoint": "development_D2_v2/research/state_d2/training/Scratch/seed_20260901/best.ckpt",
+      "best_baseline": "condition_mean",
+      "gate": {
+        "checks": {
+          "pearson_absolute_improvement_at_least_0_05": false,
+          "bootstrap_mae_improvement_lower_bound_positive": false,
+          "discrimination_drop_at_most_0_02": true,
+          "mae_not_worse_than_10_percent": false,
+          "ntc_test_available": false
+        },
+        "global_pass": false,
+        "relative_best_baseline": "condition_mean",
+        "pearson_delta": -0.00029325858169271246,
+        "mae_ratio": 1.1971463234418351,
+        "discrimination_delta": 0.33799999999999997,
+        "ntc_error": null,
+        "note": "测试划分不含NTC响应，因此NTC零效应闸门本轮记为不可用，不以缺失当作通过。"
+      }
+    },
+    "Scratch_seed_20260902": {
+      "pseudobulk_pearson": 0.9995617084707706,
+      "perturbation_discrimination": 1.0,
+      "summary": {
+        "rmse": 0.51625029967145,
+        "standardized_rmse": 1.0803216841642853,
+        "mae": 0.219430447673073,
+        "direction_accuracy": 0.8398330225181261,
+        "n": 114752000
+      },
+      "distribution": {
+        "mean_gap": 0.5050859015051836,
+        "variance_gap": 0.7009535921907496,
+        "sliced_wasserstein": 0.12278763458844424
+      },
+      "distribution_sample_n": 10000,
+      "by_condition": {
+        "Rest": {
+          "n": 18624,
+          "pseudobulk_pearson": 0.9995456267091728,
+          "summary": {
+            "rmse": 0.502588085509811,
+            "standardized_rmse": 1.0648624364292363,
+            "mae": 0.2070438052057962,
+            "direction_accuracy": 0.8461466655927835,
+            "n": 37248000
+          }
+        },
+        "Stim48hr": {
+          "n": 19904,
+          "pseudobulk_pearson": 0.9992664604897771,
+          "summary": {
+            "rmse": 0.5581183822567309,
+            "standardized_rmse": 1.112685006663555,
+            "mae": 0.24939438243772394,
+            "direction_accuracy": 0.8264098171221865,
+            "n": 39808000
+          }
+        },
+        "Stim8hr": {
+          "n": 18848,
+          "pseudobulk_pearson": 0.9994340430897074,
+          "summary": {
+            "rmse": 0.4824588843511929,
+            "standardized_rmse": 1.07249898293524,
+            "mae": 0.2000271513952158,
+            "direction_accuracy": 0.8477696837860781,
+            "n": 37696000
+          }
+        }
+      },
+      "baseline": {
+        "pseudobulk_pearson": 0.999985311317604,
+        "summary": {
+          "rmse": 0.37242359511225237,
+          "standardized_rmse": 0.8598887468482649,
+          "mae": 0.18352221719145667,
+          "direction_accuracy": 0.2538982065672058,
+          "n": 114752000
+        },
+        "distribution": {
+          "mean_gap": 0.08228719788946919,
+          "variance_gap": 11.143350591771831,
+          "sliced_wasserstein": 0.20858424579185647
+        }
+      },
+      "relative_mae_improvement": -0.19566149009716693,
+      "model": "Scratch_seed_20260902",
+      "bootstrap_mae_improvement": {
+        "estimate": -0.1961721802907919,
+        "lower": -0.1977818715491317,
+        "median": -0.1961446207550992,
+        "upper": -0.19454140530823166,
+        "n_boot": 1000,
+        "scope": "D2_test_gene_x_condition_cell_sets",
+        "levels": 2
+      },
+      "program_direction": {
+        "Naive": {
+          "n_genes": 5,
+          "n_records": 1793,
+          "accuracy": 0.7975460122699386,
+          "genes": [
+            "TCF7",
+            "LEF1",
+            "CCR7",
+            "SELL",
+            "MAL"
+          ]
+        },
+        "Th1": {
+          "n_genes": 3,
+          "n_records": 1793,
+          "accuracy": 0.7718906860011154,
+          "genes": [
+            "TBX21",
+            "IL12RB2",
+            "CXCR3"
+          ]
+        },
+        "Th2": {
+          "n_genes": 2,
+          "n_records": 1793,
+          "accuracy": 0.7718906860011154,
+          "genes": [
+            "CCR4",
+            "PTGDR2"
+          ]
+        },
+        "Th17": {
+          "n_genes": 2,
+          "n_records": 1000,
+          "accuracy": 0.796,
+          "genes": [
+            "RORC",
+            "CCR6"
+          ]
+        }
+      },
+      "test_records": 1793,
+      "test_cells": 57376,
+      "evaluation_scope": "D2_test_gene_x_background_holdout",
+      "checkpoint": "development_D2_v2/research/state_d2/training/Scratch/seed_20260902/best.ckpt",
+      "best_baseline": "condition_mean",
+      "gate": {
+        "checks": {
+          "pearson_absolute_improvement_at_least_0_05": false,
+          "bootstrap_mae_improvement_lower_bound_positive": false,
+          "discrimination_drop_at_most_0_02": true,
+          "mae_not_worse_than_10_percent": false,
+          "ntc_test_available": false
+        },
+        "global_pass": false,
+        "relative_best_baseline": "condition_mean",
+        "pearson_delta": -0.0004236028468334041,
+        "mae_ratio": 1.195661490097167,
+        "discrimination_delta": 0.33799999999999997,
+        "ntc_error": null,
+        "note": "测试划分不含NTC响应，因此NTC零效应闸门本轮记为不可用，不以缺失当作通过。"
+      }
+    },
+    "Scratch_seed_20260903": {
+      "pseudobulk_pearson": 0.9995826276010242,
+      "perturbation_discrimination": 1.0,
+      "summary": {
+        "rmse": 0.5162700475060346,
+        "standardized_rmse": 1.0800405446459684,
+        "mae": 0.2190583778984843,
+        "direction_accuracy": 0.8401074142498606,
+        "n": 114752000
+      },
+      "distribution": {
+        "mean_gap": 0.5136375473684945,
+        "variance_gap": 0.6701908800472406,
+        "sliced_wasserstein": 0.11171526484610517
+      },
+      "distribution_sample_n": 10000,
+      "by_condition": {
+        "Rest": {
+          "n": 18624,
+          "pseudobulk_pearson": 0.9995262975398599,
+          "summary": {
+            "rmse": 0.5010101501431526,
+            "standardized_rmse": 1.0672933444656354,
+            "mae": 0.2063909062888711,
+            "direction_accuracy": 0.8460262027491409,
+            "n": 37248000
+          }
+        },
+        "Stim48hr": {
+          "n": 19904,
+          "pseudobulk_pearson": 0.999364049234878,
+          "summary": {
+            "rmse": 0.5611172901713579,
+            "standardized_rmse": 1.1192042883904634,
+            "mae": 0.2501262288225731,
+            "direction_accuracy": 0.8266237690916399,
+            "n": 39808000
+          }
+        },
+        "Stim8hr": {
+          "n": 18848,
+          "pseudobulk_pearson": 0.999522292072313,
+          "summary": {
+            "rmse": 0.4804673754418643,
+            "standardized_rmse": 1.0666405956992646,
+            "mae": 0.1987668077830542,
+            "direction_accuracy": 0.8484980634550084,
+            "n": 37696000
+          }
+        }
+      },
+      "baseline": {
+        "pseudobulk_pearson": 0.999985311317604,
+        "summary": {
+          "rmse": 0.37242359511225237,
+          "standardized_rmse": 0.8598887468482649,
+          "mae": 0.18352221719145667,
+          "direction_accuracy": 0.2538982065672058,
+          "n": 114752000
+        },
+        "distribution": {
+          "mean_gap": 0.08228719788946919,
+          "variance_gap": 11.143350591771831,
+          "sliced_wasserstein": 0.20858424579185647
+        }
+      },
+      "relative_mae_improvement": -0.1936341073623533,
+      "model": "Scratch_seed_20260903",
+      "bootstrap_mae_improvement": {
+        "estimate": -0.19373487781271587,
+        "lower": -0.19533301840678863,
+        "median": -0.19378902969598802,
+        "upper": -0.19211179590527697,
+        "n_boot": 1000,
+        "scope": "D2_test_gene_x_condition_cell_sets",
+        "levels": 2
+      },
+      "program_direction": {
+        "Naive": {
+          "n_genes": 5,
+          "n_records": 1793,
+          "accuracy": 0.7869492470719465,
+          "genes": [
+            "TCF7",
+            "LEF1",
+            "CCR7",
+            "SELL",
+            "MAL"
+          ]
+        },
+        "Th1": {
+          "n_genes": 3,
+          "n_records": 1793,
+          "accuracy": 0.7562744004461796,
+          "genes": [
+            "TBX21",
+            "IL12RB2",
+            "CXCR3"
+          ]
+        },
+        "Th2": {
+          "n_genes": 2,
+          "n_records": 1793,
+          "accuracy": 0.762409369771333,
+          "genes": [
+            "CCR4",
+            "PTGDR2"
+          ]
+        },
+        "Th17": {
+          "n_genes": 2,
+          "n_records": 1000,
+          "accuracy": 0.778,
+          "genes": [
+            "RORC",
+            "CCR6"
+          ]
+        }
+      },
+      "test_records": 1793,
+      "test_cells": 57376,
+      "evaluation_scope": "D2_test_gene_x_background_holdout",
+      "checkpoint": "development_D2_v2/research/state_d2/training/Scratch/seed_20260903/best.ckpt",
+      "best_baseline": "condition_mean",
+      "gate": {
+        "checks": {
+          "pearson_absolute_improvement_at_least_0_05": false,
+          "bootstrap_mae_improvement_lower_bound_positive": false,
+          "discrimination_drop_at_most_0_02": true,
+          "mae_not_worse_than_10_percent": false,
+          "ntc_test_available": false
+        },
+        "global_pass": false,
+        "relative_best_baseline": "condition_mean",
+        "pearson_delta": -0.0004026837165798103,
+        "mae_ratio": 1.1936341073623533,
+        "discrimination_delta": 0.33799999999999997,
+        "ntc_error": null,
+        "note": "测试划分不含NTC响应，因此NTC零效应闸门本轮记为不可用，不以缺失当作通过。"
+      }
+    },
+    "Transfer_seed_20260901": {
+      "pseudobulk_pearson": 0.9996019545077327,
+      "perturbation_discrimination": 1.0,
+      "summary": {
+        "rmse": 0.5144326707377954,
+        "standardized_rmse": 1.4306235392901552,
+        "mae": 0.21759067657374015,
+        "direction_accuracy": 0.8373272186977133,
+        "n": 114752000
+      },
+      "distribution": {
+        "mean_gap": 0.4868579829102954,
+        "variance_gap": 0.8849654774935197,
+        "sliced_wasserstein": 0.09952784555181489
+      },
+      "distribution_sample_n": 10000,
+      "by_condition": {
+        "Rest": {
+          "n": 18624,
+          "pseudobulk_pearson": 0.9993503956526476,
+          "summary": {
+            "rmse": 0.5018088440104803,
+            "standardized_rmse": 1.2831921950390097,
+            "mae": 0.20587473907256967,
+            "direction_accuracy": 0.8448855777491409,
+            "n": 37248000
+          }
+        },
+        "Stim48hr": {
+          "n": 19904,
+          "pseudobulk_pearson": 0.9991467207596426,
+          "summary": {
+            "rmse": 0.5565696719159727,
+            "standardized_rmse": 1.308077103799104,
+            "mae": 0.2477134822493725,
+            "direction_accuracy": 0.8223042855707395,
+            "n": 39808000
+          }
+        },
+        "Stim8hr": {
+          "n": 18848,
+          "pseudobulk_pearson": 0.9994461296349323,
+          "summary": {
+            "rmse": 0.47922864807040944,
+            "standardized_rmse": 1.0470687430911094,
+            "mae": 0.19735687435886384,
+            "direction_accuracy": 0.8457233128183361,
+            "n": 37696000
+          }
+        }
+      },
+      "baseline": {
+        "pseudobulk_pearson": 0.999985311317604,
+        "summary": {
+          "rmse": 0.37242359511225237,
+          "standardized_rmse": 0.8598887468482649,
+          "mae": 0.18352221719145667,
+          "direction_accuracy": 0.2538982065672058,
+          "n": 114752000
+        },
+        "distribution": {
+          "mean_gap": 0.08228719788946919,
+          "variance_gap": 11.143350591771831,
+          "sliced_wasserstein": 0.20858424579185647
+        }
+      },
+      "relative_mae_improvement": -0.1856367033030235,
+      "model": "Transfer_seed_20260901",
+      "bootstrap_mae_improvement": {
+        "estimate": -0.18589791987729906,
+        "lower": -0.18766558109688702,
+        "median": -0.18590362474975336,
+        "upper": -0.18421201320070962,
+        "n_boot": 1000,
+        "scope": "D2_test_gene_x_condition_cell_sets",
+        "levels": 2
+      },
+      "program_direction": {
+        "Naive": {
+          "n_genes": 5,
+          "n_records": 1793,
+          "accuracy": 0.7568321249302844,
+          "genes": [
+            "TCF7",
+            "LEF1",
+            "CCR7",
+            "SELL",
+            "MAL"
+          ]
+        },
+        "Th1": {
+          "n_genes": 3,
+          "n_records": 1793,
+          "accuracy": 0.7423312883435583,
+          "genes": [
+            "TBX21",
+            "IL12RB2",
+            "CXCR3"
+          ]
+        },
+        "Th2": {
+          "n_genes": 2,
+          "n_records": 1793,
+          "accuracy": 0.7367540435025097,
+          "genes": [
+            "CCR4",
+            "PTGDR2"
+          ]
+        },
+        "Th17": {
+          "n_genes": 2,
+          "n_records": 1000,
+          "accuracy": 0.612,
+          "genes": [
+            "RORC",
+            "CCR6"
+          ]
+        }
+      },
+      "test_records": 1793,
+      "test_cells": 57376,
+      "evaluation_scope": "D2_test_gene_x_background_holdout",
+      "checkpoint": "development_D2_v2/research/state_d2/training/Transfer/seed_20260901/best.ckpt",
+      "best_baseline": "condition_mean",
+      "gate": {
+        "checks": {
+          "pearson_absolute_improvement_at_least_0_05": false,
+          "bootstrap_mae_improvement_lower_bound_positive": false,
+          "discrimination_drop_at_most_0_02": true,
+          "mae_not_worse_than_10_percent": false,
+          "ntc_test_available": false
+        },
+        "global_pass": false,
+        "relative_best_baseline": "condition_mean",
+        "pearson_delta": -0.000383356809871338,
+        "mae_ratio": 1.1856367033030235,
+        "discrimination_delta": 0.33799999999999997,
+        "ntc_error": null,
+        "note": "测试划分不含NTC响应，因此NTC零效应闸门本轮记为不可用，不以缺失当作通过。"
+      }
+    },
+    "Transfer_seed_20260902": {
+      "pseudobulk_pearson": 0.9994957296381385,
+      "perturbation_discrimination": 1.0,
+      "summary": {
+        "rmse": 0.5151210526512855,
+        "standardized_rmse": 1.0597649081610414,
+        "mae": 0.2174248412862006,
+        "direction_accuracy": 0.8365259690462912,
+        "n": 114752000
+      },
+      "distribution": {
+        "mean_gap": 0.6548843109255715,
+        "variance_gap": 0.7754581741284599,
+        "sliced_wasserstein": 0.10164604483018427
+      },
+      "distribution_sample_n": 10000,
+      "by_condition": {
+        "Rest": {
+          "n": 18624,
+          "pseudobulk_pearson": 0.9989576917577585,
+          "summary": {
+            "rmse": 0.5013391156114004,
+            "standardized_rmse": 1.0495878540697285,
+            "mae": 0.20545071084967745,
+            "direction_accuracy": 0.8435093696305842,
+            "n": 37248000
+          }
+        },
+        "Stim48hr": {
+          "n": 19904,
+          "pseudobulk_pearson": 0.9993660146286998,
+          "summary": {
+            "rmse": 0.5586648975155778,
+            "standardized_rmse": 1.096310006845502,
+            "mae": 0.24753205353511978,
+            "direction_accuracy": 0.8223781903135048,
+            "n": 39808000
+          }
+        },
+        "Stim8hr": {
+          "n": 18848,
+          "pseudobulk_pearson": 0.9995645716400571,
+          "summary": {
+            "rmse": 0.4793908454916502,
+            "standardized_rmse": 1.0470614697531568,
+            "mae": 0.19746263058200492,
+            "direction_accuracy": 0.8445660016977928,
+            "n": 37696000
+          }
+        }
+      },
+      "baseline": {
+        "pseudobulk_pearson": 0.999985311317604,
+        "summary": {
+          "rmse": 0.37242359511225237,
+          "standardized_rmse": 0.8598887468482649,
+          "mae": 0.18352221719145667,
+          "direction_accuracy": 0.2538982065672058,
+          "n": 114752000
+        },
+        "distribution": {
+          "mean_gap": 0.08228719788946919,
+          "variance_gap": 11.143350591771831,
+          "sliced_wasserstein": 0.20858424579185647
+        }
+      },
+      "relative_mae_improvement": -0.18473307817208617,
+      "model": "Transfer_seed_20260902",
+      "bootstrap_mae_improvement": {
+        "estimate": -0.18501676177037854,
+        "lower": -0.1868061203379001,
+        "median": -0.1849812737365858,
+        "upper": -0.18328458141944967,
+        "n_boot": 1000,
+        "scope": "D2_test_gene_x_condition_cell_sets",
+        "levels": 2
+      },
+      "program_direction": {
+        "Naive": {
+          "n_genes": 5,
+          "n_records": 1793,
+          "accuracy": 0.7757947573898494,
+          "genes": [
+            "TCF7",
+            "LEF1",
+            "CCR7",
+            "SELL",
+            "MAL"
+          ]
+        },
+        "Th1": {
+          "n_genes": 3,
+          "n_records": 1793,
+          "accuracy": 0.7417735638594535,
+          "genes": [
+            "TBX21",
+            "IL12RB2",
+            "CXCR3"
+          ]
+        },
+        "Th2": {
+          "n_genes": 2,
+          "n_records": 1793,
+          "accuracy": 0.7412158393753486,
+          "genes": [
+            "CCR4",
+            "PTGDR2"
+          ]
+        },
+        "Th17": {
+          "n_genes": 2,
+          "n_records": 1000,
+          "accuracy": 0.593,
+          "genes": [
+            "RORC",
+            "CCR6"
+          ]
+        }
+      },
+      "test_records": 1793,
+      "test_cells": 57376,
+      "evaluation_scope": "D2_test_gene_x_background_holdout",
+      "checkpoint": "development_D2_v2/research/state_d2/training/Transfer/seed_20260902/best.ckpt",
+      "best_baseline": "condition_mean",
+      "gate": {
+        "checks": {
+          "pearson_absolute_improvement_at_least_0_05": false,
+          "bootstrap_mae_improvement_lower_bound_positive": false,
+          "discrimination_drop_at_most_0_02": true,
+          "mae_not_worse_than_10_percent": false,
+          "ntc_test_available": false
+        },
+        "global_pass": false,
+        "relative_best_baseline": "condition_mean",
+        "pearson_delta": -0.0004895816794655561,
+        "mae_ratio": 1.1847330781720862,
+        "discrimination_delta": 0.33799999999999997,
+        "ntc_error": null,
+        "note": "测试划分不含NTC响应，因此NTC零效应闸门本轮记为不可用，不以缺失当作通过。"
+      }
+    },
+    "Transfer_seed_20260903": {
+      "pseudobulk_pearson": 0.9996964691657488,
+      "perturbation_discrimination": 1.0,
+      "summary": {
+        "rmse": 0.5197978186083714,
+        "standardized_rmse": 1.070262332829684,
+        "mae": 0.21992139108438644,
+        "direction_accuracy": 0.8356053750697156,
+        "n": 114752000
+      },
+      "distribution": {
+        "mean_gap": 0.39377378627161524,
+        "variance_gap": 0.5432848488801134,
+        "sliced_wasserstein": 0.10799100708229178
+      },
+      "distribution_sample_n": 10000,
+      "by_condition": {
+        "Rest": {
+          "n": 18624,
+          "pseudobulk_pearson": 0.9994662788780004,
+          "summary": {
+            "rmse": 0.507249518825521,
+            "standardized_rmse": 1.0696193922937471,
+            "mae": 0.20857066083005618,
+            "direction_accuracy": 0.8419714078608247,
+            "n": 37248000
+          }
+        },
+        "Stim48hr": {
+          "n": 19904,
+          "pseudobulk_pearson": 0.9994719143507356,
+          "summary": {
+            "rmse": 0.5628695538909023,
+            "standardized_rmse": 1.1059622169552645,
+            "mae": 0.2501681600203788,
+            "direction_accuracy": 0.8220711917202572,
+            "n": 39808000
+          }
+        },
+        "Stim8hr": {
+          "n": 18848,
+          "pseudobulk_pearson": 0.9996441972300557,
+          "summary": {
+            "rmse": 0.48340383128539555,
+            "standardized_rmse": 1.0650041459328268,
+            "mae": 0.19919581337612327,
+            "direction_accuracy": 0.8436074649830221,
+            "n": 37696000
+          }
+        }
+      },
+      "baseline": {
+        "pseudobulk_pearson": 0.999985311317604,
+        "summary": {
+          "rmse": 0.37242359511225237,
+          "standardized_rmse": 0.8598887468482649,
+          "mae": 0.18352221719145667,
+          "direction_accuracy": 0.2538982065672058,
+          "n": 114752000
+        },
+        "distribution": {
+          "mean_gap": 0.08228719788946919,
+          "variance_gap": 11.143350591771831,
+          "sliced_wasserstein": 0.20858424579185647
+        }
+      },
+      "relative_mae_improvement": -0.19833660714199475,
+      "model": "Transfer_seed_20260903",
+      "bootstrap_mae_improvement": {
+        "estimate": -0.19860185399673475,
+        "lower": -0.20045002570639722,
+        "median": -0.19865055331031367,
+        "upper": -0.19686298068744612,
+        "n_boot": 1000,
+        "scope": "D2_test_gene_x_condition_cell_sets",
+        "levels": 2
+      },
+      "program_direction": {
+        "Naive": {
+          "n_genes": 5,
+          "n_records": 1793,
+          "accuracy": 0.7757947573898494,
+          "genes": [
+            "TCF7",
+            "LEF1",
+            "CCR7",
+            "SELL",
+            "MAL"
+          ]
+        },
+        "Th1": {
+          "n_genes": 3,
+          "n_records": 1793,
+          "accuracy": 0.7601784718349136,
+          "genes": [
+            "TBX21",
+            "IL12RB2",
+            "CXCR3"
+          ]
+        },
+        "Th2": {
+          "n_genes": 2,
+          "n_records": 1793,
+          "accuracy": 0.7373117679866146,
+          "genes": [
+            "CCR4",
+            "PTGDR2"
+          ]
+        },
+        "Th17": {
+          "n_genes": 2,
+          "n_records": 1000,
+          "accuracy": 0.613,
+          "genes": [
+            "RORC",
+            "CCR6"
+          ]
+        }
+      },
+      "test_records": 1793,
+      "test_cells": 57376,
+      "evaluation_scope": "D2_test_gene_x_background_holdout",
+      "checkpoint": "development_D2_v2/research/state_d2/training/Transfer/seed_20260903/best.ckpt",
+      "best_baseline": "condition_mean",
+      "gate": {
+        "checks": {
+          "pearson_absolute_improvement_at_least_0_05": false,
+          "bootstrap_mae_improvement_lower_bound_positive": false,
+          "discrimination_drop_at_most_0_02": true,
+          "mae_not_worse_than_10_percent": false,
+          "ntc_test_available": false
+        },
+        "global_pass": false,
+        "relative_best_baseline": "condition_mean",
+        "pearson_delta": -0.00028884215185520645,
+        "mae_ratio": 1.1983366071419947,
+        "discrimination_delta": 0.33799999999999997,
+        "ntc_error": null,
+        "note": "测试划分不含NTC响应，因此NTC零效应闸门本轮记为不可用，不以缺失当作通过。"
+      }
+    }
+  },
+  "MODEL_STATE_VALID": "NOT_EVALUABLE",
+  "composition_and_sequential_planning": "NOT_STARTED",
+  "warning": "D2条件是生物背景，不是Naive/Th1/Th2/Th17标签；程序方向仅作内部诊断，不能宣称完成谱系转换。"
+}
