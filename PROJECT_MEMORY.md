@@ -2,7 +2,7 @@
 
 ## Last verified
 
-- 2026-09-09T23:50+08:00
+- 2026-09-10T10:46+08:00
 
 ## Objective
 
@@ -34,7 +34,8 @@
 - VERIFIED: 2026-09-09 已将重分析入口扩展为 A/B/C 三组对照：新版官方训练集基线、按历史 train+validation 规则重建的旧均值基线，以及六个冻结检查点；增加 PDS/Pearson 主指标的分层自助法证据和 `SUPPORTED/PARTIAL/NOT_SUPPORTED` 诊断。新增构造数据测试覆盖反向效应、条件均值的 PDS 退化和面板外靶基因排除规则。
 - VERIFIED: 2026-09-09 远端一次性重推理缓存已完成并通过元数据、形状、有限值和哈希核验；使用固定测试流种子 `20260909`、每条件128个训练部分 NTC 对照和每组合32个测试输入细胞。18个模型—条件预测文件及三种子六个检查点均未改变。
 - VERIFIED: 2026-09-09 远端 Cell-Eval 0.8.2 全部方法已完成，结果为 `research/state_d2/d2_state_cell_eval_reanalysis.v1.json`、`research/state_d2/D2_STATE_CELL_EVAL_REANALYSIS.md`。正式结果含11个方法、28项指标、1,793个测试组合；JSON严格解析且不含 NaN/Inf。修正后的扰动均值基线有明确的非负截断计数（Rest/Stim8hr/Stim48hr：6,758,913/6,720,367/6,423,652），没有改变模型或真实响应。
-- VERIFIED: 2026-09-09 官方指标重分析结论为 Scratch=`SUPPORTED`、Transfer=`SUPPORTED`：Scratch PDS-L1/Pearson Delta/PR-AUC 为 0.4183/0.5377/0.2262，Transfer 为 0.2550/0.4677/0.0992；两者相对校正条件均值和扰动均值在主要扰动特异性指标上均稳定领先。历史指标有效性固定为 `INVALID_FOR_STATE_COMPARISON`；总体表达误差仍不优于条件均值，`MODEL_STATE_VALID=NOT_EVALUABLE`。
+- VERIFIED: 2026-09-09 官方指标重分析结论为 Scratch=`SUPPORTED`、Transfer=`SUPPORTED`：Scratch PDS-L1/Pearson Delta/PR-AUC 为 0.4183/0.5377/0.2262，Transfer 为 0.2550/0.4677/0.0992；两者在主要扰动特异性指标上支持指标失配诊断。新版扰动伪总体宏平均 MAE 为 Scratch 0.03884、Transfer 0.04044、条件均值 0.04269；旧版细胞级微平均 MAE 则由条件均值领先，不能混用。历史指标有效性固定为 `INVALID_FOR_STATE_COMPARISON`，`MODEL_STATE_VALID=NOT_EVALUABLE`。
+- VERIFIED: 2026-09-10 新建根目录 `result.md` 作为实验结果总账，记录官方指标重分析、条件分层、已证实问题、待验证机制假设和科学边界。后续每次正式实验、失败诊断、协议变更或外部验证形成材料性结果时，必须事件驱动更新该文件；旧结果只可标记为已被取代，不得覆盖。
 - VERIFIED: 2026-09-09 远端 `e3_pipeline` 集成测试因该环境未安装 `cell_eval` 跳过；e3_state 已完成同一合成 Cell-Eval 0.8.2 冒烟验证，历史正式评价和新版评价文件均保留，不提交预测矩阵、AnnData、权重或缓存。
 - VERIFIED: 2026-09-06补齐正式HVG检测率审计。训练部分可用细胞数为Rest 1,727,344、Stim8hr 1,843,234、Stim48hr 1,813,531，总数与正式HVG的5,384,109一致；每个HVG统计含Ensembl ID和三条件检测率。最终面板的身份覆盖为Naive 5/5、Th1 3/3、Th2 2/3（缺GATA3，原始名次2073）、Th17 2/3（缺IL23R，原始名次2835）；两者因原始名次未差于5000而不触发强制替换，面板强制数为0。
 - VERIFIED: 2026-09-06新增`D2BatchStream`和`d2-train`入口。流按冻结的基因×背景划分抽取同条件NTC群体背景和扰动响应集合，支持Scratch/Transfer相同批大小64及两阶段优化；Transfer在官方检查点缺少可核实扰动名称时保持扰动投影随机初始化。正式入口已通过20步Scratch/Transfer冒烟，并完成种子20260901全量训练。
@@ -130,6 +131,7 @@
 - 本地详细实施方案：`perturb_implementation_plan.md`
 - 本地证据：`research/`
 - 本地连续性记录：`PROJECT_MEMORY.md`
+- 本地实验结果总账：`result.md`
 - 远端原始数据：`/root/autodl-tmp/CRISPR_perturb/`
 - 远端运行根目录：`/root/autodl-tmp/CRISPR_perturb_runtime/`
 - 远端流水线：`/root/autodl-tmp/CRISPR_perturb_runtime/pipeline/`
@@ -148,8 +150,8 @@
 
 ## Immediate continuation
 
-1. 复核 `research/state_d2/D2_STATE_FINAL_REPORT.md` 与 `d2_state_final_summary.v1.json`，保留本轮测试集、面板、词表、划分和检查点哈希作为不可变证据。
-2. 不根据测试结果调整模型、训练预算或划分；本轮不进入双扰动、序贯规划或组合搜索。若要尝试改进，必须先建立新的协议版本并重新完成完整训练和评价。
+1. 将 `result.md` 作为实验结果总账；每个材料性实验结果都同步更新其当前结论、独立实验记录和历史索引。
+2. 不根据当前测试结果调整模型、训练预算或划分；如要研究负迁移或选点指标不一致，先建立新协议，只用训练/验证部分完成消融与定参。
 3. 若继续扩展外部验证，先要求数据提供方修复或重新提供 `D4_Stim48hr.assigned_guide.h5ad`，并获取缺失的 `D3_Rest.assigned_guide.h5ad`；两者均须重新完成登记和完整 CSR 审计。
 4. 只有在新的模型或外部供者证据满足对应闸门后，才考虑 `match-composition → score-composition` 及序贯规划；当前保持 `MODEL_STATE_VALID=NOT_EVALUABLE`。
 
@@ -161,6 +163,8 @@
 - BLOCKED: D4_Stim48hr 在修复或重新下载前不能用于最终外部测试；D2开发角色、数据审计、划分和正式面板已冻结，不受该外部测试阻塞影响。
 
 ## Update history
+
+- 2026-09-10T10:46+08:00: 新建 `result.md` 实验结果总账并复核官方重分析机器结果。纠正“新版总体表达误差仍由条件均值领先”的混合口径表述：新版扰动伪总体宏平均 MAE 为 Scratch 0.03884、Transfer 0.04044、条件均值 0.04269；旧版细胞级微平均 MAE 才是条件均值领先。记录 Scratch 优于 Transfer、迁移基因仅重叠220个、扰动投影语义重叠为0、MMD选点与最终指标不一致等证据和假设；科学闸门不变。
 
 - 2026-09-07T15:08+08:00: 种子20260901的Scratch完成40,000步，Transfer在19,500步按验证MMD早停；结果已提交为`c5fdf60`，测试集仍封存。已启动种子20260902 Scratch，并设置完成后自动串联Transfer。
 

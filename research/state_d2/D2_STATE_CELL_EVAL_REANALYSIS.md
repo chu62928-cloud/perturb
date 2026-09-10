@@ -29,7 +29,7 @@
 - **A：历史自定义指标＋历史基线。** 历史全局 Pearson、非零距离区分指标和细胞级 MAE 仅作旧结果对照，不能解释为 STATE 论文指标。
 - **B：官方指标＋历史基线。** `old_condition_mean` 和 `old_perturbation_mean` 按旧版 train+validation 拟合规则单独重建，和新版指标并行计算。
 - **C：官方指标＋校正基线。** `condition_mean` 和 `perturbation_mean` 只使用训练部分，作为最终公平比较。
-- **结果：** Scratch 的 PDS-L1/Pearson Delta/PR-AUC 均值为 0.4183/0.5377/0.2262，Transfer 为 0.2550/0.4677/0.0992；两者相对校正基线在主要扰动特异性指标上均满足 `SUPPORTED`，但条件均值的总体表达误差仍较低。
+- **结果：** Scratch 的 PDS-L1/Pearson Delta/PR-AUC 均值为 0.4183/0.5377/0.2262，Transfer 为 0.2550/0.4677/0.0992；两者相对校正基线在主要扰动特异性指标上均满足 `SUPPORTED`。新版扰动伪总体宏平均 MAE 为 Scratch 0.03884、Transfer 0.04044、条件均值 0.04269；旧版细胞级微平均 MAE 则由条件均值领先，两套聚合口径不能混为同一个总体误差结论。
 - **原因判定：** 历史指标下条件均值领先，而官方指标与校正基线下两种 STATE 模式均稳定领先，因此本轮将“指标选择导致旧结论失真”标记为 `SUPPORTED`；这不等同于模型已通过真实细胞状态有效性验证。
 
 历史指标有效性固定为：`INVALID_FOR_STATE_COMPARISON`。
